@@ -1,0 +1,28 @@
+name: Check
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  asset-validation:
+    name: Asset validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate package publisher
+        run: |
+          bash -n tools/package-release.sh
+          test -s background/LICENSE
+          test -s effects/LICENSE
+
