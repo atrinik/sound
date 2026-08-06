@@ -3,10 +3,10 @@ name: Check
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 permissions:
   contents: read
@@ -25,4 +25,3 @@ jobs:
           bash -n tools/package-release.sh
           test -s background/LICENSE
           test -s effects/LICENSE
-
