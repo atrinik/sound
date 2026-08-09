@@ -1,7 +1,9 @@
 # Atrinik sound repository guide
 
-- This repository owns separately released music and effects consumed by the
-  client. Keep client playback code and release consumption in the client.
+- This repository owns separately released music and effects. The maintained
+  consumer is `atrinik/classic/client`; replacement consumption belongs to
+  `atrinik/client` when its integration lands. Keep playback and packaging code
+  with the consuming client.
 - There is no blanket repository license. Preserve the applicable `LICENSE`
   files, provenance, attribution, author, source URL, and modification notes for
   every asset. Do not add or replace audio without documented permission.
