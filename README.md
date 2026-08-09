@@ -1,9 +1,11 @@
 # Atrinik sound assets
 
 This repository owns the background music and sound effects distributed with
-the Atrinik client. Client source and packaging live in
-[`atrinik/client`](https://github.com/atrinik/client), which consumes a pinned
-release archive from this repository instead of a Git submodule.
+Atrinik clients. The maintained consumer is
+[`atrinik/classic/client`](https://github.com/atrinik/classic/tree/main/client);
+the fresh [`atrinik/client`](https://github.com/atrinik/client) will consume a
+released archive when replacement integration lands. Consumers use immutable
+checksum-pinned releases instead of Git submodules.
 
 ## Licensing and attribution
 
