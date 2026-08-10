@@ -286,3 +286,40 @@ belong to `atrinik/classic#44`. Replacement client integration is not yet
 available; boundaries `atrinik/atrinik#266`, `#269`, and `#270` still delimit
 replacement build, scenario, and runtime integration. This repository therefore
 uses owner-native validation rather than substituting the Classic stack.
+
+## Nonpublishing Classic compatibility tree
+
+The separate `build-playtest-tree` command exists only for local source-built
+Classic playtesting. It does not call, bypass, or change `build-runtime`: the
+472 release blockers and the zero-finding released-runtime publisher remain
+fail closed.
+
+The builder accepts only a directory below the selected checkout's ignored
+`build/` root and requires a clean Git-backed source tree. It snapshots the
+exact commit and tree, validates the authoritative source manifest and pinned
+toolchain, copies the 196 existing Vorbis files byte-for-byte, and converts only
+the 143 MIDI/MOD/S3M/XM files to deterministic Opus. All bytes are staged at
+their 339 legacy logical paths. `playtest-manifest.json` records both the source
+codec and actual output codec for each path, the source manifest, toolchain,
+marker, blocker-report, payload hashes, and the complete logical payload-tree
+digest. `.atrinik-playtest-tree.json` independently fixes
+`playtest_only: true` and `publishable: false`.
+
+Before accepting a new directory, the builder verifies exact path closure,
+regular-file and hash integrity, canonical control files, deterministic codec
+mappings, and content-based SDL3_mixer decoding of all 339 staged paths, then
+rechecks the clean source commit and tree. A standalone verification reproduces
+every converted output with the pinned toolchain before decoding the complete
+tree. A pre-existing exact tree is verified and reused; no failed or concurrent
+build replaces it.
+
+```sh
+python3 tools/sound_release.py build-playtest-tree build/classic-playtest
+python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
+```
+
+The tree must never be archived, uploaded, cached, released, packaged, installed,
+or embedded in an image. Its blocker report preserves every unresolved release
+finding, and its marker is intentionally incompatible with the released-runtime
+manifest schema. Local playback provides no license, provenance, or critical-
+listening evidence.

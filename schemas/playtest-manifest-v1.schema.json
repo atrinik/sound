@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrinik.org/schemas/sound/playtest-manifest-v1.schema.json",
+  "title": "Atrinik local playtest sound tree manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "playtest_only", "publishable", "source_commit", "source_tree", "source_manifest_sha256", "toolchain_sha256", "tool_versions", "schema_sha256", "marker_sha256", "blocker_report_sha256", "blocker_count", "logical_path_count", "copied_vorbis_count", "converted_opus_count", "output_tree_sha256", "assets"],
+  "properties": {
+    "$schema": {"const": "schemas/playtest-manifest-v1.schema.json"},
+    "schema_version": {"const": 1},
+    "playtest_only": {"const": true},
+    "publishable": {"const": false},
+    "source_commit": {"$ref": "#/$defs/gitObject"},
+    "source_tree": {"$ref": "#/$defs/gitObject"},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "toolchain_sha256": {"$ref": "#/$defs/sha256"},
+    "tool_versions": {"type": "object", "additionalProperties": false, "required": ["ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"], "properties": {"ffmpeg": {"type": "string", "minLength": 1}, "timidity": {"type": "string", "minLength": 1}, "openmpt123": {"type": "string", "minLength": 1}, "opusenc": {"type": "string", "minLength": 1}, "opusinfo": {"type": "string", "minLength": 1}, "sdl3_mixer_probe": {"type": "string", "minLength": 1}}},
+    "schema_sha256": {"$ref": "#/$defs/sha256"},
+    "marker_sha256": {"$ref": "#/$defs/sha256"},
+    "blocker_report_sha256": {"$ref": "#/$defs/sha256"},
+    "blocker_count": {"type": "integer", "minimum": 0},
+    "logical_path_count": {"type": "integer", "minimum": 1},
+    "copied_vorbis_count": {"type": "integer", "minimum": 0},
+    "converted_opus_count": {"type": "integer", "minimum": 0},
+    "output_tree_sha256": {"$ref": "#/$defs/sha256"},
+    "assets": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/asset"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitObject": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "logicalPath": {"type": "string", "pattern": "^(background|effects)/(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\\.(mid|mod|s3m|xm|ogg)$"},
+    "source": {"type": "object", "additionalProperties": false, "required": ["sha256", "codec", "container"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "codec": {"enum": ["midi", "mod", "s3m", "xm", "vorbis"]}, "container": {"type": "string", "minLength": 1}}},
+    "output": {"type": "object", "additionalProperties": false, "required": ["sha256", "size_bytes", "codec", "container", "sample_rate", "channels", "duration_seconds"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1}, "codec": {"enum": ["vorbis", "opus"]}, "container": {"const": "ogg"}, "sample_rate": {"type": "integer", "minimum": 1}, "channels": {"enum": [1, 2]}, "duration_seconds": {"type": "number", "exclusiveMinimum": 0}}},
+    "asset": {"type": "object", "additionalProperties": false, "required": ["logical_path", "source_path", "mapping", "source", "output"], "properties": {"logical_path": {"$ref": "#/$defs/logicalPath"}, "source_path": {"$ref": "#/$defs/logicalPath"}, "mapping": {"enum": ["copy", "render-opus"]}, "source": {"$ref": "#/$defs/source"}, "output": {"$ref": "#/$defs/output"}}}
+  }
+}

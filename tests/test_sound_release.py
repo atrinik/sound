@@ -579,6 +579,7 @@ class SourceManifestTests(unittest.TestCase):
     def test_project_schemas_are_versioned_and_unknown_fields_fail(self) -> None:
         for name in (
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
+            "playtest-manifest-v1.schema.json",
             "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
             "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json",
             "critical-listening-review-v1.schema.json", "license-reviews-v1.schema.json",
@@ -666,6 +667,77 @@ class SourceManifestTests(unittest.TestCase):
             "assets": [asset],
         }
         sound_release.validate_runtime_manifest(runtime_manifest)
+
+    def test_playtest_manifest_maps_the_complete_current_corpus(self) -> None:
+        assets = []
+        for source_asset in self.manifest["assets"]:
+            source = source_asset["source"]
+            copied = source["codec"] == "vorbis"
+            assets.append({
+                "logical_path": source_asset["logical_path"],
+                "source_path": source_asset["source_path"],
+                "mapping": "copy" if copied else "render-opus",
+                "source": {
+                    "sha256": source["sha256"],
+                    "codec": source["codec"],
+                    "container": source["container"],
+                },
+                "output": {
+                    "sha256": source["sha256"] if copied else "a" * 64,
+                    "size_bytes": 1,
+                    "codec": "vorbis" if copied else "opus",
+                    "container": "ogg",
+                    "sample_rate": source["sample_rate"] or 48000,
+                    "channels": source["channels"] or source_asset["render"]["channels"],
+                    "duration_seconds": source["duration_seconds"],
+                },
+            })
+        manifest = {
+            "$schema": "schemas/playtest-manifest-v1.schema.json",
+            "schema_version": 1,
+            "playtest_only": True,
+            "publishable": False,
+            "source_commit": "b" * 40,
+            "source_tree": "c" * 40,
+            "source_manifest_sha256": "d" * 64,
+            "toolchain_sha256": "e" * 64,
+            "schema_sha256": "3" * 64,
+            "tool_versions": {
+                name: "test" for name in
+                ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            },
+            "marker_sha256": "f" * 64,
+            "blocker_report_sha256": "1" * 64,
+            "blocker_count": 472,
+            "logical_path_count": len(assets),
+            "copied_vorbis_count": sum(asset["mapping"] == "copy" for asset in assets),
+            "converted_opus_count": sum(asset["mapping"] == "render-opus" for asset in assets),
+            "output_tree_sha256": "2" * 64,
+            "assets": assets,
+        }
+        sound_release.validate_playtest_manifest(manifest)
+        self.assertEqual((339, 196, 143), (
+            manifest["logical_path_count"], manifest["copied_vorbis_count"],
+            manifest["converted_opus_count"],
+        ))
+        by_path = {asset["logical_path"]: asset for asset in assets}
+        self.assertEqual(("midi", "opus", "render-opus"), (
+            by_path["background/fireside.mid"]["source"]["codec"],
+            by_path["background/fireside.mid"]["output"]["codec"],
+            by_path["background/fireside.mid"]["mapping"],
+        ))
+        self.assertEqual("copy", by_path["background/intro.ogg"]["mapping"])
+        with self.assertRaisesRegex(sound_release.ReleaseError, "runtime manifest"):
+            sound_release.validate_runtime_manifest(manifest)
+        for publisher in ("tools/build-release-assets.sh", "tools/package-release.sh"):
+            self.assertNotIn(
+                "build-playtest-tree",
+                (ROOT / publisher).read_text(encoding="utf-8"),
+            )
+        tampered = copy.deepcopy(manifest)
+        tampered["assets"][0]["output"]["codec"] = "opus"
+        with self.assertRaisesRegex(sound_release.ReleaseError, "codec mapping"):
+            sound_release.validate_playtest_manifest(tampered)
 
     def test_vorbis_and_midi_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
@@ -1156,6 +1228,182 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                     sound_release.verify_review_bundle_candidates(
                         root, {logical_path: bundled}, {logical_path: {}},
                     )
+
+
+class PlaytestTreeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.source_manifest = sound_release.checked_manifest()
+        cls.source_asset = next(
+            asset for asset in cls.source_manifest["assets"]
+            if asset["logical_path"] == "effects/campfire.ogg"
+        )
+
+    def test_output_must_stay_below_ignored_build_state(self) -> None:
+        with self.assertRaisesRegex(sound_release.ReleaseError, "below"):
+            sound_release.checked_playtest_output(ROOT.parent / "outside-playtest-tree")
+        with self.assertRaisesRegex(sound_release.ReleaseError, "not build"):
+            sound_release.checked_playtest_output(ROOT / "build")
+
+    def test_dirty_playtest_source_is_rejected(self) -> None:
+        completed = type("Completed", (), {"stdout": " M effects/campfire.ogg\n"})()
+        with mock.patch.object(sound_release, "run", return_value=completed):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
+                sound_release.clean_source_coordinates()
+
+    def test_builds_are_deterministic_and_a_source_race_is_not_installed(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        source_manifest = {
+            "audio_source_count": 1,
+            "assets": [self.source_asset],
+        }
+        versions = {
+            name: "test" for name in
+            ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+        }
+        with tempfile.TemporaryDirectory(prefix="test-playtest-build-", dir=build_root) as temporary:
+            parent = Path(temporary)
+            patches = (
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
+                mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
+                mock.patch.object(sound_release, "validate_manifest", return_value=[]),
+                mock.patch.object(sound_release, "checked_toolchain", return_value={}),
+                mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
+                mock.patch.object(sound_release, "run_sdl_probe"),
+            )
+            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+                first = sound_release.build_playtest_tree(parent / "first")
+                second = sound_release.build_playtest_tree(parent / "second")
+            first_manifest = (first / sound_release.PLAYTEST_MANIFEST_NAME).read_bytes()
+            second_manifest = (second / sound_release.PLAYTEST_MANIFEST_NAME).read_bytes()
+            self.assertEqual(first_manifest, second_manifest)
+            self.assertEqual(
+                json.loads(first_manifest)["output_tree_sha256"],
+                json.loads(second_manifest)["output_tree_sha256"],
+            )
+
+            raced = parent / "raced"
+            coordinates = mock.patch.object(
+                sound_release,
+                "clean_source_coordinates",
+                side_effect=[("b" * 40, "c" * 40), ("b" * 40, "c" * 40), ("d" * 40, "e" * 40)],
+            )
+            with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value={}), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while building"):
+                    sound_release.build_playtest_tree(raced)
+            self.assertFalse(raced.exists())
+
+    def test_verifier_rejects_control_payload_and_closure_tampering(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-tree-", dir=build_root) as temporary:
+            root = Path(temporary)
+            logical_path = self.source_asset["logical_path"]
+            payload = root / logical_path
+            payload.parent.mkdir(parents=True)
+            shutil.copyfile(ROOT / self.source_asset["source_path"], payload)
+            source = self.source_asset["source"]
+            output_asset = sound_release.playtest_output_record(
+                self.source_asset,
+                payload,
+                codec="vorbis",
+                container="ogg",
+                sample_rate=source["sample_rate"],
+                channels=source["channels"],
+                duration_seconds=source["duration_seconds"],
+            )
+            source_manifest = {
+                "audio_source_count": 1,
+                "assets": [self.source_asset],
+            }
+            versions = {
+                name: "test" for name in
+                ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            }
+            marker = sound_release.canonical_json(sound_release.PLAYTEST_MARKER)
+            blockers = sound_release.canonical_json(
+                sound_release.blocker_report(source_manifest, []),
+            )
+            manifest = {
+                "$schema": "schemas/playtest-manifest-v1.schema.json",
+                "schema_version": 1,
+                "playtest_only": True,
+                "publishable": False,
+                "source_commit": "b" * 40,
+                "source_tree": "c" * 40,
+                "source_manifest_sha256": sound_release.sha256(sound_release.SOURCE_MANIFEST),
+                "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+                "schema_sha256": sound_release.sha256(
+                    sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
+                ),
+                "tool_versions": versions,
+                "marker_sha256": hashlib.sha256(marker).hexdigest(),
+                "blocker_report_sha256": hashlib.sha256(blockers).hexdigest(),
+                "blocker_count": 0,
+                "logical_path_count": 1,
+                "copied_vorbis_count": 1,
+                "converted_opus_count": 0,
+                "output_tree_sha256": sound_release.logical_tree_sha256(root, [logical_path]),
+                "assets": [output_asset],
+            }
+            marker_path = root / sound_release.PLAYTEST_MARKER_NAME
+            blockers_path = root / sound_release.PLAYTEST_BLOCKERS_NAME
+            manifest_path = root / sound_release.PLAYTEST_MANIFEST_NAME
+            schema_path = root / "schemas" / "playtest-manifest-v1.schema.json"
+            marker_path.write_bytes(marker)
+            blockers_path.write_bytes(blockers)
+            schema_path.parent.mkdir()
+            shutil.copyfile(
+                sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
+                schema_path,
+            )
+            manifest_path.write_bytes(sound_release.canonical_json(manifest))
+            patches = (
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
+                mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
+                mock.patch.object(sound_release, "validate_manifest", return_value=[]),
+                mock.patch.object(sound_release, "checked_toolchain", return_value={}),
+                mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
+                mock.patch.object(sound_release, "run_sdl_probe"),
+            )
+            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5] as probe:
+                sound_release.verify_playtest_tree(root)
+                probe.assert_called_once()
+
+                marker_path.write_text("{}\n", encoding="utf-8")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "marker"):
+                    sound_release.verify_playtest_tree(root)
+                marker_path.write_bytes(marker)
+
+                blockers_path.write_text("{}\n", encoding="utf-8")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "blocker report"):
+                    sound_release.verify_playtest_tree(root)
+                blockers_path.write_bytes(blockers)
+
+                schema_payload = schema_path.read_bytes()
+                schema_path.write_text("{}\n", encoding="utf-8")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
+                    sound_release.verify_playtest_tree(root)
+                schema_path.write_bytes(schema_payload)
+
+                original_payload = payload.read_bytes()
+                payload.write_bytes(b"tampered")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "payload hash"):
+                    sound_release.verify_playtest_tree(root)
+                payload.write_bytes(original_payload)
+
+                changed_manifest = copy.deepcopy(manifest)
+                changed_manifest["source_commit"] = "d" * 40
+                manifest_path.write_bytes(sound_release.canonical_json(changed_manifest))
+                with self.assertRaisesRegex(sound_release.ReleaseError, "source_commit"):
+                    sound_release.verify_playtest_tree(root)
+                manifest_path.write_bytes(sound_release.canonical_json(manifest))
+
+                extra = root / "unexpected"
+                extra.write_bytes(b"extra")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "unexpected files"):
+                    sound_release.verify_playtest_tree(root)
 
 
 class DeterministicArchiveTests(unittest.TestCase):
