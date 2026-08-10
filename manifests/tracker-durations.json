@@ -1,0 +1,24 @@
+{
+  "$schema": "../schemas/tracker-durations-v1.schema.json",
+  "entries": [
+    {"duration_seconds": 175.96, "logical_path": "background/aa_arofl.xm", "source_sha256": "1830756c232f101a43e4a302e228c671bfef0bb62fa2ef262eaec1e050fbb0e4"},
+    {"duration_seconds": 82.44, "logical_path": "background/amblight.xm", "source_sha256": "294383e3ce555549851ca12b3f5d9e86835d4a549ad51eb8a664cc8ee124ef99"},
+    {"duration_seconds": 179.028, "logical_path": "background/cave.xm", "source_sha256": "1ca0ee5aab58c7fd953da850c2ff99cdc1bd919e2a547337a2c331f4e59cc22e"},
+    {"duration_seconds": 143.679, "logical_path": "background/cavern.xm", "source_sha256": "5908870e3c5d43a9419c0dce3eeef253afa96a7909c8e08ee11ab2f50cbc6f57"},
+    {"duration_seconds": 117.12, "logical_path": "background/cavern_boss.mod", "source_sha256": "adb2c499234890867e1b25fc5e30af83ffc2f94b4faffc2535feddde175c2812"},
+    {"duration_seconds": 327.78, "logical_path": "background/comeback.mod", "source_sha256": "cce0f3f5e50610ad92d4204d25a8e3fb3cf219201ecf14b233af6d76e1c72a91"},
+    {"duration_seconds": 114.359, "logical_path": "background/enfero.xm", "source_sha256": "ee6d228cf70a47d5c6665e72ebb69baa0902a33c7b29e02f0bd45043a87bfff5"},
+    {"duration_seconds": 79.359, "logical_path": "background/eranasp.mod", "source_sha256": "04351f60469d941a664a727d112d9e0393e767c2105905e15c113fb9f2c942f0"},
+    {"duration_seconds": 125.439, "logical_path": "background/ice_frontier.s3m", "source_sha256": "c6c484c0f36f3ff967a9ebbe345092d2fe7cd8c4b82ae1abce32c912b7ba55fc"},
+    {"duration_seconds": 333.499, "logical_path": "background/infanita.mod", "source_sha256": "0eabaa89c222a0f26920f5f1ee6bb284deb6ec4444d0fedb8e9d794c7f4a8016"},
+    {"duration_seconds": 137.088, "logical_path": "background/rain.s3m", "source_sha256": "1d384070d989a8739799d7d3e689619edbe9834a2e1523a478db72eccd4116d2"},
+    {"duration_seconds": 13.711, "logical_path": "background/rend.s3m", "source_sha256": "8ed26cc474e6ba30ad2774fa19eb4828e7f3aa190eac2385ea0ff740602c38e9"},
+    {"duration_seconds": 149.12, "logical_path": "background/rpg_battle.xm", "source_sha256": "05c5db1daf8e4e3367358856afb2076ab74ce098d7e251fc9c4dbdd7144561b9"},
+    {"duration_seconds": 123.98, "logical_path": "background/town.mod", "source_sha256": "4484aff95c4b7158e7bdcdc75e4e1d66fad5b0b0c71e11f8e23da2571233e060"},
+    {"duration_seconds": 65.12, "logical_path": "background/walk.s3m", "source_sha256": "8de75898a0fa27bf8627208d0fd59756793b3b20f7abb4ad437423e04d885f9f"},
+    {"duration_seconds": 149.76, "logical_path": "background/waterworld.xm", "source_sha256": "b178e4346c0044d0695a71256cdedc917f04f21f7277a7a57d503e5497f5193d"},
+    {"duration_seconds": 38.399, "logical_path": "background/wood.s3m", "source_sha256": "c2290e3175b3baf6eb3aea3cc912fe44f1b6bd7d6838d9c3c4a0f804e0b3ebaf"}
+  ],
+  "schema_version": 1,
+  "toolchain_sha256": "335b07b4af27b983172bee20a9e69d41c11839dc1cda9049ff43fc148e4b4075"
+}

@@ -1,0 +1,5 @@
+{
+  "$schema": "../schemas/vorbis-quality-reviews-v1.schema.json",
+  "schema_version": 1,
+  "reviews": []
+}

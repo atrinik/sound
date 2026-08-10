@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   issues: write
+  packages: read
   pull-requests: write
 
 concurrency:
@@ -18,7 +19,7 @@ jobs:
   release:
     name: Semantic release
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -26,6 +27,12 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24.18.1
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          printf '%s' "${GHCR_TOKEN}"
+          | docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
       - name: Analyze commits and publish
         env:
           GH_TOKEN: ${{ github.token }}

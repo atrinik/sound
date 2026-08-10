@@ -1,6 +1,7 @@
 /.gitattributes export-ignore
 /.github export-ignore
 /tools export-ignore
+/tests export-ignore
 /release-line.txt export-ignore
 *.flac filter=lfs diff=lfs merge=lfs -text
 *.ogg filter=lfs diff=lfs merge=lfs -text

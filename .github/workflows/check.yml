@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   asset-validation:
@@ -22,6 +23,60 @@ jobs:
 
       - name: Validate package publisher
         run: |
-          bash -n tools/package-release.sh
+          tools/validate.sh
           test -s background/LICENSE
           test -s effects/LICENSE
+          git tag v0.0.0 HEAD
+          tools/build-release-assets.sh 0.0.0
+          test -s build/release/atrinik-sound-0.0.0.tar.gz
+          test -s build/release/atrinik-sound-runtime-0.0.0-BLOCKED.json
+          test ! -e build/release/atrinik-sound-runtime-0.0.0.tar.gz
+          (cd build/release && sha256sum --check SHA256SUMS)
+
+  runtime-fixtures:
+    name: Deterministic Opus fixtures
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          printf '%s' "${GHCR_TOKEN}"
+          | docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Build pinned audio toolchain
+        run: >-
+          docker build --platform linux/amd64
+          --file tools/audio/Dockerfile --tag atrinik-sound-audio .
+
+      - name: Build twice and compare
+        run: |
+          mkdir -p build/fixture-a build/fixture-b
+          for output in fixture-a fixture-b; do
+            docker run --rm --platform linux/amd64 \
+              --user "$(id -u):$(id -g)" \
+              --volume "$PWD:/workspaces/sound:ro" \
+              --volume "$PWD/build/${output}:/output" \
+              --env SOURCE_DATE_EPOCH=1700000000 \
+              --env ATRINIK_SOURCE_COMMIT="$(git rev-parse HEAD)" \
+              --env ATRINIK_SOURCE_TREE="$(git rev-parse 'HEAD^{tree}')" \
+              atrinik-sound-audio \
+              python3 tools/sound_release.py \
+                build-runtime v0.0.0 /output --fixtures
+          done
+          cmp \
+            build/fixture-a/atrinik-sound-fixture-0.0.0.tar.gz \
+            build/fixture-b/atrinik-sound-fixture-0.0.0.tar.gz
+          mkdir -p build/fixture-check
+          tar -xzf build/fixture-a/atrinik-sound-fixture-0.0.0.tar.gz \
+            -C build/fixture-check
+          (cd build/fixture-check/atrinik-sound-fixture-0.0.0 && \
+            sha256sum --check SHA256SUMS)
+          if tar -tzf build/fixture-a/atrinik-sound-fixture-0.0.0.tar.gz \
+              | grep -E '\.(mid|mod|s3m|xm|ogg)$'; then
+            echo 'fixture runtime archive contains a raw source payload' >&2
+            exit 1
+          fi

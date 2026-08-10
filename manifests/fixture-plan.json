@@ -1,0 +1,37 @@
+{
+  "$schema": "../schemas/fixture-plan-v1.schema.json",
+  "schema_version": 1,
+  "consumer_boundary": "Asset decoding, seek/stop/loop playback assertions are repeated by atrinik/classic#44 against these exact generated paths.",
+  "fixtures": [
+    {
+      "logical_path": "background/fireside.mid",
+      "behaviors": ["loop", "seek", "stop", "stereo"],
+      "reason": "long stereo music rendered from MIDI"
+    },
+    {
+      "logical_path": "background/town.mod",
+      "behaviors": ["loop", "seek", "stereo"],
+      "reason": "MOD tracker renderer coverage"
+    },
+    {
+      "logical_path": "background/rain.s3m",
+      "behaviors": ["stop", "stereo"],
+      "reason": "S3M tracker renderer coverage"
+    },
+    {
+      "logical_path": "background/cave.xm",
+      "behaviors": ["seek", "stereo"],
+      "reason": "XM tracker renderer coverage"
+    },
+    {
+      "logical_path": "background/crystal_falls.ogg",
+      "behaviors": ["loop", "mono"],
+      "reason": "mono Vorbis music and second-lossy-generation quality coverage"
+    },
+    {
+      "logical_path": "effects/campfire.ogg",
+      "behaviors": ["stop", "stereo", "short-effect"],
+      "reason": "short stereo Vorbis effect coverage"
+    }
+  ]
+}
