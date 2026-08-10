@@ -316,9 +316,17 @@ class SourceManifestTests(unittest.TestCase):
                 self.assertIn(f"author: {author}", notice)
                 self.assertIn("Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus", notice)
                 self.assertTrue(str(reviews[logical_path]["evidence"]["locator"]).endswith(".html"))
+                self.assertEqual(
+                    [{
+                        "locator": "evidence/opengameart-brandon-morris-backgrounds.md",
+                        "sha256": "3d028b3abc8bd66d567ab4dba532ee6386431a8cf3b34fa014ef77ea4f67a43d",
+                    }],
+                    reviews[logical_path]["evidence"]["artifacts"],
+                )
 
     def test_oneoff_vorbis_approvals_preserve_first_party_grants_and_changes(self) -> None:
         catalog = sound_release.notice_catalog(ROOT / "background")
+        reviews = sound_release.checked_license_reviews()
         required = {
             "crystal_falls.ogg": ("author: Écrivain", "official WAV encoded to Vorbis"),
             "hull_et_belle.ogg": ("author: Gobusto", "license: CC-BY-SA-3.0"),
@@ -332,6 +340,13 @@ class SourceManifestTests(unittest.TestCase):
                 for field in fields:
                     self.assertIn(field, notice)
                 self.assertIn("Atrinik modification (2026-08-10)", notice)
+                self.assertEqual(
+                    [{
+                        "locator": "evidence/oga-yofrankie-backgrounds.md",
+                        "sha256": "a41212885200703f343feb922e11a6799c0cb47a261f0a97744c7346565b1544",
+                    }],
+                    reviews[logical_path]["evidence"]["artifacts"],
+                )
 
     def test_exact_stendhal_tracks_preserve_storyteller_but_remain_blocked(self) -> None:
         reviewed_paths = {
@@ -372,7 +387,10 @@ class SourceManifestTests(unittest.TestCase):
             sound_release.command_validate(type("Arguments", (), {})())
         verify.assert_called_once_with(reviews)
 
-    def test_quality_review_rejects_malformed_or_mutable_evidence(self) -> None:
+    @mock.patch.object(sound_release, "quality_review_bundle_contract")
+    def test_quality_review_rejects_malformed_or_mutable_evidence(
+        self, _bundle_contract: mock.Mock,
+    ) -> None:
         entry = {
             "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN), "output_sha256": "b" * 64,
@@ -385,6 +403,7 @@ class SourceManifestTests(unittest.TestCase):
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
             "source_manifest_sha256": "c" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+            "review_bundle_sha256": "d" * 64,
             "procedure": {"headphones_checked": True, "representative_speakers_checked": True, "loop_boundaries_checked": True},
             "reviews": [{
                 "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
@@ -743,6 +762,20 @@ class SourceManifestTests(unittest.TestCase):
             self.assertIn("audio.played.length", index)
             self.assertIn("if(start>coveredUntil+0.25)return false", index)
             self.assertIn("seeking cannot replace full playback", index)
+            field_policy_start = index.index("const reviewFieldComplete=")
+            field_policy_end = index.index(";\nfor(const section", field_policy_start) + 1
+            field_policy = index[field_policy_start:field_policy_end]
+            behavior = subprocess.run(
+                ["node", "--eval", field_policy + """
+if (!reviewFieldComplete('verdict','passed')) process.exit(1);
+if (!reviewFieldComplete('verdict','failed')) process.exit(2);
+if (reviewFieldComplete('verdict','')) process.exit(3);
+if (!reviewFieldComplete('artifacts','12345678')) process.exit(4);
+if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
+"""],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(0, behavior.returncode, behavior.stderr)
             self.assertIn("critical-listening-review-v1.schema.json", index)
             for asset in bundle["assets"]:
                 source = output / asset["source_path"]
@@ -764,6 +797,7 @@ class SourceManifestTests(unittest.TestCase):
                 "reviewed_at": "2026-08-10T12:00:00Z",
                 "source_manifest_sha256": bundle["source_manifest_sha256"],
                 "toolchain_sha256": bundle["toolchain_sha256"],
+                "review_bundle_sha256": bundle["contract_sha256"],
                 "procedure": {
                     "headphones_checked": True,
                     "representative_speakers_checked": True,
@@ -785,6 +819,26 @@ class SourceManifestTests(unittest.TestCase):
                 } for asset in bundle["assets"]],
             }
             verified_bundle, verified_reviews = sound_release.verify_review_bundle_result(output, result)
+            self.assertEqual(bundle, sound_release.quality_review_bundle_contract(result))
+            first_review = result["reviews"][0]
+            ledger_entry = {
+                "output_sha256": first_review["output_sha256"],
+                "evidence": {"artifact_locator": "evidence/review.json"},
+            }
+            with mock.patch.object(sound_release, "checked_critical_listening_result", return_value=result), \
+                    mock.patch.object(sound_release, "checked_toolchain", return_value={}), \
+                    mock.patch.object(sound_release, "verify_toolchain", return_value={}), \
+                    mock.patch.object(sound_release, "write_review_candidate", return_value=first_review["candidate_evidence"]):
+                sound_release.verify_quality_review_outputs({first_review["logical_path"]: ledger_entry})
+                forged_result = copy.deepcopy(result)
+                forged_review = forged_result["reviews"][0]
+                forged_review["output_sha256"] = "b" * 64
+                forged_review["candidate_evidence"]["output_sha256"] = "b" * 64
+                forged_entry = copy.deepcopy(ledger_entry)
+                forged_entry["output_sha256"] = "b" * 64
+                with mock.patch.object(sound_release, "checked_critical_listening_result", return_value=forged_result):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "deterministic current candidate"):
+                        sound_release.verify_quality_review_outputs({first_review["logical_path"]: forged_entry})
             proposed = sound_release.proposed_quality_review_ledger(
                 verified_bundle, result, verified_reviews, "evidence/review.json", "c" * 64,
                 "https://github.com/atrinik/sound/issues/21#issuecomment-123",
@@ -830,7 +884,10 @@ class SourceManifestTests(unittest.TestCase):
                 "created_at": "2026-08-10T12:05:00Z",
             }
             completed = subprocess.CompletedProcess([], 0, json.dumps(comment), "")
-            with mock.patch.object(sound_release, "run", return_value=completed):
+            permission = subprocess.CompletedProcess(
+                [], 0, json.dumps({"permission": "admin", "role_name": "admin"}), "",
+            )
+            with mock.patch.object(sound_release, "run", side_effect=[completed, permission]):
                 sound_release.checked_github_attestation(
                     "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                 )
@@ -845,6 +902,14 @@ class SourceManifestTests(unittest.TestCase):
                     sound_release.checked_github_attestation(
                         "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                     )
+            read_only = subprocess.CompletedProcess(
+                [], 0, json.dumps({"permission": "read", "role_name": "read"}), "",
+            )
+            with mock.patch.object(sound_release, "run", side_effect=[completed, read_only]):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "write permission"):
+                    sound_release.checked_github_attestation(
+                        "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
+                    )
             substituted_root = Path(temporary) / "substituted"
             shutil.copytree(output, substituted_root)
             substituted_bundle = json.loads((substituted_root / "review-bundle.json").read_text())
@@ -856,11 +921,20 @@ class SourceManifestTests(unittest.TestCase):
             substituted_asset["candidate_evidence"]["source_sha256"] = substituted_hash
             substituted_evidence = substituted_root / substituted_asset["review_evidence_path"]
             substituted_evidence.write_bytes(sound_release.canonical_json(substituted_asset["candidate_evidence"]))
+            substituted_bundle.pop("contract_sha256")
+            substituted_bundle.pop("worksheet_sha256")
+            substituted_bundle = json.loads(sound_release.canonical_json(substituted_bundle))
+            substituted_bundle["contract_sha256"] = hashlib.sha256(
+                sound_release.canonical_json(substituted_bundle),
+            ).hexdigest()
+            substituted_worksheet = sound_release.review_bundle_html(substituted_bundle)
+            substituted_bundle["worksheet_sha256"] = hashlib.sha256(substituted_worksheet).hexdigest()
             (substituted_root / "review-bundle.json").write_bytes(sound_release.canonical_json(substituted_bundle))
-            (substituted_root / "index.html").write_bytes(sound_release.review_bundle_html(substituted_bundle))
+            (substituted_root / "index.html").write_bytes(substituted_worksheet)
             substituted_result = copy.deepcopy(result)
             substituted_result["reviews"][0]["source_sha256"] = substituted_hash
             substituted_result["reviews"][0]["candidate_evidence"]["source_sha256"] = substituted_hash
+            substituted_result["review_bundle_sha256"] = substituted_bundle["contract_sha256"]
             (substituted_root / "SHA256SUMS").unlink()
             sound_release.write_tree_checksums(substituted_root)
             with self.assertRaisesRegex(sound_release.ReleaseError, "current manifest"):

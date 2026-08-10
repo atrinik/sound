@@ -58,7 +58,8 @@
       "evidence": {
         "locator": "evidence/captures/opengameart-evil-temple-ambiance-loop.html",
         "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 169.524/169.538 dB APSNR.",
-        "sha256": "42b52e20c0c49b7732ae6453cff4e174126872204f86dcd8dd360ae446c3f051"
+        "sha256": "42b52e20c0c49b7732ae6453cff4e174126872204f86dcd8dd360ae446c3f051",
+        "artifacts": [{"locator": "evidence/opengameart-brandon-morris-backgrounds.md", "sha256": "3d028b3abc8bd66d567ab4dba532ee6386431a8cf3b34fa014ef77ea4f67a43d"}]
       },
       "logical_path": "background/evil_temple.ogg",
       "notice_sha256": "a1a2f44d34408b08028092ce24c63169bf1af06c1aa88c64e4e482172ca52386",
@@ -71,7 +72,8 @@
       "evidence": {
         "locator": "evidence/captures/opengameart-lost-in-the-meadows.html",
         "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 165.612/165.587 dB APSNR.",
-        "sha256": "4a1d8a3d9a1757845a3078f03ef9ee9975df63f368970e52ff132cd6919d64d6"
+        "sha256": "4a1d8a3d9a1757845a3078f03ef9ee9975df63f368970e52ff132cd6919d64d6",
+        "artifacts": [{"locator": "evidence/opengameart-brandon-morris-backgrounds.md", "sha256": "3d028b3abc8bd66d567ab4dba532ee6386431a8cf3b34fa014ef77ea4f67a43d"}]
       },
       "logical_path": "background/lost_in_meadows.ogg",
       "notice_sha256": "0c294602a71146acf77bbb67805c873cd5300e37f841eb458adce85f6ff092b5",
@@ -84,7 +86,8 @@
       "evidence": {
         "locator": "evidence/captures/opengameart-running-from-something.html",
         "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 170.060/169.543 dB APSNR.",
-        "sha256": "99ec05b389340187aa785674190f8c7d34ddac8c2b769ab85f7136dde952d274"
+        "sha256": "99ec05b389340187aa785674190f8c7d34ddac8c2b769ab85f7136dde952d274",
+        "artifacts": [{"locator": "evidence/opengameart-brandon-morris-backgrounds.md", "sha256": "3d028b3abc8bd66d567ab4dba532ee6386431a8cf3b34fa014ef77ea4f67a43d"}]
       },
       "logical_path": "background/running.ogg",
       "notice_sha256": "8a6d5701ffd0f350bfa2ddec84f3d55e86e38d191407ee6ad19088c76b09ae7e",
@@ -97,7 +100,8 @@
       "evidence": {
         "locator": "evidence/captures/opengameart-rat-sewer.html",
         "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 168.668/168.695 dB APSNR.",
-        "sha256": "ad41b1b5aa01ae8a83daa1ae4fdf8ff7915ab32dbbc06771c54ff40e1eca592b"
+        "sha256": "ad41b1b5aa01ae8a83daa1ae4fdf8ff7915ab32dbbc06771c54ff40e1eca592b",
+        "artifacts": [{"locator": "evidence/opengameart-brandon-morris-backgrounds.md", "sha256": "3d028b3abc8bd66d567ab4dba532ee6386431a8cf3b34fa014ef77ea4f67a43d"}]
       },
       "logical_path": "background/sewer_rats.ogg",
       "notice_sha256": "fb19d8c7a11a5d66e63863209cdc43929ea95577c6004dc08183ecd1f411e296",
@@ -240,7 +244,8 @@
       "evidence": {
         "locator": "evidence/captures/opengameart-random-sfx.html",
         "notes": "Preserved first-party Écrivain CC0 and SFX.zip response; published Crystal Falls WAV and complete local stream match in duration/layout/rate at 173.658 dB APSNR.",
-        "sha256": "240b016698e8299af78e322cda2f71eb92532f3167464545d78d4ac9e8e6c567"
+        "sha256": "240b016698e8299af78e322cda2f71eb92532f3167464545d78d4ac9e8e6c567",
+        "artifacts": [{"locator": "evidence/oga-yofrankie-backgrounds.md", "sha256": "a41212885200703f343feb922e11a6799c0cb47a261f0a97744c7346565b1544"}]
       },
       "logical_path": "background/crystal_falls.ogg",
       "notice_sha256": "a2eff15d4e9d4fae539c34d0b3190a2d63f961438994c4aa1c58973f23389df6",
@@ -253,7 +258,8 @@
       "evidence": {
         "locator": "evidence/captures/opengameart-boss-music-probably.html",
         "notes": "Preserved first-party Gobusto CC-BY-SA-3.0 and exact-file response; published and complete local streams match in duration/layout/rate at 170.452/170.452 dB APSNR.",
-        "sha256": "39189718146959249aa1327f651841716bd25a23580084f3c091caf960763ab2"
+        "sha256": "39189718146959249aa1327f651841716bd25a23580084f3c091caf960763ab2",
+        "artifacts": [{"locator": "evidence/oga-yofrankie-backgrounds.md", "sha256": "a41212885200703f343feb922e11a6799c0cb47a261f0a97744c7346565b1544"}]
       },
       "logical_path": "background/hull_et_belle.ogg",
       "notice_sha256": "2e97c94de54cac559fa8e4c4da7c1bff99a7336cb65e9855df3e28980e68061b",
@@ -266,7 +272,8 @@
       "evidence": {
         "locator": "evidence/captures/yofrankie-download.html",
         "notes": "Preserved official Yo Frankie CC-BY-3.0 archive and attribution response; official frankieloop2 WAV and complete local stream match in duration/layout/rate at 169.260/169.232 dB APSNR.",
-        "sha256": "4412c1575a833e8fed8faef10eb25af7b9d2d116e04011bf3c2007e2a6ff1965"
+        "sha256": "4412c1575a833e8fed8faef10eb25af7b9d2d116e04011bf3c2007e2a6ff1965",
+        "artifacts": [{"locator": "evidence/oga-yofrankie-backgrounds.md", "sha256": "a41212885200703f343feb922e11a6799c0cb47a261f0a97744c7346565b1544"}]
       },
       "logical_path": "background/frankie.ogg",
       "notice_sha256": "fbad72fd0cd4ad444cbd6f71615671b9610ff1ff7704b28b9732cfecbe42342f",

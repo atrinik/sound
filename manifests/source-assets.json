@@ -1796,7 +1796,7 @@
         "sha256": "28d24191dcb17fca2e0c2b8837b28748ebf2b2d6f6fce9c2b2ed36de01530283"
       },
       "source_path": "background/crystal_falls.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: c2dd391af4c7b2d74f989b7223b4f309eacc1de44869b42932608cdb056b8231"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: b8fea90918e23648cd04830ee7b42a07d69ada4f9b562a7510e14bb492f447e4"
     },
     {
       "encode": {
@@ -3156,7 +3156,7 @@
         "sha256": "c51d29768e038a96ad00ed656561f4f24ef75907ee9f258bd9095f64a17f2a01"
       },
       "source_path": "background/evil_temple.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: f7a4623967a8af4360cd7ccaa474cb4826705032a312c274cf1533b0bd8982a0"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 17d0fa310e75b7555abfefae9d9e860f02e993a491d0c127076df77058ac981a"
     },
     {
       "encode": {
@@ -3328,7 +3328,7 @@
         "sha256": "2c14549edfc2563ee1ddffb2e34aa2fe342d1e498dd161ea273c1ffa9d227093"
       },
       "source_path": "background/frankie.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: d57b28254c2732d87e1899f4eb62721cd362c35f13689a38e9179f82198cd891"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 2db397950d78af8b235c0c1d3b5aaa07ae7b06cea071e66519fe1651091b54bd"
     },
     {
       "encode": {
@@ -3947,7 +3947,7 @@
         "sha256": "78a434eebb1eeee963c59704cdb6b40ad9c4366cae1f638b0720b28a7f68050e"
       },
       "source_path": "background/hull_et_belle.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: a433f94166a83dba76b7748f0f7780e8ca1ca7d3da0fd8ef1665572503ab340f"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 20799b31faa989e2a5eeb614e803fe2aa3007ceb95064058bee898e03e0e5450"
     },
     {
       "encode": {
@@ -4922,7 +4922,7 @@
         "sha256": "2f8184b6b3ac0c2d495ca5d37b2378c2e1f5ab2cc57dafb1631e2f15db8e1c43"
       },
       "source_path": "background/lost_in_meadows.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: f616ac902bf8ff576d9d68569efd3fd96c56b83e8ac50746150b23e87d18a0d2"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 39f0984faf5072074b7d3aac4ad689791858ac2680a006b187d9eb7e97bca5e8"
     },
     {
       "encode": {
@@ -6302,7 +6302,7 @@
         "sha256": "7fe0de9e8d7af2b19e69c0f5f74c67bbf1296b91e1a6b2266f2e25acc6be4fc0"
       },
       "source_path": "background/running.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 16f06fd162a897f00d9f47113bfff66e7240c093660998393581f40d02923867"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 3c88217745adebb0d44585e5bab875998dc69059dea9733cb593edfd92da1ec6"
     },
     {
       "encode": {
@@ -6536,7 +6536,7 @@
         "sha256": "c58926e6295dddc7b676d6c5837445517bf10ac8461e63bd751b39ab13e7a742"
       },
       "source_path": "background/sewer_rats.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 3e229a216c6c2f2b3d3b379cf84e13caef6442b1cff6b080d554c12695dc3f68"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 717c72afbe96e12bf609da0b26a555d53851197477c011dd615b716dffb32034"
     },
     {
       "encode": {

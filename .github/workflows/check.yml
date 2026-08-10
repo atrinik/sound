@@ -22,6 +22,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Build pinned audio toolchain
+        run: >-
+          docker build --platform linux/amd64
+          --file tools/audio/Dockerfile --tag atrinik-sound-audio .
+
       - name: Validate package publisher
         env:
           GH_TOKEN: ${{ github.token }}

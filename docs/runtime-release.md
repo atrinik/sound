@@ -81,15 +81,24 @@ this transform and again after Opus decoding.
 ## Local validation
 
 With an empty quality-review ledger, the metadata and packaging checks need
-only Python 3.11+, Bash, and Git. Once a listening review is committed, full
-validation also needs authenticated `gh` access and network connectivity to
-verify the reviewer's immutable issue-comment attestation; CI grants only
-`contents: read`, `issues: read`, and `packages: read`.
+Python 3.11+, Bash, Git, and Node.js for the embedded worksheet behavior test.
+Once a listening review is committed, full
+validation uses Docker and the prebuilt pinned audio image to regenerate every
+approved output. It also needs authenticated `gh` access and network
+connectivity to verify the reviewer's immutable issue-comment attestation and
+effective repository permission; CI grants only `contents: read`,
+`issues: read`, and `packages: read`.
 
 ```sh
 tools/validate.sh
 python3 tools/sound_release.py blockers
 ```
+
+For a nonempty quality ledger, build `atrinik-sound-audio` first.
+`tools/validate.sh` performs metadata, Git, and live GitHub checks on the host,
+then automatically runs deterministic output verification inside that pinned
+image. A missing image/tool fails closed instead of trusting self-asserted
+output evidence.
 
 Tracker duration refresh is performed inside the pinned image, never copied
 from the source manifest:
@@ -166,8 +175,12 @@ noncanonical-worksheet, or asset-mismatched review. Background-only results
 must be attested on #21 and effects-only results on #22; mixed-class bundles are
 rejected and must be built separately with `--asset-class`. It emits passed
 verdicts only, verifies the named reviewer and review time against the live
-GitHub comment from a repository owner, member, or collaborator, preserves
-existing reviews, and never changes the repository.
+GitHub comment, and requires that reviewer to have effective write, maintain,
+or admin access to `atrinik/sound`. It preserves existing reviews and never
+changes the repository. The exported result binds the canonical bundle and
+worksheet hashes; normal pinned-container validation independently regenerates
+every committed passed candidate, so this preparation command is not a
+bypassable release gate.
 Inspect the proposed ledger before replacing
 `manifests/vorbis-quality-reviews.json`, then run `refresh` and the complete
 validation suite. Failed verdicts intentionally remain blocked.
