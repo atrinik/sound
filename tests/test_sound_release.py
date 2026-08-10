@@ -38,9 +38,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(535, len(blockers))
+        self.assertEqual(514, len(blockers))
         self.assertEqual(
-            {"license/provenance": 339, "quality-review": 196},
+            {"license/provenance": 318, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -134,15 +134,19 @@ class SourceManifestTests(unittest.TestCase):
         }
         self.assertEqual("blocked", sound_release.notice_status(sampling)[0])
 
-    def test_candidate_notices_resolve_but_remain_blocked_without_evidence(self) -> None:
+    def test_candidate_notices_require_evidence_and_reviewed_notices_resolve(self) -> None:
         toolchain = sound_release.checked_toolchain()
         candidates = 0
+        allowed = 0
         for logical, asset in self.assets.items():
             contract = asset["license"]
             if not contract["spdx_expression"]:
                 continue
-            candidates += 1
-            self.assertEqual("blocked", contract["status"])
+            if contract["status"] == "allowed":
+                allowed += 1
+            else:
+                candidates += 1
+                self.assertEqual("blocked", contract["status"])
             notice_path, line_text = contract["notice_reference"].rsplit(":", 1)
             line = (ROOT / notice_path).read_text(encoding="utf-8").splitlines()[int(line_text) - 1]
             self.assertIn(Path(logical).name, line)
@@ -150,7 +154,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(142, candidates)
+        self.assertEqual(121, candidates)
+        self.assertEqual(21, allowed)
 
     def test_vorbis_quality_review_is_an_immutable_release_gate(self) -> None:
         vorbis = [asset for asset in self.assets.values() if asset["source"]["codec"] == "vorbis"]
@@ -182,7 +187,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual([], reviewed["reviews"])
+        self.assertEqual(21, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -281,7 +286,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "535 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "514 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:
@@ -388,6 +393,18 @@ class DeterministicArchiveTests(unittest.TestCase):
             result = sound_release.attenuate_clipped_wave(path, -2.0)
             self.assertTrue(result["input_clipping"])
             self.assertFalse(result["clipping"])
+            self.assertLess(result["applied_gain_db"], 0)
+
+    def test_near_full_scale_pcm_gets_encoder_headroom(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "near-full-scale.wav"
+            with wave.open(str(path), "wb") as output:
+                output.setparams((1, 2, 48000, 3, "NONE", "not compressed"))
+                output.writeframes(struct.pack("<3h", -32500, 0, 32500))
+            result = sound_release.attenuate_clipped_wave(path, -2.0)
+            self.assertFalse(result["input_clipping"])
+            self.assertFalse(result["clipping"])
+            self.assertLessEqual(result["peak"], 10 ** (-2.0 / 20))
             self.assertLess(result["applied_gain_db"], 0)
     def test_archive_bytes_and_metadata_are_reproducible(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

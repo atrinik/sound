@@ -50,7 +50,7 @@ REVIEWED_NOTICE_LICENSES = {
     'http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'Allacrost - http://allacrost.org/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'Ecrivain - http://opengameart.org/users/Ecrivain - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
-    'Brandon Morris - http://opengameart.org/users/brandon-morris - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+    'Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
     'Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
     'Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'GNU FreeDink - http://www.freedink.org/ - GPLv3': ("GPL-3.0-only", "licenses/GPL-3.0.txt"),
@@ -834,7 +834,7 @@ def checked_toolchain() -> dict[str, object]:
         "encoder_complexity": 10,
         "clipping_allowed": False,
         "clipped_render_peak_target_dbfs": -2.0,
-        "clipped_render_policy": "deterministically attenuate only full-scale rendered PCM before encoding",
+        "clipped_render_policy": "deterministically attenuate rendered PCM above the peak target before encoding",
         "nonzero_pcm_required": True,
         "vorbis_generation": "second lossy generation; each output requires quality review",
     }
@@ -1118,10 +1118,10 @@ def inspect_wave(path: Path) -> dict[str, object]:
 
 def attenuate_clipped_wave(path: Path, target_dbfs: float) -> dict[str, object]:
     before = inspect_wave(path)
-    if not before["clipping"]:
+    target_peak = int(32767 * (10 ** (target_dbfs / 20))) / 32768
+    if float(before["peak"]) <= target_peak:
         return {**before, "input_peak": before["peak"], "input_clipping": False, "applied_gain_db": 0.0}
-    target_peak = int(32767 * (10 ** (target_dbfs / 20)))
-    gain = target_peak / 32768
+    gain = target_peak / float(before["peak"])
     replacement = path.with_suffix(".attenuated.wav")
     with contextlib.closing(wave.open(str(path), "rb")) as source:
         parameters = source.getparams()
@@ -1141,7 +1141,7 @@ def attenuate_clipped_wave(path: Path, target_dbfs: float) -> dict[str, object]:
     return {
         **after,
         "input_peak": before["peak"],
-        "input_clipping": True,
+        "input_clipping": before["clipping"],
         "applied_gain_db": round(20 * math.log10(gain), 4),
     }
 

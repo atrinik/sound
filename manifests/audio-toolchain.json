@@ -19,7 +19,7 @@
     "encoder_complexity": 10,
     "clipping_allowed": false,
     "clipped_render_peak_target_dbfs": -2.0,
-    "clipped_render_policy": "deterministically attenuate only full-scale rendered PCM before encoding",
+    "clipped_render_policy": "deterministically attenuate rendered PCM above the peak target before encoding",
     "nonzero_pcm_required": true,
     "vorbis_generation": "second lossy generation; each output requires quality review"
   },
