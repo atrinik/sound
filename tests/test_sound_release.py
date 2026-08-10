@@ -5,8 +5,10 @@ import copy
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import struct
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -291,10 +293,71 @@ class SourceManifestTests(unittest.TestCase):
     def test_full_runtime_build_requires_host_attestation_without_git(self) -> None:
         with mock.patch.object(sound_release, "run", side_effect=sound_release.ReleaseError("Git unavailable")):
             with mock.patch.dict(sound_release.os.environ, {}, clear=True):
-                with self.assertRaisesRegex(sound_release.ReleaseError, "ATRINIK_CLEAN_INPUT=1"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "host-validated input attestation"):
                     sound_release.ensure_clean_release_input()
-            with mock.patch.dict(sound_release.os.environ, {"ATRINIK_CLEAN_INPUT": "1"}, clear=True):
+            with mock.patch.dict(sound_release.os.environ, {"ATRINIK_RELEASE_INPUT_ATTESTED": "1"}, clear=True):
                 sound_release.ensure_clean_release_input()
+
+    def test_publisher_fails_closed_when_host_status_is_dirty_or_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fake_git = Path(temporary) / "git"
+            fake_git.write_text(
+                "#!/bin/sh\n"
+                "if [ \"$1\" = rev-parse ]; then\n"
+                "  case \"$2\" in\n"
+                "    *tree*) printf '%040d\\n' 0 ;;\n"
+                "    *) printf '%040d\\n' 1 ;;\n"
+                "  esac\n"
+                "  exit 0\n"
+                "fi\n"
+                "if [ \"$1\" = status ]; then\n"
+                "  if [ \"$FAKE_GIT_STATUS\" = fail ]; then exit 7; fi\n"
+                "  printf ' M background/fireside.mid\\n'\n"
+                "  exit 0\n"
+                "fi\n"
+                "exit 9\n",
+                encoding="utf-8",
+            )
+            fake_git.chmod(0o755)
+            for status, diagnostic in (("fail", "cannot verify"), ("dirty", "not clean")):
+                with self.subTest(status=status):
+                    environment = dict(os.environ, PATH=f"{temporary}:{os.environ['PATH']}", FAKE_GIT_STATUS=status)
+                    completed = subprocess.run(
+                        [str(ROOT / "tools" / "build-release-assets.sh"), "0.0.0"],
+                        cwd=ROOT,
+                        env=environment,
+                        check=False,
+                        text=True,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    self.assertNotEqual(0, completed.returncode)
+                    self.assertIn(diagnostic, completed.stderr)
+
+    def test_host_attestation_covers_git_only_checks_but_not_bytes(self) -> None:
+        evidence = {
+            "locator": "evidence/README.md",
+            "sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a",
+        }
+        with mock.patch.dict(sound_release.os.environ, {"ATRINIK_RELEASE_INPUT_ATTESTED": "1"}, clear=True):
+            with mock.patch.object(sound_release, "run", side_effect=sound_release.ReleaseError("Git unavailable")):
+                sound_release.ensure_sources_tracked(sound_release.discover_sources())
+                sound_release.verify_review_evidence(evidence, "schema fixture")
+                sound_release.verify_release_tag("v1.2.3", "a" * 40, "b" * 40)
+        with mock.patch.dict(sound_release.os.environ, {}, clear=True):
+            with mock.patch.object(sound_release, "run", side_effect=sound_release.ReleaseError("Git unavailable")):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "tag cannot be verified"):
+                    sound_release.verify_release_tag("v1.2.3", "a" * 40, "b" * 40)
+        git_available = type("Completed", (), {"stdout": "true\n"})()
+        with mock.patch.dict(sound_release.os.environ, {"ATRINIK_RELEASE_INPUT_ATTESTED": "1"}, clear=True):
+            with mock.patch.object(sound_release, "run", side_effect=[sound_release.ReleaseError("tag missing"), git_available]):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "tag cannot be verified"):
+                    sound_release.verify_release_tag("v1.2.3", "a" * 40, "b" * 40)
+        wrong = copy.deepcopy(evidence)
+        wrong["sha256"] = "0" * 64
+        with mock.patch.dict(sound_release.os.environ, {"ATRINIK_RELEASE_INPUT_ATTESTED": "1"}, clear=True):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "hash mismatch"):
+                sound_release.verify_review_evidence(wrong, "schema fixture")
 
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

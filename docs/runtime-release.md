@@ -139,27 +139,15 @@ decode, media, and device-free SDL3_mixer control invariants.
 exact generated paths in `manifests/fixture-plan.json` are the boundary between
 the repositories.
 
-After all blockers have documentary remediation, a full build is:
-
-The non-fixture builder rejects any tracked or untracked worktree change before
-encoding, so the archive's commit and tree claims always describe its inputs.
+After all blockers have documentary remediation, use the guarded publisher for
+a full build. It fails if Git status cannot be obtained, rejects any tracked or
+untracked worktree change, validates tracking and evidence on the host, binds
+the tag/commit/tree, and only then attests those checks to the isolated audio
+container. This wrapper is the supported full-build entry point:
 
 ```sh
-export SOURCE_DATE_EPOCH="$(git show -s --format=%ct 'vX.Y.Z^{commit}')"
-test -z "$(git status --porcelain --untracked-files=all)"
-export ATRINIK_CLEAN_INPUT=1
-export ATRINIK_SOURCE_COMMIT="$(git rev-parse 'vX.Y.Z^{commit}')"
-export ATRINIK_SOURCE_TREE="$(git rev-parse 'vX.Y.Z^{tree}')"
-docker run --rm \
-  --volume "$PWD:/workspaces/sound:ro" \
-  --volume "$PWD/build/release:/output" \
-  --env SOURCE_DATE_EPOCH \
-  --env ATRINIK_CLEAN_INPUT \
-  --env ATRINIK_SOURCE_COMMIT \
-  --env ATRINIK_SOURCE_TREE \
-  atrinik-sound-audio \
-  python3 tools/sound_release.py build-runtime vX.Y.Z /output
-python3 tools/sound_release.py checksums build/release
+tools/build-release-assets.sh X.Y.Z
+(cd build/release && sha256sum --check SHA256SUMS)
 ```
 
 Run it twice from clean checkouts of the same commit and compare the archives,

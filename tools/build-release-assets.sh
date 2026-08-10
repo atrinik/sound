@@ -9,17 +9,21 @@ fi
 
 tag="v$1"
 output_directory=build/release
+unset ATRINIK_RELEASE_INPUT_ATTESTED
 source_commit=$(git rev-parse "${tag}^{commit}")
 source_tree=$(git rev-parse "${tag}^{tree}")
 if [[ $(git rev-parse HEAD) != "${source_commit}" ]]; then
   echo "release tag ${tag} does not identify HEAD" >&2
   exit 1
 fi
-if [[ -n $(git status --porcelain --untracked-files=all) ]]; then
+if ! release_status=$(git status --porcelain --untracked-files=all); then
+  echo "cannot verify release input worktree status" >&2
+  exit 1
+fi
+if [[ -n ${release_status} ]]; then
   echo "release input worktree is not clean" >&2
   exit 1
 fi
-export ATRINIK_CLEAN_INPUT=1
 mkdir -p "${output_directory}"
 shopt -s nullglob dotglob
 existing_outputs=("${output_directory}"/*)
@@ -31,6 +35,7 @@ fi
 
 tools/package-release.sh "${tag}" "${output_directory}"
 python3 tools/sound_release.py validate
+export ATRINIK_RELEASE_INPUT_ATTESTED=1
 
 blockers_file="${output_directory}/atrinik-sound-runtime-$1-BLOCKED.json"
 python3 tools/sound_release.py blockers >"${blockers_file}"
@@ -53,7 +58,7 @@ if [[ ${blocker_count} -eq 0 ]]; then
       --env SOURCE_DATE_EPOCH \
       --env ATRINIK_SOURCE_COMMIT="${source_commit}" \
       --env ATRINIK_SOURCE_TREE="${source_tree}" \
-      --env ATRINIK_CLEAN_INPUT \
+      --env ATRINIK_RELEASE_INPUT_ATTESTED \
       atrinik-sound-audio \
       python3 tools/sound_release.py build-runtime "${tag}" /output
   }

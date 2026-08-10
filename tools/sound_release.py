@@ -227,7 +227,12 @@ def discover_sources() -> list[Path]:
 
 
 def ensure_sources_tracked(sources: list[Path]) -> None:
-    completed = run(["git", "ls-files", "-z", "--", "background", "effects"], capture=True)
+    try:
+        completed = run(["git", "ls-files", "-z", "--", "background", "effects"], capture=True)
+    except ReleaseError as exc:
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") == "1" and not git_metadata_available():
+            return
+        raise ReleaseError("audio source tracking cannot be verified without Git metadata") from exc
     tracked = set(completed.stdout.rstrip("\0").split("\0"))
     missing = [
         path.relative_to(ROOT).as_posix()
@@ -418,9 +423,9 @@ def ensure_clean_release_input() -> None:
     try:
         status = run(["git", "status", "--porcelain", "--untracked-files=all"], capture=True).stdout
     except ReleaseError as exc:
-        if os.environ.get("ATRINIK_CLEAN_INPUT") != "1":
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1" or git_metadata_available():
             raise ReleaseError(
-                "full runtime release requires ATRINIK_CLEAN_INPUT=1 when Git metadata is unavailable"
+                "full runtime release requires a host-validated input attestation when Git metadata is unavailable"
             ) from exc
         return
     if status:
@@ -499,7 +504,8 @@ def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> No
     try:
         run(["git", "ls-files", "--error-unmatch", "--", locator], capture=True)
     except ReleaseError as exc:
-        raise ReleaseError(f"review evidence is not Git-tracked: {logical_path}") from exc
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1" or git_metadata_available():
+            raise ReleaseError(f"review evidence is not Git-tracked: {logical_path}") from exc
     if sha256(path) != evidence.get("artifact_sha256", evidence.get("sha256")):
         raise ReleaseError(f"review evidence hash mismatch: {logical_path}")
 
@@ -986,6 +992,13 @@ def run(command: list[str], *, capture: bool = False) -> subprocess.CompletedPro
         raise ReleaseError(f"command failed: {rendered}: {detail.strip()}") from exc
 
 
+def git_metadata_available() -> bool:
+    try:
+        return run(["git", "rev-parse", "--is-inside-work-tree"], capture=True).stdout.strip() == "true"
+    except ReleaseError:
+        return False
+
+
 def source_revision(name: str, git_expression: str) -> str:
     value = os.environ.get(name)
     try:
@@ -1001,6 +1014,18 @@ def source_revision(name: str, git_expression: str) -> str:
     if not re.fullmatch(r"[0-9a-f]{40}", value):
         raise ReleaseError(f"{name} must be a full lowercase Git object ID")
     return value
+
+
+def verify_release_tag(tag: str, source_commit: str, source_tree: str) -> None:
+    try:
+        tag_commit = run(["git", "rev-parse", f"{tag}^{{commit}}"], capture=True).stdout.strip()
+        tag_tree = run(["git", "rev-parse", f"{tag}^{{tree}}"], capture=True).stdout.strip()
+    except ReleaseError as exc:
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1" or git_metadata_available():
+            raise ReleaseError("release tag cannot be verified without Git metadata") from exc
+        tag_commit, tag_tree = source_commit, source_tree
+    if (source_commit, source_tree) != (tag_commit, tag_tree):
+        raise ReleaseError("runtime source commit/tree do not match the release tag")
 
 
 def verify_toolchain(toolchain: dict[str, object]) -> dict[str, str]:
@@ -1309,10 +1334,7 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
     source_commit = source_revision("ATRINIK_SOURCE_COMMIT", "HEAD")
     source_tree = source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}")
     if not fixtures:
-        tag_commit = run(["git", "rev-parse", f"{tag}^{{commit}}"], capture=True).stdout.strip()
-        tag_tree = run(["git", "rev-parse", f"{tag}^{{tree}}"], capture=True).stdout.strip()
-        if (source_commit, source_tree) != (tag_commit, tag_tree):
-            raise ReleaseError("runtime source commit/tree do not match the release tag")
+        verify_release_tag(tag, source_commit, source_tree)
     version = tag[1:]
     suffix = "fixture" if fixtures else "runtime"
     package = f"atrinik-sound-{suffix}-{version}"
