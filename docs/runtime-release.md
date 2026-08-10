@@ -175,9 +175,9 @@ noncanonical-worksheet, or asset-mismatched review. Background-only results
 must be attested on #21 and effects-only results on #22; mixed-class bundles are
 rejected and must be built separately with `--asset-class`. It emits passed
 verdicts only, verifies the named reviewer and review time against the live
-GitHub comment, and requires that reviewer to have effective write, maintain,
-or admin access to `atrinik/sound`. It preserves existing reviews and never
-changes the repository. The exported result binds a stable hash of the exact
+unedited GitHub comment, and requires that reviewer to have effective write,
+maintain, or admin access to `atrinik/sound`. It preserves existing reviews and
+never changes the repository. The exported result binds a stable hash of the exact
 source/license/encoding inputs, the complete eligible asset set at the review
 time, the canonical bundle, and the canonical worksheet template. Normal
 validation reconstructs those contracts from current repository state and the

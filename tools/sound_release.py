@@ -599,9 +599,13 @@ def quality_review_bundle_contract(
     reviews = result.get("reviews")
     assert isinstance(reviews, list)
     bundle_assets: list[dict[str, object]] = []
+    seen_paths: set[str] = set()
     for review in reviews:
         assert isinstance(review, dict)
         logical_path = str(review["logical_path"])
+        if logical_path in seen_paths:
+            raise ReleaseError(f"duplicate critical-listening result: {logical_path}")
+        seen_paths.add(logical_path)
         current = current_by_path.get(logical_path)
         candidate_evidence = review.get("candidate_evidence")
         if current is None or not isinstance(candidate_evidence, dict):
@@ -2052,9 +2056,12 @@ def checked_github_attestation(url: str, result: dict[str, object], result_sha25
         raise ReleaseError("critical-listening reviewer lacks repository write permission")
     try:
         comment_time = datetime.strptime(str(comment["created_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        updated_time = datetime.strptime(str(comment["updated_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
         review_time = datetime.strptime(str(result["reviewed_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     except (KeyError, ValueError) as exc:
         raise ReleaseError("GitHub critical-listening attestation has an invalid timestamp") from exc
+    if updated_time != comment_time:
+        raise ReleaseError("GitHub critical-listening attestation comment was edited")
     age_seconds = (comment_time - review_time).total_seconds()
     if age_seconds < 0 or age_seconds > 24 * 60 * 60:
         raise ReleaseError("critical-listening result timestamp is not bound to its GitHub attestation")

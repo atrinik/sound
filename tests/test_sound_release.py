@@ -827,6 +827,12 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             subset_result["reviews"] = subset_result["reviews"][:1]
             with self.assertRaisesRegex(sound_release.ReleaseError, "exact eligible asset set"):
                 sound_release.quality_review_bundle_contract(subset_result)
+            duplicate_result = copy.deepcopy(result)
+            duplicate = copy.deepcopy(duplicate_result["reviews"][0])
+            duplicate["artifacts"] = "Different substantive artifact notes."
+            duplicate_result["reviews"].append(duplicate)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "duplicate critical-listening result"):
+                sound_release.quality_review_bundle_contract(duplicate_result)
             stale_input = copy.deepcopy(result)
             stale_input["review_input_sha256"] = "0" * 64
             with self.assertRaisesRegex(sound_release.ReleaseError, "review-input contract"):
@@ -897,6 +903,7 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                 "user": {"login": "reviewer"},
                 "body": sound_release.github_attestation_body(result_hash),
                 "created_at": "2026-08-10T12:05:00Z",
+                "updated_at": "2026-08-10T12:05:00Z",
             }
             completed = subprocess.CompletedProcess([], 0, json.dumps(comment), "")
             permission = subprocess.CompletedProcess(
@@ -922,6 +929,15 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             )
             with mock.patch.object(sound_release, "run", side_effect=[completed, read_only]):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "write permission"):
+                    sound_release.checked_github_attestation(
+                        "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
+                    )
+            edited = copy.deepcopy(comment)
+            edited["updated_at"] = "2026-08-10T12:06:00Z"
+            with mock.patch.object(sound_release, "run", side_effect=[
+                subprocess.CompletedProcess([], 0, json.dumps(edited), ""), permission,
+            ]):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "comment was edited"):
                     sound_release.checked_github_attestation(
                         "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                     )
