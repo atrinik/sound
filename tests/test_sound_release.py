@@ -38,9 +38,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(503, len(blockers))
+        self.assertEqual(512, len(blockers))
         self.assertEqual(
-            {"license/provenance": 307, "quality-review": 196},
+            {"license/provenance": 316, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -154,8 +154,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(103, candidates)
-        self.assertEqual(32, allowed)
+        self.assertEqual(112, candidates)
+        self.assertEqual(23, allowed)
 
     def test_meritous_project_notice_does_not_approve_music(self) -> None:
         notice = {
@@ -201,7 +201,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(32, len(reviewed["reviews"]))
+        self.assertEqual(23, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -294,6 +294,51 @@ class SourceManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
             sound_release.validate_manifest(drifted, compare_generated=False)
 
+    def test_current_source_asset_is_runtime_schema_compatible(self) -> None:
+        toolchain = sound_release.checked_toolchain()
+        asset = copy.deepcopy(next(iter(self.assets.values())))
+        asset["output"] = {
+            "sha256": "a" * 64,
+            "size_bytes": 1,
+            "codec": "opus",
+            "container": "ogg",
+            "channels": asset["render"]["channels"],
+            "sample_rate": 48000,
+            "duration_seconds": asset["source"]["duration_seconds"],
+            "peak": 0.5,
+            "rms_dbfs": -12.0,
+            "clipping": False,
+            "rendered_pcm": {
+                "sample_rate": 48000,
+                "channels": asset["render"]["channels"],
+                "duration_seconds": asset["source"]["duration_seconds"],
+                "peak": 0.5,
+                "rms_dbfs": -12.0,
+                "clipping": False,
+                "input_peak": 0.5,
+                "input_clipping": False,
+                "applied_gain_db": 0.0,
+            },
+        }
+        runtime_manifest = {
+            "$schema": "schemas/runtime-manifest-v1.schema.json",
+            "schema_version": 1,
+            "release_tag": "v1.2.3",
+            "source_commit": "b" * 40,
+            "source_tree": "c" * 40,
+            "fixture_only": True,
+            "source_size_bytes": 1,
+            "runtime_size_bytes": 1,
+            "quality_budget": toolchain["quality_budget"],
+            "tool_versions": {
+                name: "test"
+                for name in ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            },
+            "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+            "assets": [asset],
+        }
+        sound_release.validate_runtime_manifest(runtime_manifest)
+
     def test_vorbis_and_midi_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
         midi = sound_release.midi_metadata(ROOT / "background" / "restful_town.mid")
@@ -320,7 +365,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "503 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "512 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:

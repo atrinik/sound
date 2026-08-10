@@ -665,7 +665,7 @@ def build_source_manifest() -> dict[str, object]:
                 "second lossy generation from the only preserved Vorbis source; quality review required"
                 if path.suffix.lower() == ".ogg"
                 else "rendered from the preserved authored source at release time"
-            ),
+            ) + (f"; license review SHA-256: {review_hash}" if review_hash is not None else ""),
             "license": {
                 "status": status,
                 "notice": notice["description"] if notice else None,
@@ -674,7 +674,6 @@ def build_source_manifest() -> dict[str, object]:
                 "blocking_finding": finding,
                 "spdx_expression": expression,
                 "license_text_path": license_text_path,
-                "review_sha256": review_hash,
             },
         }
         if path.suffix.lower() == ".ogg":
