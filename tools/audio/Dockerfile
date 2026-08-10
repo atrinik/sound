@@ -5,6 +5,7 @@ FROM ghcr.io/atrinik/linux-build@sha256:1231b39d40161c1199fd3e45e99e3d826dde02da
 USER root
 
 COPY tools/audio/sdl3-mixer-runtime-probe.c /tmp/sdl3-mixer-runtime-probe.c
+COPY tools/audio/timidity-deterministic-time.c /tmp/timidity-deterministic-time.c
 
 ARG FFMPEG_PACKAGE=7:8.0.1-3ubuntu2
 ARG OPENMPT_PACKAGE=0.8.4-1
@@ -69,9 +70,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         /tmp/sdl3-mixer-runtime-probe.c \
         -o /usr/local/bin/atrinik-sound-sdl3-mixer-probe \
         $(pkg-config --cflags --libs sdl3-mixer) \
+    && cc -std=c17 -O2 -Wall -Wextra -Werror -fPIC -shared \
+        -Wl,--build-id=none /tmp/timidity-deterministic-time.c \
+        -o /usr/local/lib/atrinik-timidity-deterministic-time.so \
+    && echo "f689567aea88a6ded55d3b9580b5a40eba0ee51897ae5e69af2ea2af3c41b0d0  /usr/local/lib/atrinik-timidity-deterministic-time.so" \
+        | sha256sum -c - \
     && echo "cfbad665c7f7a22e5055e3ae4a81d44d1704c11e5e6514551f121f8b20c06dc9  /usr/local/bin/atrinik-sound-sdl3-mixer-probe" \
         | sha256sum -c - \
-    && rm -rf /tmp/freepats-source /tmp/freepats-source.tar.gz /tmp/freepats.tar.bz2
+    && rm -rf /tmp/freepats-source /tmp/freepats-source.tar.gz /tmp/freepats.tar.bz2 \
+        /tmp/timidity-deterministic-time.c
 
 RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \
     && gh --version | grep -F 'gh version 2.46.0' \

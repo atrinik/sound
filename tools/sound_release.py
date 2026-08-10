@@ -1219,11 +1219,11 @@ def checked_manifest() -> dict[str, object]:
 
 
 def checked_toolchain() -> dict[str, object]:
-    checked_schema("audio-toolchain-v1.schema.json")
+    toolchain_schema = checked_schema("audio-toolchain-v1.schema.json")
     value = read_json(TOOLCHAIN)
     if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "apt_snapshot", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != "../schemas/audio-toolchain-v1.schema.json" or value.get("schema_version") != 1:
         raise ReleaseError("toolchain root must use schema version 1")
-    validate_schema_instance(value, checked_schema("audio-toolchain-v1.schema.json"))
+    validate_schema_instance(value, toolchain_schema)
     if not re.fullmatch(r"https://snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z", str(value.get("apt_snapshot", ""))):
         raise ReleaseError("toolchain must pin an immutable Ubuntu package snapshot")
     build_image = value.get("build_image")
@@ -1314,6 +1314,34 @@ def checked_toolchain() -> dict[str, object]:
     probe_path = ROOT / probe_source
     if not probe_path.is_file() or sha256(probe_path) != probe_sha256:
         raise ReleaseError("SDL3_mixer probe source does not match its pinned SHA-256")
+    timidity = tools["timidity"]
+    assert isinstance(timidity, dict)
+    deterministic_seed = timidity.get("deterministic_seed")
+    tool_definition = toolchain_schema.get("$defs", {}).get("tool", {})  # type: ignore[union-attr]
+    tool_properties = tool_definition.get("properties", {}) if isinstance(tool_definition, dict) else {}
+    seed_contract_supported = isinstance(tool_properties, dict) and "deterministic_seed" in tool_properties
+    if (
+        seed_contract_supported
+        and (
+            not isinstance(deterministic_seed, dict)
+            or set(deterministic_seed) != {
+                "fixed_epoch", "source_path", "source_sha256", "installed_path", "installed_sha256",
+            }
+            or deterministic_seed.get("fixed_epoch") != 946684800
+        )
+    ):
+        raise ReleaseError("TiMidity must pin its deterministic RNG seed shim")
+    if isinstance(deterministic_seed, dict) and (
+        set(deterministic_seed) != {
+            "fixed_epoch", "source_path", "source_sha256", "installed_path", "installed_sha256",
+        }
+        or deterministic_seed.get("fixed_epoch") != 946684800
+    ):
+        raise ReleaseError("invalid TiMidity deterministic RNG seed shim")
+    if isinstance(deterministic_seed, dict):
+        seed_source = ROOT / str(deterministic_seed["source_path"])
+        if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
+            raise ReleaseError("TiMidity deterministic seed source does not match its pinned SHA-256")
     dockerfile = (ROOT / "tools" / "audio" / "Dockerfile").read_text(encoding="utf-8")
     required_literals = [
         str(build_image["image"]),
@@ -1322,6 +1350,10 @@ def checked_toolchain() -> dict[str, object]:
         *(str(contract[field]) for contract in license_texts.values() if str(contract["installed_path"]).startswith("/opt/") for field in ("source_url", "sha256")),
         *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "openmpt123", "opusenc"}),
         probe_installed, str(probe_installed_sha256),
+        *(
+            [str(deterministic_seed["installed_path"]), str(deterministic_seed["installed_sha256"])]
+            if isinstance(deterministic_seed, dict) else []
+        ),
     ]
     if any(literal not in dockerfile for literal in required_literals):
         raise ReleaseError("Dockerfile drifts from pinned toolchain coordinates")
@@ -1445,12 +1477,20 @@ def validate_playtest_manifest(manifest: dict[str, object]) -> None:
         raise ReleaseError("playtest codec counts do not match its assets")
 
 
-def run(command: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
+def run(
+    command: list[str],
+    *,
+    capture: bool = False,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     try:
         return subprocess.run(
             command,
             check=True,
             text=True,
+            cwd=cwd,
+            env=env,
             stdout=subprocess.PIPE if capture else None,
             stderr=subprocess.PIPE if capture else None,
         )
@@ -1530,6 +1570,13 @@ def verify_toolchain(toolchain: dict[str, object]) -> dict[str, str]:
         if not re.search(expected, output, re.MULTILINE):
             raise ReleaseError(f"unexpected {name} version; expected /{expected}/, got: {output}")
         versions[name] = output.splitlines()[0]
+    timidity = tools["timidity"]
+    assert isinstance(timidity, dict)
+    deterministic_seed = timidity["deterministic_seed"]
+    assert isinstance(deterministic_seed, dict)
+    seed_library = Path(str(deterministic_seed["installed_path"]))
+    if not seed_library.is_file() or sha256(seed_library) != deterministic_seed["installed_sha256"]:
+        raise ReleaseError("installed TiMidity deterministic seed shim hash mismatch")
     libraries = toolchain.get("runtime_libraries")
     if not isinstance(libraries, list):
         raise ReleaseError("toolchain runtime libraries must be an array")
@@ -1625,6 +1672,7 @@ def render_source(
     toolchain: dict[str, object],
     *,
     source_root: Path | None = None,
+    command_root: Path | None = None,
 ) -> None:
     source = (ROOT if source_root is None else source_root) / str(asset["source_path"])
     render = asset["render"]
@@ -1633,7 +1681,9 @@ def render_source(
     recipe = render.get("recipe")
     if not isinstance(recipe, list) or not all(isinstance(part, str) for part in recipe):
         raise ReleaseError(f"invalid render recipe for {asset['logical_path']}")
-    replacements = {"{input}": str(source), "{output}": str(output)}
+    command_source = source.relative_to(command_root) if command_root is not None else source
+    command_output = output.relative_to(command_root) if command_root is not None else output
+    replacements = {"{input}": str(command_source), "{output}": str(command_output)}
     if renderer == "timidity":
         bank = toolchain["instrument_bank"]
         assert isinstance(bank, dict)
@@ -1651,7 +1701,13 @@ def render_source(
     renderer_contract = toolchain["tools"][renderer]  # type: ignore[index]
     assert isinstance(renderer_contract, dict)
     command[0] = str(renderer_contract["installed_path"])
-    run(command)
+    environment = None
+    if renderer == "timidity":
+        deterministic_seed = renderer_contract["deterministic_seed"]
+        assert isinstance(deterministic_seed, dict)
+        environment = dict(os.environ)
+        environment["LD_PRELOAD"] = str(deterministic_seed["installed_path"])
+    run(command, cwd=command_root, env=environment)
 
 
 def encode_opus(
@@ -1659,6 +1715,8 @@ def encode_opus(
     wave_path: Path,
     opus_path: Path,
     toolchain: dict[str, object],
+    *,
+    command_root: Path | None = None,
 ) -> None:
     encode = asset["encode"]
     assert isinstance(encode, dict)
@@ -1674,8 +1732,10 @@ def encode_opus(
     ]
     if encode["signal"] == "music":
         command.append("--music")
-    command.extend([str(wave_path), str(opus_path)])
-    run(command)
+    command_wave = wave_path.relative_to(command_root) if command_root is not None else wave_path
+    command_opus = opus_path.relative_to(command_root) if command_root is not None else opus_path
+    command.extend([str(command_wave), str(command_opus)])
+    run(command, cwd=command_root)
 
 
 def run_sdl_probe(
@@ -1734,28 +1794,43 @@ def convert_asset(
     generated.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="atrinik-sound-") as temporary:
         temporary_path = Path(temporary)
+        input_root = temporary_path / "source"
+        stable_source = input_root / str(asset["source_path"])
+        stable_source.parent.mkdir(parents=True, exist_ok=True)
+        original_source = (ROOT if source_root is None else source_root) / str(asset["source_path"])
+        shutil.copyfile(original_source, stable_source)
+        if sha256(stable_source) != asset["source"]["sha256"]:  # type: ignore[index]
+            raise ReleaseError(f"source changed before conversion: {asset['logical_path']}")
         rendered_wave = temporary_path / "rendered.wav"
         decoded_wave = temporary_path / "decoded.wav"
-        render_source(asset, rendered_wave, toolchain, source_root=source_root)
+        encoded_opus = temporary_path / "generated.opus"
+        render_source(
+            asset,
+            rendered_wave,
+            toolchain,
+            source_root=input_root,
+            command_root=temporary_path,
+        )
         quality_budget = toolchain["quality_budget"]
         assert isinstance(quality_budget, dict)
         rendered = attenuate_clipped_wave(
             rendered_wave,
             float(quality_budget["clipped_render_peak_target_dbfs"]),
         )
-        encode_opus(asset, rendered_wave, generated, toolchain)
-        run([str(toolchain["tools"]["opusinfo"]["installed_path"]), "-q", str(generated)])  # type: ignore[index]
-        run([str(toolchain["tools"]["ffmpeg"]["installed_path"]), "-nostdin", "-v", "error", "-i", str(generated), "-map_metadata", "-1", "-c:a", "pcm_s16le", "-y", str(decoded_wave)])  # type: ignore[index]
+        encode_opus(asset, rendered_wave, encoded_opus, toolchain, command_root=temporary_path)
+        run([str(toolchain["tools"]["opusinfo"]["installed_path"]), "-q", str(encoded_opus)])  # type: ignore[index]
+        run([str(toolchain["tools"]["ffmpeg"]["installed_path"]), "-nostdin", "-v", "error", "-i", str(encoded_opus), "-map_metadata", "-1", "-c:a", "pcm_s16le", "-y", str(decoded_wave)])  # type: ignore[index]
         decoded = inspect_wave(decoded_wave)
         if decoded["clipping"]:
             raise ReleaseError(f"decoded Opus PCM clips for {asset['logical_path']}")
         run_sdl_probe(
-            generated,
+            encoded_opus,
             expected_frames=round(float(decoded["duration_seconds"]) * int(quality_budget["sample_rate"])),
             behaviors=behaviors,
             expected_channels=int(asset["render"]["channels"]),  # type: ignore[index]
             toolchain=toolchain,
         )
+        shutil.move(encoded_opus, generated)
     intended_channels = int(asset["render"]["channels"])  # type: ignore[index]
     expected_rate = int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
     if rendered["sample_rate"] != expected_rate or decoded["sample_rate"] != expected_rate:

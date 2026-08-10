@@ -117,6 +117,13 @@
         "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/timidity/2.14.0-8.3ubuntu1/timidity_2.14.0-8.3ubuntu1.debian.tar.xz",
         "sha256": "eaf54de8b655e093f9dfb2f11c4f780a60547740c2eda609c787a77e2bd906ff"
       },
+      "deterministic_seed": {
+        "fixed_epoch": 946684800,
+        "source_path": "tools/audio/timidity-deterministic-time.c",
+        "source_sha256": "c854c34f0fbb86d42b26a282e3796cec7eaa189169439b03804573fde5914889",
+        "installed_path": "/usr/local/lib/atrinik-timidity-deterministic-time.so",
+        "installed_sha256": "f689567aea88a6ded55d3b9580b5a40eba0ee51897ae5e69af2ea2af3c41b0d0"
+      },
       "version_command": ["timidity", "--version"],
       "version_pattern": "TiMidity\\+\\+ version 2\\.14\\.0"
     },

@@ -154,6 +154,38 @@ class SourceManifestTests(unittest.TestCase):
             for option in ("-EFreverb=d", "-EFchorus=d", "-EFdelay=d", "-EFresamp=l"):
                 self.assertIn(option, recipe)
 
+    def test_renderer_command_paths_are_stable_and_relative(self) -> None:
+        asset = copy.deepcopy(self.assets["background/burnt_forest.mid"])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source" / "background" / "burnt_forest.mid"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"fixture")
+            config = root / "instrument.cfg"
+            config.write_text("fixture\n", encoding="utf-8")
+            toolchain = {
+                "instrument_bank": {"installed_config": str(config)},
+                "tools": {"timidity": {
+                    "installed_path": "/usr/bin/timidity",
+                    "deterministic_seed": {"installed_path": "/pinned/seed.so"},
+                }},
+            }
+            with mock.patch.object(sound_release, "run") as run:
+                sound_release.render_source(
+                    asset,
+                    root / "rendered.wav",
+                    toolchain,
+                    source_root=root / "source",
+                    command_root=root,
+                )
+            command = run.call_args.args[0]
+            self.assertIn("source/background/burnt_forest.mid", command)
+            self.assertIn("rendered.wav", command)
+            self.assertNotIn(str(source), command)
+            self.assertNotIn(str(root / "rendered.wav"), command)
+            self.assertEqual(root, run.call_args.kwargs["cwd"])
+            self.assertEqual("/pinned/seed.so", run.call_args.kwargs["env"]["LD_PRELOAD"])
+
     def test_license_findings_fail_closed(self) -> None:
         self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])
         self.assertIn("per-asset license review", self.assets["background/aa_arofl.xm"]["license"]["blocking_finding"])
