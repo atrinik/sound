@@ -80,7 +80,11 @@ this transform and again after Opus decoding.
 
 ## Local validation
 
-The metadata and packaging checks need only Python 3.11+, Bash, and Git:
+With an empty quality-review ledger, the metadata and packaging checks need
+only Python 3.11+, Bash, and Git. Once a listening review is committed, full
+validation also needs authenticated `gh` access and network connectivity to
+verify the reviewer's immutable issue-comment attestation; CI grants only
+`contents: read`, `issues: read`, and `packages: read`.
 
 ```sh
 tools/validate.sh
@@ -113,7 +117,8 @@ mkdir -p build/review-bundle
 docker run --rm --user "$(id -u):$(id -g)" \
   --volume "$PWD:/workspaces/sound:ro" \
   --volume "$PWD/build/review-bundle:/output" atrinik-sound-audio \
-  python3 tools/sound_release.py build-review-bundle /output
+  python3 tools/sound_release.py build-review-bundle /output \
+  --asset-class background
 ```
 
 Open `build/review-bundle/index.html`, enter the identified GitHub reviewer,
@@ -122,9 +127,10 @@ speakers, and record substantive notes for every required listening category.
 The shared transport switches mutually exclusively between synchronized A/B
 players, level-matches the source to any deterministic candidate gain, leaves
 looping off for tail inspection, and provides an explicit loop toggle. Export
-is enabled only after both complete streams have ended for every asset, all
-notes and verdicts are recorded, and the headphones, representative-speaker,
-and loop-boundary attestations are checked. The bundle includes copied
+is enabled only after the browser's played ranges cover both complete streams
+without seek gaps for every asset, all notes and verdicts are recorded, and the
+headphones, representative-speaker, and loop-boundary attestations are checked.
+The bundle includes copied
 source bytes, generated candidate bytes, per-candidate evidence, a bundle
 manifest, and `SHA256SUMS`.
 The exported JSON is review input, not an automatic approval: verify it before
@@ -141,15 +147,24 @@ printf 'Atrinik critical-listening attestation v1\nresult_sha256: %s\n' \
 gh issue comment 21 --repo atrinik/sound \
   --body-file /tmp/atrinik-listening-attestation.txt
 git add evidence/critical-listening-REVIEWER-DATE.json
-python3 tools/sound_release.py prepare-quality-review \
-  build/review-bundle \
-  evidence/critical-listening-REVIEWER-DATE.json \
-  'https://github.com/atrinik/sound/issues/21#issuecomment-COMMENT_ID' \
+export GH_TOKEN="$(gh auth token)"
+docker run --rm --user "$(id -u):$(id -g)" \
+  --env ATRINIK_RELEASE_INPUT_ATTESTED=1 --env GH_TOKEN \
+  --volume "$PWD:/workspaces/sound:ro" atrinik-sound-audio \
+  python3 tools/sound_release.py prepare-quality-review \
+    build/review-bundle \
+    evidence/critical-listening-REVIEWER-DATE.json \
+    'https://github.com/atrinik/sound/issues/21#issuecomment-COMMENT_ID' \
   > /tmp/proposed-vorbis-quality-reviews.json
 ```
 
-The command rejects an incomplete, stale, future-dated, path-unsafe,
-untracked, checksum-drifted, or asset-mismatched review. It emits passed
+Run this verification inside the pinned image so it independently regenerates
+every candidate and its measurements. The command also reconstructs the
+canonical listening worksheet byte-for-byte and rejects an incomplete, stale,
+future-dated, path-unsafe, untracked, checksum-drifted, forged-candidate,
+noncanonical-worksheet, or asset-mismatched review. Background-only results
+must be attested on #21 and effects-only results on #22; mixed-class bundles are
+rejected and must be built separately with `--asset-class`. It emits passed
 verdicts only, verifies the named reviewer and review time against the live
 GitHub comment from a repository owner, member, or collaborator, preserves
 existing reviews, and never changes the repository.

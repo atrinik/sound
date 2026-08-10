@@ -9,6 +9,7 @@ COPY tools/audio/sdl3-mixer-runtime-probe.c /tmp/sdl3-mixer-runtime-probe.c
 ARG FFMPEG_PACKAGE=7:8.0.1-3ubuntu2
 ARG OPENMPT_PACKAGE=0.8.4-1
 ARG OPUS_TOOLS_PACKAGE=0.2-1build5
+ARG GH_PACKAGE=2.46.0-4
 ARG UBUNTU_SNAPSHOT=https://snapshot.ubuntu.com/ubuntu/20260810T000000Z
 ARG FREEPATS_URL=https://deb.debian.org/debian/pool/main/f/freepats/freepats_20060219.orig.tar.gz
 ARG FREEPATS_SHA256=70bf8ca084df3903d6c9de43fe20539fc0a553d95cfba4d525da3fe66fda5f10
@@ -31,6 +32,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         "ffmpeg=${FFMPEG_PACKAGE}" \
+        "gh=${GH_PACKAGE}" \
         "openmpt123=${OPENMPT_PACKAGE}" \
         "opus-tools=${OPUS_TOOLS_PACKAGE}" \
     && curl --fail --location --silent --show-error \
@@ -70,6 +72,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && rm -rf /tmp/freepats-source /tmp/freepats-source.tar.gz /tmp/freepats.tar.bz2
 
 RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \
+    && gh --version | grep -F 'gh version 2.46.0' \
     && timidity --version | grep -F 'TiMidity++ version 2.14.0' \
     && openmpt123 --version | grep -F 'openmpt123 v0.8.4' \
     && opusenc --version | grep -F 'opusenc opus-tools 0.2' \

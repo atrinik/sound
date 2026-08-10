@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import dataclasses
+import filecmp
 import gzip
 import hashlib
 import io
@@ -1528,7 +1529,10 @@ def write_review_candidate(
     return evidence
 
 
-def eligible_vorbis_review_assets(manifest: dict[str, object]) -> list[dict[str, object]]:
+def eligible_vorbis_review_assets(
+    manifest: dict[str, object],
+    asset_class: str | None = None,
+) -> list[dict[str, object]]:
     assets = manifest["assets"]
     assert isinstance(assets, list)
     return sorted([
@@ -1540,6 +1544,7 @@ def eligible_vorbis_review_assets(manifest: dict[str, object]) -> list[dict[str,
         and asset["license"].get("status") == "allowed"  # type: ignore[union-attr]
         and isinstance(asset.get("quality_review"), dict)
         and asset["quality_review"].get("status") == "blocked"  # type: ignore[union-attr]
+        and (asset_class is None or str(asset["logical_path"]).startswith(f"{asset_class}/"))
     ], key=lambda item: str(item["logical_path"]))
 
 
@@ -1598,9 +1603,10 @@ const loopLabel=document.createElement('label');loopLabel.textContent=' Loop';lo
 const time=document.createElement('span');time.textContent='0:00';transport.append(play,sourceButton,candidateButton,seek,loopLabel,time);s.append(source,candidate,transport);const playback=document.createElement('p');playback.textContent='Complete playback: source pending; candidate pending';s.append(playback);
 let active=source;const other=()=>active===source?candidate:source;const sync=()=>{{if(Number.isFinite(active.duration)&&active.duration>0){{seek.value=String(Math.round(1000*active.currentTime/active.duration));time.textContent=Math.floor(active.currentTime/60)+':'+String(Math.floor(active.currentTime%60)).padStart(2,'0')}}}};
 const switchTo=next=>{{if(next===active)return;const wasPlaying=!active.paused;const at=active.currentTime;active.pause();active=next;active.currentTime=Math.min(at,Number.isFinite(active.duration)?active.duration:at);sourceButton.setAttribute('aria-pressed',String(active===source));candidateButton.setAttribute('aria-pressed',String(active===candidate));if(wasPlaying)active.play()}};
+const completePlayback=audio=>{{if(!Number.isFinite(audio.duration)||audio.duration<=0)return false;let coveredUntil=0;for(let i=0;i<audio.played.length;i++){{const start=audio.played.start(i),end=audio.played.end(i);if(start>coveredUntil+0.25)return false;coveredUntil=Math.max(coveredUntil,end)}}return coveredUntil>=audio.duration-0.25}};
 play.onclick=()=>{{if(active.paused)active.play();else active.pause()}};sourceButton.onclick=()=>switchTo(source);candidateButton.onclick=()=>switchTo(candidate);
 seek.oninput=()=>{{if(Number.isFinite(active.duration))active.currentTime=active.duration*Number(seek.value)/1000}};loop.onchange=()=>{{source.loop=loop.checked;candidate.loop=loop.checked}};
-for(const audio of [source,candidate]){{audio.ontimeupdate=sync;audio.onplay=()=>{{if(playingAudio&&playingAudio!==audio)playingAudio.pause();playingAudio=audio;other().pause();play.textContent='Pause'}};audio.onpause=()=>{{if(playingAudio===audio)playingAudio=null;if(other().paused)play.textContent='Play'}};audio.onended=()=>{{if(playingAudio===audio)playingAudio=null;if(audio===source)s.dataset.sourceComplete='true';else s.dataset.candidateComplete='true';playback.textContent='Complete playback: source '+(s.dataset.sourceComplete==='true'?'done':'pending')+'; candidate '+(s.dataset.candidateComplete==='true'?'done':'pending');play.textContent='Play';sync()}}}}
+for(const audio of [source,candidate]){{audio.ontimeupdate=sync;audio.onplay=()=>{{if(playingAudio&&playingAudio!==audio)playingAudio.pause();playingAudio=audio;other().pause();play.textContent='Pause'}};audio.onpause=()=>{{if(playingAudio===audio)playingAudio=null;if(other().paused)play.textContent='Play'}};audio.onended=()=>{{if(playingAudio===audio)playingAudio=null;const complete=completePlayback(audio);if(audio===source)s.dataset.sourceComplete=String(complete);else s.dataset.candidateComplete=String(complete);playback.textContent='Complete playback: source '+(s.dataset.sourceComplete==='true'?'done':'pending')+'; candidate '+(s.dataset.candidateComplete==='true'?'done':'pending')+(complete?'':' — seeking cannot replace full playback');play.textContent='Play';sync()}}}}
 for(const [name,label] of [['artifacts','Codec artifacts / tonal / transient changes'],['noise_floor','Noise floor and low-level content'],['duration_tail','Complete duration, tail, and truncation'],['loop_boundary','Loop-boundary comparison']]){{const l=document.createElement('label');l.textContent=label;const t=document.createElement('textarea');t.dataset.field=name;l.append(t);s.append(l)}}
 const v=document.createElement('label');v.textContent='Verdict';const select=document.createElement('select');select.dataset.field='verdict';select.innerHTML='<option value="">Select…</option><option value="passed">Passed</option><option value="failed">Failed</option>';v.append(select);s.append(v);root.append(s)}}
 document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;const reviewerValid=/^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?$/.test(reviewer);const procedure={{headphones_checked:document.querySelector('#headphones').checked,representative_speakers_checked:document.querySelector('#speakers').checked,loop_boundaries_checked:document.querySelector('#loops').checked}};if(!Object.values(procedure).every(Boolean))missing=true;
@@ -1616,9 +1622,13 @@ const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)+'\\n'],{{
 def command_build_review_bundle(arguments: argparse.Namespace) -> None:
     manifest = checked_manifest()
     validate_manifest(manifest)
-    selected = eligible_vorbis_review_assets(manifest)
+    asset_class = getattr(arguments, "asset_class", None)
+    selected = eligible_vorbis_review_assets(manifest, asset_class)
     if not selected:
         raise ReleaseError("no license-approved Vorbis sources await quality review")
+    selected_classes = {str(asset["logical_path"]).partition("/")[0] for asset in selected}
+    if len(selected_classes) != 1:
+        raise ReleaseError("eligible reviews span asset classes; select --asset-class background or effects")
     output_directory = Path(arguments.output_directory)
     output_directory.mkdir(parents=True, exist_ok=True)
     if any(output_directory.iterdir()):
@@ -1652,8 +1662,11 @@ def command_build_review_bundle(arguments: argparse.Namespace) -> None:
         "toolchain_sha256": sha256(TOOLCHAIN),
         "assets": bundle_assets,
     }
-    atomic_write(output_directory / "review-bundle.json", canonical_json(bundle))
-    atomic_write(output_directory / "index.html", review_bundle_html(bundle))
+    bundle_bytes = canonical_json(bundle)
+    atomic_write(output_directory / "review-bundle.json", bundle_bytes)
+    canonical_bundle = json.loads(bundle_bytes)
+    assert isinstance(canonical_bundle, dict)
+    atomic_write(output_directory / "index.html", review_bundle_html(canonical_bundle))
     write_tree_checksums(output_directory)
     print(output_directory / "index.html")
 
@@ -1698,6 +1711,32 @@ def verify_tree_checksums(root: Path) -> None:
             raise ReleaseError(f"review-bundle checksum mismatch: {relative}")
 
 
+def verify_review_bundle_candidates(
+    bundle_root: Path,
+    bundle_by_path: dict[str, dict[str, object]],
+    expected_by_path: dict[str, dict[str, object]],
+) -> None:
+    toolchain = checked_toolchain()
+    versions = verify_toolchain(toolchain)
+    with tempfile.TemporaryDirectory(prefix="atrinik-sound-review-verify-") as temporary:
+        verification_root = Path(temporary)
+        for logical_path, bundled in bundle_by_path.items():
+            candidate_root = verification_root / PurePosixPath(logical_path)
+            reproduced = write_review_candidate(
+                expected_by_path[logical_path], candidate_root, toolchain, versions,
+            )
+            reproduced_candidate = candidate_root / str(reproduced["generated_path"])
+            bundled_candidate = checked_bundle_file(
+                bundle_root, bundled["candidate_path"], "candidate",
+            )
+            if reproduced != bundled["candidate_evidence"] or not filecmp.cmp(
+                reproduced_candidate, bundled_candidate, shallow=False,
+            ):
+                raise ReleaseError(
+                    f"review-bundle candidate is not the deterministic current output: {logical_path}"
+                )
+
+
 def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict[str, object], list[dict[str, object]]]:
     verify_tree_checksums(bundle_root)
     bundle_value = read_json(bundle_root / "review-bundle.json")
@@ -1710,11 +1749,21 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
     bundle_assets = bundle_value.get("assets")
     if not isinstance(bundle_assets, list):
         raise ReleaseError("review-bundle assets must be an array")
+    index_path = checked_bundle_file(bundle_root, "index.html", "listening worksheet")
+    if index_path.read_bytes() != review_bundle_html(bundle_value):
+        raise ReleaseError("review-bundle listening worksheet is not canonical")
+    asset_classes = {
+        str(asset.get("logical_path", "")).partition("/")[0]
+        for asset in bundle_assets if isinstance(asset, dict)
+    }
+    if len(asset_classes) != 1 or not asset_classes <= {"background", "effects"}:
+        raise ReleaseError("review bundle must contain exactly one asset class")
+    asset_class = next(iter(asset_classes))
     current_manifest = checked_manifest()
     validate_manifest(current_manifest)
     expected_by_path = {
         str(asset["logical_path"]): asset
-        for asset in eligible_vorbis_review_assets(current_manifest)
+        for asset in eligible_vorbis_review_assets(current_manifest, asset_class)
     }
     bundle_by_path: dict[str, dict[str, object]] = {}
     for asset in bundle_assets:
@@ -1784,6 +1833,7 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
         reviews_by_path[logical_path] = review
     if set(reviews_by_path) != set(expected_by_path):
         raise ReleaseError("critical-listening result does not cover the exact review bundle")
+    verify_review_bundle_candidates(bundle_root, bundle_by_path, expected_by_path)
     return bundle_value, [reviews_by_path[path] for path in sorted(reviews_by_path)]
 
 
@@ -1796,6 +1846,16 @@ def checked_github_attestation(url: str, result: dict[str, object], result_sha25
     if match is None:
         raise ReleaseError("critical-listening result lacks a valid GitHub attestation URL")
     issue_number, comment_id = match.groups()
+    reviews = result.get("reviews")
+    if not isinstance(reviews, list):
+        raise ReleaseError("critical-listening result lacks review entries")
+    asset_classes = {
+        str(review.get("logical_path", "")).partition("/")[0]
+        for review in reviews if isinstance(review, dict)
+    }
+    expected_issue = "22" if asset_classes == {"effects"} else "21" if asset_classes == {"background"} else None
+    if issue_number != expected_issue:
+        raise ReleaseError("GitHub attestation issue does not match the reviewed asset class")
     completed = run(["gh", "api", f"repos/atrinik/sound/issues/comments/{comment_id}"], capture=True)
     try:
         comment = json.loads(completed.stdout)
@@ -1947,6 +2007,10 @@ def parser() -> argparse.ArgumentParser:
     candidate.set_defaults(function=command_build_review_candidate)
     bundle = commands.add_parser("build-review-bundle", help="build all eligible non-publishing Vorbis candidates and a listening worksheet")
     bundle.add_argument("output_directory")
+    bundle.add_argument(
+        "--asset-class", choices=("background", "effects"),
+        help="build one asset class when both backgrounds and effects are eligible",
+    )
     bundle.set_defaults(function=command_build_review_bundle)
     prepare_review = commands.add_parser("prepare-quality-review", help="verify a completed listening bundle and print the proposed quality-review ledger")
     prepare_review.add_argument("bundle_directory")

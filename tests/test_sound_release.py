@@ -355,6 +355,23 @@ class SourceManifestTests(unittest.TestCase):
         self.assertTrue(all(asset["quality_review"]["status"] == "blocked" for asset in vorbis))
         self.assertTrue(all(asset["quality_review"]["source_sha256"] == asset["source"]["sha256"] for asset in vorbis))
 
+    def test_validation_dispatches_live_attestations_with_ci_permission(self) -> None:
+        workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
+        self.assertRegex(workflow, r"(?m)^  issues: read$")
+        reviews = {"background/example.ogg": {"evidence": {
+            "artifact_locator": "evidence/review.json",
+            "artifact_sha256": "a" * 64,
+            "github_attestation_url": "https://github.com/atrinik/sound/issues/21#issuecomment-123",
+        }}}
+        with mock.patch.object(sound_release, "checked_manifest", return_value={"audio_source_count": 0}), \
+                mock.patch.object(sound_release, "validate_manifest", return_value=[]), \
+                mock.patch.object(sound_release, "checked_quality_reviews", return_value=reviews), \
+                mock.patch.object(sound_release, "verify_quality_review_attestations") as verify, \
+                mock.patch.object(sound_release, "checked_toolchain"), \
+                mock.patch.object(sound_release, "checked_fixture_plan"):
+            sound_release.command_validate(type("Arguments", (), {})())
+        verify.assert_called_once_with(reviews)
+
     def test_quality_review_rejects_malformed_or_mutable_evidence(self) -> None:
         entry = {
             "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
@@ -684,7 +701,10 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "passed per-asset license review"):
                 sound_release.command_build_review_candidate(arguments)
 
-    def test_review_bundle_is_self_contained_and_selects_only_eligible_vorbis(self) -> None:
+    @mock.patch.object(sound_release, "verify_review_bundle_candidates")
+    def test_review_bundle_is_self_contained_and_selects_only_eligible_vorbis(
+        self, _verify_candidates: mock.Mock,
+    ) -> None:
         expected = {
             "background/crystal_falls.ogg", "background/evil_temple.ogg",
             "background/frankie.ogg", "background/hull_et_belle.ogg",
@@ -720,6 +740,9 @@ class SourceManifestTests(unittest.TestCase):
             self.assertIn("Use a valid GitHub username without a leading @.", index)
             self.assertIn("^(?!.*--)[A-Za-z0-9]", index)
             self.assertIn("let playingAudio=null", index)
+            self.assertIn("audio.played.length", index)
+            self.assertIn("if(start>coveredUntil+0.25)return false", index)
+            self.assertIn("seeking cannot replace full playback", index)
             self.assertIn("critical-listening-review-v1.schema.json", index)
             for asset in bundle["assets"]:
                 source = output / asset["source_path"]
@@ -811,6 +834,10 @@ class SourceManifestTests(unittest.TestCase):
                 sound_release.checked_github_attestation(
                     "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                 )
+                with self.assertRaisesRegex(sound_release.ReleaseError, "asset class"):
+                    sound_release.checked_github_attestation(
+                        "https://github.com/atrinik/sound/issues/22#issuecomment-123", result, result_hash,
+                    )
             wrong_author = copy.deepcopy(comment)
             wrong_author["user"]["login"] = "somebody-else"
             with mock.patch.object(sound_release, "run", return_value=subprocess.CompletedProcess([], 0, json.dumps(wrong_author), "")):
@@ -830,6 +857,7 @@ class SourceManifestTests(unittest.TestCase):
             substituted_evidence = substituted_root / substituted_asset["review_evidence_path"]
             substituted_evidence.write_bytes(sound_release.canonical_json(substituted_asset["candidate_evidence"]))
             (substituted_root / "review-bundle.json").write_bytes(sound_release.canonical_json(substituted_bundle))
+            (substituted_root / "index.html").write_bytes(sound_release.review_bundle_html(substituted_bundle))
             substituted_result = copy.deepcopy(result)
             substituted_result["reviews"][0]["source_sha256"] = substituted_hash
             substituted_result["reviews"][0]["candidate_evidence"]["source_sha256"] = substituted_hash
@@ -844,6 +872,17 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "contains a symlink"):
                 sound_release.verify_review_bundle_result(output, result)
             bundle_symlink.unlink()
+            canonical_index = (output / "index.html").read_bytes()
+            (output / "index.html").write_bytes(canonical_index.replace(
+                b"candidate.src=a.candidate_path", b"candidate.src=a.source_path   ",
+            ))
+            (output / "SHA256SUMS").unlink()
+            sound_release.write_tree_checksums(output)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "worksheet is not canonical"):
+                sound_release.verify_review_bundle_result(output, result)
+            (output / "index.html").write_bytes(canonical_index)
+            (output / "SHA256SUMS").unlink()
+            sound_release.write_tree_checksums(output)
             unsafe_arguments = type("Arguments", (), {
                 "bundle_directory": output,
                 "evidence_locator": "../review.json",
@@ -857,6 +896,55 @@ class SourceManifestTests(unittest.TestCase):
                 sound_release.verify_review_bundle_result(output, result)
             with self.assertRaisesRegex(sound_release.ReleaseError, "must be empty"):
                 sound_release.command_build_review_bundle(arguments)
+
+    def test_review_bundle_reproduces_candidates_in_pinned_toolchain(self) -> None:
+        logical_path = "background/example.ogg"
+        generated_path = "audio/background/example.ogg.opus"
+        evidence = {
+            "schema_version": 1,
+            "logical_path": logical_path,
+            "source_sha256": "a" * 64,
+            "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+            "output_sha256": hashlib.sha256(b"canonical candidate").hexdigest(),
+            "generated_path": generated_path,
+            "tool_versions": {"opusenc": "fixture"},
+            "measurements": {"rendered_pcm": {"applied_gain_db": 0.0}},
+            "non_publishing": True,
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            candidate_path = root / "candidates" / logical_path / generated_path
+            candidate_path.parent.mkdir(parents=True)
+            candidate_path.write_bytes(b"canonical candidate")
+            bundled = {
+                "candidate_path": candidate_path.relative_to(root).as_posix(),
+                "candidate_evidence": copy.deepcopy(evidence),
+            }
+            def fake_write(
+                _asset: dict[str, object], output: Path,
+                _toolchain: dict[str, object], _versions: dict[str, str],
+            ) -> dict[str, object]:
+                reproduced = output / generated_path
+                reproduced.parent.mkdir(parents=True)
+                reproduced.write_bytes(b"canonical candidate")
+                return copy.deepcopy(evidence)
+            patches = (
+                mock.patch.object(sound_release, "checked_toolchain", return_value={}),
+                mock.patch.object(sound_release, "verify_toolchain", return_value={"opusenc": "fixture"}),
+                mock.patch.object(sound_release, "write_review_candidate", side_effect=fake_write),
+            )
+            with patches[0], patches[1], patches[2]:
+                sound_release.verify_review_bundle_candidates(
+                    root, {logical_path: bundled}, {logical_path: {}},
+                )
+                candidate_path.write_bytes(b"forged candidate")
+                forged = copy.deepcopy(evidence)
+                forged["output_sha256"] = hashlib.sha256(b"forged candidate").hexdigest()
+                bundled["candidate_evidence"] = forged
+                with self.assertRaisesRegex(sound_release.ReleaseError, "deterministic current output"):
+                    sound_release.verify_review_bundle_candidates(
+                        root, {logical_path: bundled}, {logical_path: {}},
+                    )
 
 
 class DeterministicArchiveTests(unittest.TestCase):
