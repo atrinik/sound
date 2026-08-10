@@ -436,6 +436,30 @@ class SourceManifestTests(unittest.TestCase):
             return original_read_json(path)
         with mock.patch.object(sound_release, "read_json", side_effect=fixture_read):
             self.assertIn("effects/example.ogg", sound_release.checked_quality_reviews())
+        shared_document = copy.deepcopy(document)
+        second_entry = copy.deepcopy(shared_document["reviews"][0])
+        second_entry["logical_path"] = "effects/second.ogg"
+        second_entry["source_sha256"] = "c" * 64
+        second_entry["output_sha256"] = "d" * 64
+        shared_document["reviews"].append(second_entry)
+        shared_artifact = copy.deepcopy(artifact)
+        second_result = copy.deepcopy(shared_artifact["reviews"][0])
+        second_result["logical_path"] = "effects/second.ogg"
+        second_result["source_sha256"] = "c" * 64
+        second_result["output_sha256"] = "d" * 64
+        second_result["candidate_evidence"]["logical_path"] = "effects/second.ogg"
+        second_result["candidate_evidence"]["source_sha256"] = "c" * 64
+        second_result["candidate_evidence"]["output_sha256"] = "d" * 64
+        shared_artifact["reviews"].append(second_result)
+        _bundle_contract.reset_mock()
+        _source_tree.reset_mock()
+        with mock.patch.object(
+            sound_release, "read_json",
+            side_effect=lambda path: shared_document if path == sound_release.QUALITY_REVIEWS else shared_artifact if path == ROOT / "evidence/README.md" else original_read_json(path),
+        ):
+            self.assertEqual(2, len(sound_release.checked_quality_reviews()))
+        _bundle_contract.assert_called_once_with(shared_artifact)
+        _source_tree.assert_called_once_with(shared_artifact, "evidence/README.md")
         failed_artifact = copy.deepcopy(artifact)
         failed_artifact["reviews"][0]["verdict"] = "failed"
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: failed_artifact if path == ROOT / "evidence/README.md" else fixture_read(path)):

@@ -770,10 +770,13 @@ def verify_quality_review_result(
     entry: dict[str, object],
     evidence: dict[str, object],
     logical_path: str,
+    verified_result: dict[str, object] | None = None,
 ) -> None:
-    result = checked_critical_listening_result(ROOT / str(evidence["artifact_locator"]))
-    quality_review_bundle_contract(result)
-    verify_quality_review_source_tree(result, str(evidence["artifact_locator"]))
+    result = verified_result
+    if result is None:
+        result = checked_critical_listening_result(ROOT / str(evidence["artifact_locator"]))
+        quality_review_bundle_contract(result)
+        verify_quality_review_source_tree(result, str(evidence["artifact_locator"]))
     reviews = result["reviews"]
     assert isinstance(reviews, list)
     matches = [review for review in reviews if isinstance(review, dict) and review.get("logical_path") == logical_path]
@@ -838,10 +841,18 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"quality review has invalid evidence: {logical_path}")
         verify_review_evidence(evidence, logical_path)
         reviews[logical_path] = entry
+    verified_results: dict[tuple[str, str], dict[str, object]] = {}
     for logical_path, entry in reviews.items():
         evidence = entry["evidence"]
         assert isinstance(evidence, dict)
-        verify_quality_review_result(entry, evidence, logical_path)
+        key = (str(evidence["artifact_locator"]), str(evidence["artifact_sha256"]))
+        result = verified_results.get(key)
+        if result is None:
+            result = checked_critical_listening_result(ROOT / key[0])
+            quality_review_bundle_contract(result)
+            verify_quality_review_source_tree(result, key[0])
+            verified_results[key] = result
+        verify_quality_review_result(entry, evidence, logical_path, result)
     return reviews
 
 
