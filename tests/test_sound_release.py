@@ -38,9 +38,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(489, len(blockers))
+        self.assertEqual(503, len(blockers))
         self.assertEqual(
-            {"license/provenance": 293, "quality-review": 196},
+            {"license/provenance": 307, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -154,8 +154,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(89, candidates)
-        self.assertEqual(46, allowed)
+        self.assertEqual(103, candidates)
+        self.assertEqual(32, allowed)
 
     def test_meritous_project_notice_does_not_approve_music(self) -> None:
         notice = {
@@ -201,11 +201,31 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(46, len(reviewed["reviews"]))
+        self.assertEqual(32, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
             sound_release.validate_manifest(drifted)
+
+        original_read_json = sound_release.read_json
+        for field, replacement in (
+            ("reviewed_by", "different-reviewer"),
+            ("reviewed_at", "2026-08-10T06:20:37Z"),
+        ):
+            altered = copy.deepcopy(reviewed)
+            altered["reviews"][0][field] = replacement
+            with self.subTest(field=field):
+                with mock.patch.object(
+                    sound_release,
+                    "read_json",
+                    side_effect=lambda path, document=altered: (
+                        document
+                        if path == sound_release.LICENSE_REVIEWS
+                        else original_read_json(path)
+                    ),
+                ):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "source manifest is stale"):
+                        sound_release.validate_manifest(self.manifest)
 
     def test_per_asset_license_review_requires_retrievable_immutable_evidence(self) -> None:
         review = {
@@ -300,7 +320,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "489 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "503 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:

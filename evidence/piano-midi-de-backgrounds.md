@@ -23,12 +23,12 @@ commit `5bf6d9610255540bfbee6890765a616042bf1e11`, blob
 
 ## Exact asset identity
 
-Each reviewed local file embeds Bernd Krueger's copyright identity and the
-work title. Twenty-one are byte-identical to the current first-party download.
-The remaining four (`elise.mid`, `fountain.mid`, `pearls.mid`, and
-`thunderstorm.mid`) identify the same author and work as the linked current
-first-party file but are earlier authored revisions; the first-party grant
-covers Bernd Krueger's MIDI files without limiting it to the latest revision.
+Each local file embeds Bernd Krueger's copyright identity and the work title.
+Twenty-one are byte-identical to the current first-party download and are the
+only files approved by this review. Four differing files (`elise.mid`,
+`fountain.mid`, `pearls.mid`, and `thunderstorm.mid`) are recorded below for
+research only: embedded metadata does not prove that their complete historical
+bytes are an unmodified first-party revision, so they remain blocked.
 
 | Local path | Local SHA-256 | First-party path | Identity |
 | --- | --- | --- | --- |
@@ -60,6 +60,8 @@ covers Bernd Krueger's MIDI files without limiting it to the latest revision.
 
 ## Decision
 
-These exact 25 source hashes have full-work conversion and redistribution
-permission under `CC-BY-SA-3.0-DE`. Runtime attribution must retain Bernd
-Krueger's name, <http://www.piano-midi.de>, and the same-license condition.
+The 21 byte-identical source hashes have full-work conversion and redistribution
+permission under `CC-BY-SA-3.0-DE`. The four differing historical hashes remain
+blocked until an authoritative exact revision is found or explicit permission
+is obtained. Runtime attribution for approved files must retain Bernd Krueger's
+name, <http://www.piano-midi.de>, and the same-license condition.

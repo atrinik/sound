@@ -1,4 +1,4 @@
-# Hero of Allacrost GPL-2.0 background review
+# Hero of Allacrost background provenance research
 
 Retrieved and reviewed on 2026-08-10 for Atrinik sound issue #18. This
 evidence applies only to the six source hashes listed below.
@@ -43,6 +43,8 @@ source-to-Opus critical-listening approval required by issue #21.
 
 ## Decision
 
-The six exact Atrinik inputs above are approved under `GPL-2.0-only` for
-conversion to Opus and redistribution in the complete sound archive. Any byte
-change, notice change, or different logical path requires a new review.
+The archive establishes source identity but not an affirmative music-specific
+grant: its README licenses "code" under GPL-2.0 and separately asserts all
+rights reserved. Merely including `mus/` in the source archive is insufficient
+for the full-work permission required by issue #18. All six inputs remain
+blocked pending authoritative music licensing or explicit permission.

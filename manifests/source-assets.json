@@ -20,6 +20,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:50",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -82,6 +83,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:2",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "e132955d041a429b7b0d439f3cf27cf924925d091d75af843ee7f6661bc1c4d9",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -143,6 +145,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:49",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -205,6 +208,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:74",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -260,6 +264,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:65",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -321,6 +326,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:109",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "d6964b8994bcbba7abb5bea5afd2026ff3707f4625e10f94eb0a35d78f793a29",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -376,6 +382,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:97",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -431,6 +438,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:110",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "cde57b964b3855a0f2c6d572acc5a097945b7e1222f9345ddb7ab1b35be3faaf",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -486,6 +494,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:192",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -536,13 +545,14 @@
       "generated_path": "audio/background/betrayal_battle.ogg.opus",
       "id": "sound:background/betrayal_battle.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "Allacrost - http://allacrost.org/ - GPLv2",
         "notice_reference": "background/LICENSE:32",
         "notice_sha256": "a6bd4f3bd409498f25568b1306a95c07e1294cbf0571e6957858848733bb03fc",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/betrayal_battle.ogg",
       "quality_review": {
@@ -603,6 +613,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:98",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -658,6 +669,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:99",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -713,6 +725,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:14",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -768,6 +781,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:111",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "267091a8a066493a27bd81b7dc58fce4625fd8d91cebfceb7372d0e6bb063dba",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -823,6 +837,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:70",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -879,13 +894,14 @@
       "generated_path": "audio/background/cave2.ogg.opus",
       "id": "sound:background/cave2.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "Allacrost - http://allacrost.org/ - GPLv2",
         "notice_reference": "background/LICENSE:33",
         "notice_sha256": "a6bd4f3bd409498f25568b1306a95c07e1294cbf0571e6957858848733bb03fc",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/cave2.ogg",
       "quality_review": {
@@ -946,6 +962,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:69",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1007,6 +1024,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:66",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1068,6 +1086,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:100",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -1123,6 +1142,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:112",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "0f643b09b061cad988941b6d27cc993c1ac5b30f789ae030f25ce57e9c1ef657",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -1178,6 +1198,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:113",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "2fff751b36e382c30243fb4ff0db4c26f20f41ef25e06380116493d093b7e28e",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -1233,6 +1254,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:114",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "c7ac34226502bdf23b99dd3bc0810b43ed9e00b26dbec130390853c26d9399b0",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -1288,6 +1310,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:115",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "5217ea3ba218b0229b08b7e837cf65c5acc2bf3f15d30e5b439439c469b59180",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -1343,6 +1366,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:116",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "304c9526e7b268c00f6fe8f3aad95a063c09fee1904f09d2af8c61e7e3d74d67",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -1398,6 +1422,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:117",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "c05a0c184a1af7d90e89f49c8607e206b6ce5947231bce42626547a9660b4174",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -1453,6 +1478,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:51",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1515,6 +1541,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:3",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "8eda9753762ea65d7e7fd69ab114c2c68a1ab5609cfaa1bdce9efb718728e329",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -1576,6 +1603,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:15",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1626,13 +1654,14 @@
       "generated_path": "audio/background/creature_awakens.ogg.opus",
       "id": "sound:background/creature_awakens.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "Allacrost - http://allacrost.org/ - GPLv2",
         "notice_reference": "background/LICENSE:35",
         "notice_sha256": "a6bd4f3bd409498f25568b1306a95c07e1294cbf0571e6957858848733bb03fc",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/creature_awakens.ogg",
       "quality_review": {
@@ -1693,6 +1722,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:88",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1755,6 +1785,7 @@
         "notice": "Ecrivain - http://opengameart.org/users/Ecrivain - CC0",
         "notice_reference": "background/LICENSE:211",
         "notice_sha256": "7fbcbc4483e3822744a2450c8adb6ca86955867fef8dc309b3096b42058385da",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -1817,6 +1848,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:29",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1872,6 +1904,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:58",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -1934,6 +1967,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:102",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -1989,6 +2023,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:101",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -2039,13 +2074,14 @@
       "generated_path": "audio/background/desert.ogg.opus",
       "id": "sound:background/desert.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "Allacrost - http://allacrost.org/ - GPLv2",
         "notice_reference": "background/LICENSE:34",
         "notice_sha256": "a6bd4f3bd409498f25568b1306a95c07e1294cbf0571e6957858848733bb03fc",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/desert.ogg",
       "quality_review": {
@@ -2106,6 +2142,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:16",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2161,6 +2198,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:136",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2216,6 +2254,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:137",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2271,6 +2310,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:138",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2326,6 +2366,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:139",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2381,6 +2422,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:140",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2436,6 +2478,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:141",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2491,6 +2534,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:142",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2546,6 +2590,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:143",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2601,6 +2646,7 @@
         "notice": "David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes",
         "notice_reference": "background/LICENSE:144",
         "notice_sha256": "7c746a06ec07e48a423d3b65f9ff8aef45a893bcc0b8b4f501e0684638c7ccd6",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2656,6 +2702,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:57",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -2713,13 +2760,14 @@
       "generated_path": "audio/background/elise.mid.opus",
       "id": "sound:background/elise.mid",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:118",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/elise.mid",
       "quality_review": {
@@ -2773,6 +2821,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:193",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -2828,6 +2877,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:103",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -2883,6 +2933,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:4",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "9770445ea02400aa8be66c37cdb61b4e469ad960d92c192c0d7b0b2668e39c11",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -2944,6 +2995,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:5",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "06af87d8da984e27739061846a036da8c5392cd11e12a26a77db40f66652e434",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -3005,6 +3057,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:17",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -3060,6 +3113,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:104",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -3110,13 +3164,14 @@
       "generated_path": "audio/background/evil_temple.ogg.opus",
       "id": "sound:background/evil_temple.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC0-1.0.txt",
         "notice": "Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0",
         "notice_reference": "background/LICENSE:148",
         "notice_sha256": "315d5d283d441e45c1cfe7a91d5de19069d10bd2a3bcc77b06975f3f51d4e87a",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/evil_temple.ogg",
       "quality_review": {
@@ -3177,6 +3232,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:119",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "0bf291fddad21b2eb55b0c25a32e378372308c705cde356ca5b4d5e187827354",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -3227,13 +3283,14 @@
       "generated_path": "audio/background/fountain.mid.opus",
       "id": "sound:background/fountain.mid",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:120",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/fountain.mid",
       "quality_review": {
@@ -3287,6 +3344,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "background/LICENSE:217",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -3349,6 +3407,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:194",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -3404,6 +3463,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:195",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -3459,6 +3519,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:196",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -3514,6 +3575,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:18",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -3569,6 +3631,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:197",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -3624,6 +3687,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:19",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -3679,6 +3743,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:20",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -3734,6 +3799,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:121",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "776cd832220127b7fcdc2b017d003bf852408ffb3edbfcb01e2c35c21975bfcc",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -3789,6 +3855,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:91",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -3851,6 +3918,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:198",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -3906,6 +3974,7 @@
         "notice": "Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0",
         "notice_reference": "background/LICENSE:153",
         "notice_sha256": "82b7fdf3ceca9ab4587c8bfbc1b8305fd0d5e888d5466fb544961da245a9d73a",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -3968,6 +4037,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:67",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4029,6 +4099,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:6",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "0631e58ccad59a3ad4ab67b4fd09c7461401494dd319f6358f1b113ef9463202",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -4090,6 +4161,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:76",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4145,6 +4217,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:77",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4200,6 +4273,7 @@
         "notice": "GNU FreeDink - http://www.freedink.org/ - GPLv3",
         "notice_reference": "background/LICENSE:40",
         "notice_sha256": "739a055d1dcb10436bfa84f7db32854d3712bd1a970b578fdd1161106fdc9d8b",
+        "review_sha256": null,
         "spdx_expression": "GPL-3.0-only",
         "status": "blocked"
       },
@@ -4255,6 +4329,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:199",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -4310,6 +4385,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:90",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4372,6 +4448,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:75",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4427,6 +4504,7 @@
         "notice": "bebeto - http://www.freesound.org/usersViewSingle.php?id=409 - CC Sampling Plus 1.0",
         "notice_reference": "background/LICENSE:226",
         "notice_sha256": "c8374a08d473d4a2fabca53d69eba76e559cb272a3e4bf54e7f31f6d6d0d2a47",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4489,6 +4567,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:105",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -4544,6 +4623,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:122",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "fa9082e190ec557aed22c1094ea33220c75334a8a8716a59ed5256d1e23a5329",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -4599,6 +4679,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:200",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -4654,6 +4735,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:201",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -4709,6 +4791,7 @@
         "notice": "GNU FreeDink - http://www.freedink.org/ - GPLv3",
         "notice_reference": "background/LICENSE:41",
         "notice_sha256": "739a055d1dcb10436bfa84f7db32854d3712bd1a970b578fdd1161106fdc9d8b",
+        "review_sha256": null,
         "spdx_expression": "GPL-3.0-only",
         "status": "blocked"
       },
@@ -4764,6 +4847,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:89",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4826,6 +4910,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:21",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -4876,13 +4961,14 @@
       "generated_path": "audio/background/lost_in_meadows.ogg.opus",
       "id": "sound:background/lost_in_meadows.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC0-1.0.txt",
         "notice": "Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0",
         "notice_reference": "background/LICENSE:149",
         "notice_sha256": "315d5d283d441e45c1cfe7a91d5de19069d10bd2a3bcc77b06975f3f51d4e87a",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/lost_in_meadows.ogg",
       "quality_review": {
@@ -4943,6 +5029,7 @@
         "notice": "GNU FreeDink - http://www.freedink.org/ - GPLv3",
         "notice_reference": "background/LICENSE:42",
         "notice_sha256": "739a055d1dcb10436bfa84f7db32854d3712bd1a970b578fdd1161106fdc9d8b",
+        "review_sha256": null,
         "spdx_expression": "GPL-3.0-only",
         "status": "blocked"
       },
@@ -4998,6 +5085,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:28",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5053,6 +5141,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:60",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5115,6 +5204,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:52",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5177,6 +5267,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:61",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5239,6 +5330,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:62",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5301,6 +5393,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:80",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5351,13 +5444,14 @@
       "generated_path": "audio/background/pearls.mid.opus",
       "id": "sound:background/pearls.mid",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:123",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/pearls.mid",
       "quality_review": {
@@ -5411,6 +5505,7 @@
         "notice": "GNU FreeDink - http://www.freedink.org/ - GPLv3",
         "notice_reference": "background/LICENSE:43",
         "notice_sha256": "739a055d1dcb10436bfa84f7db32854d3712bd1a970b578fdd1161106fdc9d8b",
+        "review_sha256": null,
         "spdx_expression": "GPL-3.0-only",
         "status": "blocked"
       },
@@ -5466,6 +5561,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:202",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -5521,6 +5617,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:124",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "05faa204fb3ce079b2ca74f797a56ec99604fcaf984b9fc20f9a9074e9cc1847",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -5576,6 +5673,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:125",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "3001ce210cd716558257535bb54b83ace51801e2562317a96e7a6c49bbab2b96",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -5631,6 +5729,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:126",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "fa94208693ce094de27f61fbd9560be8cafca7232b64ea2178bfc7a01cf29433",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -5686,6 +5785,7 @@
         "notice": "Mike Koenig - CC-BY",
         "notice_reference": "background/LICENSE:220",
         "notice_sha256": "ea2211b6985e50b19982a7dba790f9388a0b2d32ee0303d0a9bf185e9f10e4cb",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -5748,6 +5848,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:7",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "08fa9026b5edb696de2661ed00d5284e962ee4d3c4ce631f985761006338cabe",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -5809,6 +5910,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:127",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "bbbb0169bfc6bfbcbe8685c14dd1b742fe5b4e387e0c42a9791783943c8deca6",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -5864,6 +5966,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:11",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "e82fdd4ee30270c4ee17885ad8d4c219a38e6cedab9547ad5e404d2218ef7abe",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -5925,6 +6028,7 @@
         "notice": "Daniel \"Lippy\" Liptrot - CC-BY-SA 3.0",
         "notice_reference": "background/LICENSE:229",
         "notice_sha256": "150b19f532658ea9ee4a2a194259a2fc24a5100837c1fc552892e8cf1a1fe1fb",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -5980,6 +6084,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:128",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "383b50625f83aed63790f3487ce69f9095ff6d40768863a62714a7ff87922012",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -6035,6 +6140,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:78",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6090,6 +6196,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:68",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6151,6 +6258,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:22",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6206,6 +6314,7 @@
         "notice": "OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2",
         "notice_reference": "background/LICENSE:83",
         "notice_sha256": "b34b4c7a3bd7f6c5e6253f44de95f2ac0970cb804975f8bc45cb456c825ed36c",
+        "review_sha256": "2429d31d599bef0333ea4ea98aae3f81a7ddd8032ff2db465c5ee0e27df4d7d4",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -6256,13 +6365,14 @@
       "generated_path": "audio/background/running.ogg.opus",
       "id": "sound:background/running.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC0-1.0.txt",
         "notice": "Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0",
         "notice_reference": "background/LICENSE:147",
         "notice_sha256": "315d5d283d441e45c1cfe7a91d5de19069d10bd2a3bcc77b06975f3f51d4e87a",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/running.ogg",
       "quality_review": {
@@ -6323,6 +6433,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:203",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -6378,6 +6489,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:59",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6440,6 +6552,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:27",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6490,13 +6603,14 @@
       "generated_path": "audio/background/sewer_rats.ogg.opus",
       "id": "sound:background/sewer_rats.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC0-1.0.txt",
         "notice": "Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0",
         "notice_reference": "background/LICENSE:150",
         "notice_sha256": "315d5d283d441e45c1cfe7a91d5de19069d10bd2a3bcc77b06975f3f51d4e87a",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/sewer_rats.ogg",
       "quality_review": {
@@ -6557,6 +6671,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:53",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6619,6 +6734,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:23",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6674,6 +6790,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:204",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -6729,6 +6846,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:129",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "ef4042dfe7cabaea1b6d924ffaad0bc4141d9c41039c0aa0e966c16841f31fab",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -6784,6 +6902,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:24",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6839,6 +6958,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:130",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "283d7639c89928f544666ce9268fd390270bb0a5cfe2b56c4602fc31643436bd",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -6894,6 +7014,7 @@
         "notice": "Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware",
         "notice_reference": "background/LICENSE:79",
         "notice_sha256": "7f04fc3ada6be35fe8a6152f0655aedfe83f0882f9261620ec25cbfd99b3d687",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -6949,6 +7070,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:131",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "041719ba97998c8a222dc35890d4172eed16db1e5470c6e0d753517584ea7287",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -7004,6 +7126,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:205",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -7059,6 +7182,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:156",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7114,6 +7238,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:157",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7169,6 +7294,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:158",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7224,6 +7350,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:159",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7279,6 +7406,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:160",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7334,6 +7462,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:161",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7389,6 +7518,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:162",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7444,6 +7574,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:163",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7499,6 +7630,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:164",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7554,6 +7686,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:165",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7609,6 +7742,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:166",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7664,6 +7798,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:167",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7719,6 +7854,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:168",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7774,6 +7910,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:169",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7829,6 +7966,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:170",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7884,6 +8022,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:171",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7939,6 +8078,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:172",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -7994,6 +8134,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:173",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8049,6 +8190,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:174",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8104,6 +8246,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:175",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8159,6 +8302,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:176",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8214,6 +8358,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:177",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8269,6 +8414,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:178",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8324,6 +8470,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:179",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8379,6 +8526,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:180",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8434,6 +8582,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:181",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8489,6 +8638,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:182",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8544,6 +8694,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:183",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8599,6 +8750,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:184",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8654,6 +8806,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:185",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8709,6 +8862,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:186",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8764,6 +8918,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:187",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8819,6 +8974,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:188",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8874,6 +9030,7 @@
         "notice": "ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music",
         "notice_reference": "background/LICENSE:189",
         "notice_sha256": "b3f49efcb461f635d84a7688ea8592ff48a5860f05d2cab14021b971d5fc9633",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -8929,6 +9086,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:206",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -8984,6 +9142,7 @@
         "notice": "OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2",
         "notice_reference": "background/LICENSE:84",
         "notice_sha256": "b34b4c7a3bd7f6c5e6253f44de95f2ac0970cb804975f8bc45cb456c825ed36c",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -9039,6 +9198,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:54",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9101,6 +9261,7 @@
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:132",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": "4c030f80d7bc753a035e6591ee65cd037c0fdcffc4b9976691321ef4fb844946",
         "spdx_expression": "CC-BY-SA-3.0-DE",
         "status": "allowed"
       },
@@ -9156,6 +9317,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:55",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9218,6 +9380,7 @@
         "notice": "ZhayTee - http://www.zhaymusic.com/ - GPLv2",
         "notice_reference": "background/LICENSE:46",
         "notice_sha256": "ed8e4717db870df924763d4d3f32056950a895c9216d0a0672119d4c11b66b4b",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -9280,6 +9443,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:25",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9335,6 +9499,7 @@
         "notice": "Future Wave Shaper - http://www.futurewaveshaper.com/ - CC BY-NC 3.0",
         "notice_reference": "background/LICENSE:214",
         "notice_sha256": "739c90063219db8563ebc84209f1ef55d138dd8a1090a62f89718b678de8c5a8",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9392,13 +9557,14 @@
       "generated_path": "audio/background/thunderstorm.mid.opus",
       "id": "sound:background/thunderstorm.mid",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:133",
         "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/thunderstorm.mid",
       "quality_review": {
@@ -9452,6 +9618,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:8",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "440c5036551c96de4372c838d24033adb84818d7416fc96d7cd480bb84a5fe1c",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -9508,13 +9675,14 @@
       "generated_path": "audio/background/town_folk.ogg.opus",
       "id": "sound:background/town_folk.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "Allacrost - http://allacrost.org/ - GPLv2",
         "notice_reference": "background/LICENSE:36",
         "notice_sha256": "a6bd4f3bd409498f25568b1306a95c07e1294cbf0571e6957858848733bb03fc",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/town_folk.ogg",
       "quality_review": {
@@ -9575,6 +9743,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:94",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9637,6 +9806,7 @@
         "notice": "Mike Koenig - CC-BY",
         "notice_reference": "background/LICENSE:221",
         "notice_sha256": "ea2211b6985e50b19982a7dba790f9388a0b2d32ee0303d0a9bf185e9f10e4cb",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9699,6 +9869,7 @@
         "notice": "Mike Koenig - CC-BY",
         "notice_reference": "background/LICENSE:222",
         "notice_sha256": "ea2211b6985e50b19982a7dba790f9388a0b2d32ee0303d0a9bf185e9f10e4cb",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9761,6 +9932,7 @@
         "notice": "bebeto - http://www.freesound.org/usersViewSingle.php?id=409 - CC Sampling Plus 1.0",
         "notice_reference": "background/LICENSE:225",
         "notice_sha256": "c8374a08d473d4a2fabca53d69eba76e559cb272a3e4bf54e7f31f6d6d0d2a47",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -9823,6 +9995,7 @@
         "notice": "Edwin \"Mamoru\" Miltenburg - GPLv2",
         "notice_reference": "background/LICENSE:106",
         "notice_sha256": "9bc7c868f2778f4f5b5b1e25f5ec6e5b8a9f2424f2420f39af55f42a59128f40",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -9878,6 +10051,7 @@
         "notice": "OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2",
         "notice_reference": "background/LICENSE:85",
         "notice_sha256": "b34b4c7a3bd7f6c5e6253f44de95f2ac0970cb804975f8bc45cb456c825ed36c",
+        "review_sha256": "f1512d3b9e66dc90b3096a2d0f785ca4ad8ea7ad4f635c398b1d5b1a6cc71e8a",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -9933,6 +10107,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:207",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -9988,6 +10163,7 @@
         "notice": "HyperNewbie - http://www.hypernewbie.com/ - Permission to use",
         "notice_reference": "background/LICENSE:26",
         "notice_sha256": "9d6e8feec73d9c1619af300720ccb7d16de410d6cc158ce3affcef7a4c04a8b2",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10038,13 +10214,14 @@
       "generated_path": "audio/background/venturing_dragons.ogg.opus",
       "id": "sound:background/venturing_dragons.ogg",
       "license": {
-        "blocking_finding": null,
+        "blocking_finding": "per-asset license review evidence is missing",
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "Allacrost - http://allacrost.org/ - GPLv2",
         "notice_reference": "background/LICENSE:37",
         "notice_sha256": "a6bd4f3bd409498f25568b1306a95c07e1294cbf0571e6957858848733bb03fc",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
-        "status": "allowed"
+        "status": "blocked"
       },
       "logical_path": "background/venturing_dragons.ogg",
       "quality_review": {
@@ -10105,6 +10282,7 @@
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:208",
         "notice_sha256": "a35627038517638eecdf0f7a35a70c3f71757aa019a773cdd365045aa7979458",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -10160,6 +10338,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:10",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": "ab43667738092c09bb51d98f3dec4948b87b5a7c44bb9bc62dc035aa278a5b98",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -10221,6 +10400,7 @@
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:56",
         "notice_sha256": "b6fc111ac3ae34eb87e8e44a1d2d93d789d109c2c51a0b75d746f78ad1fc9643",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10283,6 +10463,7 @@
         "notice": "KQ - http://sourceforge.net/projects/kqlives/ - GPLv2",
         "notice_reference": "background/LICENSE:9",
         "notice_sha256": "4510ded1c840bd9212017476fec6a7f908224809bc29b70b60bd598d39ee7f78",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -10344,6 +10525,7 @@
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:71",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10405,6 +10587,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:92",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10467,6 +10650,7 @@
         "notice": "Sammy Broock - Freeware",
         "notice_reference": "background/LICENSE:93",
         "notice_sha256": "f04df665e6dd7714bc41e560343135e78e2358b0d68b6ea082e3686d3ec78f5d",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10529,6 +10713,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10591,6 +10776,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10653,6 +10839,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10715,6 +10902,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:14",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -10777,6 +10965,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:15",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -10839,6 +11028,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10901,6 +11091,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -10963,6 +11154,7 @@
         "notice": "Ulrich Metzner - http://commons.wikimedia.org/wiki/User:Metzner - CC-BY-SA 3.0",
         "notice_reference": "effects/LICENSE:39",
         "notice_sha256": "74c3e1144f14a7c2e9af629d34cc517374ca2be41568c70ece41c046b0969a23",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-SA-3.0",
         "status": "blocked"
       },
@@ -11025,6 +11217,7 @@
         "notice": "daveincamas - http://www.freesound.org/usersViewSingle.php?id=111413 - CC Sampling Plus 1.0",
         "notice_reference": "effects/LICENSE:85",
         "notice_sha256": "432b2c03f5ea51bd45806860d436766d99d37e83520c3cd2ce11dd69041fc442",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -11087,6 +11280,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:18",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -11149,6 +11343,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -11211,6 +11406,7 @@
         "notice": "n3b - http://opengameart.org/users/n3b - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:27",
         "notice_sha256": "b2ce1e3b7ff9c6dccb79c6f5bc8fd8c6a6e349b565f06d04a4ccb26963696106",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -11273,6 +11469,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:30",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11335,6 +11532,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:31",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11397,6 +11595,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:32",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11459,6 +11658,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:33",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11521,6 +11721,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:34",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11583,6 +11784,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:35",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11645,6 +11847,7 @@
         "notice": "AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0",
         "notice_reference": "effects/LICENSE:36",
         "notice_sha256": "816b697cc6dd34cf3ef0443f6c88c94ed34d9715a5fcbea39a1d97cbc074b046",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11707,6 +11910,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -11769,6 +11973,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -11831,6 +12036,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -11893,6 +12099,7 @@
         "notice": "http://opengameart.org/content/4-atmospheric-ghostly-loops - CC0",
         "notice_reference": "effects/LICENSE:54",
         "notice_sha256": "3c93d5d09d86304dc91844fb0301f7db6a88c40613f0b6653a1ddc02513faaed",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -11955,6 +12162,7 @@
         "notice": "http://opengameart.org/content/4-atmospheric-ghostly-loops - CC0",
         "notice_reference": "effects/LICENSE:55",
         "notice_sha256": "3c93d5d09d86304dc91844fb0301f7db6a88c40613f0b6653a1ddc02513faaed",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -12017,6 +12225,7 @@
         "notice": "http://opengameart.org/content/4-atmospheric-ghostly-loops - CC0",
         "notice_reference": "effects/LICENSE:56",
         "notice_sha256": "3c93d5d09d86304dc91844fb0301f7db6a88c40613f0b6653a1ddc02513faaed",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -12079,6 +12288,7 @@
         "notice": "http://opengameart.org/content/4-atmospheric-ghostly-loops - CC0",
         "notice_reference": "effects/LICENSE:57",
         "notice_sha256": "3c93d5d09d86304dc91844fb0301f7db6a88c40613f0b6653a1ddc02513faaed",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -12141,6 +12351,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12203,6 +12414,7 @@
         "notice": "free-loops.com - CC0",
         "notice_reference": "effects/LICENSE:82",
         "notice_sha256": "7b31fca1a8b7750c37b6b20f0697a4b741ade0c20611f0b8384a9c8ffc20bcb4",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -12265,6 +12477,7 @@
         "notice": "Mumu - http://opengameart.org/users/mumu - CC0 (Public Domain)",
         "notice_reference": "effects/LICENSE:21",
         "notice_sha256": "865d834b202965d9b9b058ef709274c2ff9a2f3af71df8d22742c990a10f94ea",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -12327,6 +12540,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12389,6 +12603,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12451,6 +12666,7 @@
         "notice": "Ecrivain - http://opengameart.org/users/Ecrivain - CC0",
         "notice_reference": "effects/LICENSE:60",
         "notice_sha256": "7fbcbc4483e3822744a2450c8adb6ca86955867fef8dc309b3096b42058385da",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -12513,6 +12729,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:16",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -12575,6 +12792,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:17",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -12637,6 +12855,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12699,6 +12918,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12761,6 +12981,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12823,6 +13044,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12885,6 +13107,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -12947,6 +13170,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13009,6 +13233,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13071,6 +13296,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13133,6 +13359,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13195,6 +13422,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13257,6 +13485,7 @@
         "notice": "Ecrivain - http://opengameart.org/users/Ecrivain - CC0",
         "notice_reference": "effects/LICENSE:61",
         "notice_sha256": "7fbcbc4483e3822744a2450c8adb6ca86955867fef8dc309b3096b42058385da",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -13319,6 +13548,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13381,6 +13611,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:51",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -13443,6 +13674,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13505,6 +13737,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13567,6 +13800,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13629,6 +13863,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13691,6 +13926,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13753,6 +13989,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13815,6 +14052,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13877,6 +14115,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -13939,6 +14178,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14001,6 +14241,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14063,6 +14304,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14125,6 +14367,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14187,6 +14430,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14249,6 +14493,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14311,6 +14556,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14373,6 +14619,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14435,6 +14682,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14497,6 +14745,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14559,6 +14808,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14621,6 +14871,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14683,6 +14934,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14745,6 +14997,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14807,6 +15060,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14869,6 +15123,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14931,6 +15186,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -14993,6 +15249,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15055,6 +15312,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15117,6 +15375,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15179,6 +15438,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15241,6 +15501,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15303,6 +15564,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15365,6 +15627,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15427,6 +15690,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15489,6 +15753,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15551,6 +15816,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15613,6 +15879,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15675,6 +15942,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15737,6 +16005,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15799,6 +16068,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15861,6 +16131,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15923,6 +16194,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -15985,6 +16257,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16047,6 +16320,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16109,6 +16383,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16171,6 +16446,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16233,6 +16509,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16295,6 +16572,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16357,6 +16635,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16419,6 +16698,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16481,6 +16761,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16543,6 +16824,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16605,6 +16887,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16667,6 +16950,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16729,6 +17013,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16791,6 +17076,7 @@
         "notice": "Ogrebane - http://opengameart.org/users/ogrebane - CC0 (Public Domain)",
         "notice_reference": "effects/LICENSE:24",
         "notice_sha256": "e44663c752c7f0288af838ac8e49593995ff17aafd49972ab4f7c0a3854842e2",
+        "review_sha256": null,
         "spdx_expression": "CC0-1.0",
         "status": "blocked"
       },
@@ -16853,6 +17139,7 @@
         "notice": "Mike Koenig - CC-BY",
         "notice_reference": "effects/LICENSE:74",
         "notice_sha256": "ea2211b6985e50b19982a7dba790f9388a0b2d32ee0303d0a9bf185e9f10e4cb",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16915,6 +17202,7 @@
         "notice": "Luftrum - CC-BY-NC",
         "notice_reference": "effects/LICENSE:79",
         "notice_sha256": "65db3b25d406d94e345052cfbc8fb37fba1cc3c8e33649c1ae5869323f7dec72",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -16977,6 +17265,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17039,6 +17328,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17101,6 +17391,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17163,6 +17454,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17225,6 +17517,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17287,6 +17580,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17349,6 +17643,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17411,6 +17706,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17473,6 +17769,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:64",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -17535,6 +17832,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:65",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -17597,6 +17895,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:66",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -17659,6 +17958,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:67",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -17721,6 +18021,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:50",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -17783,6 +18084,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17845,6 +18147,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17907,6 +18210,7 @@
         "notice": "Mike Koenig - CC-BY",
         "notice_reference": "effects/LICENSE:76",
         "notice_sha256": "ea2211b6985e50b19982a7dba790f9388a0b2d32ee0303d0a9bf185e9f10e4cb",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -17969,6 +18273,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -18031,6 +18336,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -18093,6 +18399,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -18155,6 +18462,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -18217,6 +18525,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:2",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18279,6 +18588,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:3",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18341,6 +18651,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:4",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18403,6 +18714,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:5",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18465,6 +18777,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:6",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18527,6 +18840,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:7",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18589,6 +18903,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:8",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18651,6 +18966,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:9",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18713,6 +19029,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:10",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18775,6 +19092,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:11",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18837,6 +19155,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:12",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18899,6 +19218,7 @@
         "notice": "Jute - http://alturl.com/quao - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:13",
         "notice_sha256": "432daf306a2be8c1c5754e9d599ae03ad11c6e5df0043cdb8a0e62d4b48df636",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -18961,6 +19281,7 @@
         "notice": "Mike Koenig - CC-BY",
         "notice_reference": "effects/LICENSE:75",
         "notice_sha256": "ea2211b6985e50b19982a7dba790f9388a0b2d32ee0303d0a9bf185e9f10e4cb",
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19023,6 +19344,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19085,6 +19407,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19147,6 +19470,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19209,6 +19533,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19271,6 +19596,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19333,6 +19659,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19395,6 +19722,7 @@
         "notice": "kurt - http://opengameart.org/users/kurt - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:42",
         "notice_sha256": "a51c710076d88b10ee288df22b49680c89534d4b9196c21c6daef3667938ddbc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -19457,6 +19785,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:46",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -19519,6 +19848,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:47",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -19581,6 +19911,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:48",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -19643,6 +19974,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:49",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -19705,6 +20037,7 @@
         "notice": "Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0",
         "notice_reference": "effects/LICENSE:45",
         "notice_sha256": "1f72acba77bd0efd63ce060a7907f645cb6d87bb631d0d90e34e9a5b2a1f68bc",
+        "review_sha256": null,
         "spdx_expression": "CC-BY-3.0",
         "status": "blocked"
       },
@@ -19767,6 +20100,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19829,6 +20163,7 @@
         "notice": null,
         "notice_reference": null,
         "notice_sha256": null,
+        "review_sha256": null,
         "spdx_expression": null,
         "status": "blocked"
       },
@@ -19891,6 +20226,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:68",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -19953,6 +20289,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:69",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -20015,6 +20352,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:70",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },
@@ -20077,6 +20415,7 @@
         "notice": "Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0",
         "notice_reference": "effects/LICENSE:71",
         "notice_sha256": "294490703ddd2f592dce3606d600011b51f5a961bedefa02006a49179b3736a5",
+        "review_sha256": null,
         "spdx_expression": "GPL-2.0-only",
         "status": "blocked"
       },

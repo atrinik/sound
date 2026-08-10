@@ -619,6 +619,9 @@ def build_source_manifest() -> dict[str, object]:
             status, finding = "allowed", None
         elif status == "candidate":
             status = "blocked"
+        elif review is not None:
+            raise ReleaseError(f"license review does not apply to a reviewed notice: {relative}")
+        review_hash = hashlib.sha256(canonical_json(review)).hexdigest() if status == "allowed" else None
         generated = f"audio/{logical.parent}/{logical.name}.opus"
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
@@ -671,6 +674,7 @@ def build_source_manifest() -> dict[str, object]:
                 "blocking_finding": finding,
                 "spdx_expression": expression,
                 "license_text_path": license_text_path,
+                "review_sha256": review_hash,
             },
         }
         if path.suffix.lower() == ".ogg":

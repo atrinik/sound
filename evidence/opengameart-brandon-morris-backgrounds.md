@@ -45,6 +45,8 @@ issue #21.
 
 ## Decision
 
-The four exact Atrinik inputs above are approved under `CC0-1.0` for conversion
-to Opus and redistribution in the complete sound archive. Any byte change,
-notice change, or different logical path requires a new review.
+The downloaded audio identity is established, but this review did not preserve
+hash-verifiable first-party page or API captures containing the creator and
+CC0 grant. Mutable publication links alone do not meet issue #18's immutable
+grant-evidence requirement. All four inputs remain blocked until those
+authoritative metadata captures are preserved and reviewed.
