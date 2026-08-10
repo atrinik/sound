@@ -118,9 +118,13 @@ docker run --rm --user "$(id -u):$(id -g)" \
 
 Open `build/review-bundle/index.html`, enter the identified GitHub reviewer,
 compare every complete source/candidate pair on headphones and representative
-speakers, record substantive notes for every required listening category, and
-export the completed JSON. The bundle includes copied source bytes, generated
-candidate bytes, per-candidate evidence, a bundle manifest, and `SHA256SUMS`.
+speakers, and record substantive notes for every required listening category.
+The shared transport switches mutually exclusively between synchronized A/B
+players, level-matches the source to any deterministic candidate gain, leaves
+looping off for tail inspection, and provides an explicit loop toggle. Export
+the completed JSON when every verdict is recorded. The bundle includes copied
+source bytes, generated candidate bytes, per-candidate evidence, a bundle
+manifest, and `SHA256SUMS`.
 The exported JSON is review input, not an automatic approval: verify it before
 committing evidence and source/toolchain/output-bound quality-ledger records.
 

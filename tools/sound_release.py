@@ -1507,25 +1507,40 @@ def review_bundle_html(bundle: dict[str, object]) -> bytes:
 <style>
 body{{font:16px/1.45 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#18202a;background:#f5f7fa}}
 h1,h2{{line-height:1.2}} .notice,.asset{{background:white;border:1px solid #ccd4df;border-radius:8px;padding:1rem;margin:1rem 0}}
-.players{{display:grid;grid-template-columns:1fr 1fr;gap:1rem}} audio{{width:100%}} label{{display:block;font-weight:650;margin-top:.75rem}}
+.transport{{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin:.75rem 0}} .transport button[aria-pressed="true"]{{outline:3px solid #2764c4}}
+.transport input[type="range"]{{flex:1;min-width:12rem}} .transport input[type="checkbox"]{{width:auto}} audio{{display:none}} label{{display:block;font-weight:650;margin-top:.75rem}}
 textarea,input,select{{box-sizing:border-box;width:100%;font:inherit;padding:.5rem}} textarea{{min-height:4.5rem}} button{{font:inherit;padding:.65rem 1rem}}
-code{{overflow-wrap:anywhere}} .hash{{font-size:.82rem}} @media(max-width:700px){{.players{{grid-template-columns:1fr}}}}
+code{{overflow-wrap:anywhere}} .hash,.gain{{font-size:.82rem}}
 </style></head><body>
 <h1>Atrinik critical-listening review</h1>
 <div class="notice"><p>This is a non-publishing review aid. Use headphones and representative speakers. Listen to each complete source and candidate at normal and revealing levels, then compare loop boundaries. Do not pass a track with audible codec artifacts, tonal or transient changes, noise-floor modulation, truncation, tail loss, or a loop discontinuity.</p>
-<label>GitHub reviewer identity <input id="reviewer" autocomplete="username" placeholder="username"></label></div>
+<label>GitHub reviewer identity <input id="reviewer" autocomplete="username" placeholder="username" pattern="[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?"></label></div>
 <main id="assets"></main><button id="export">Export completed review JSON</button>
 <script>const assets={assets_json};const root=document.querySelector('#assets');
 for(const a of assets){{const s=document.createElement('section');s.className='asset';s.dataset.logical=a.logical_path;
 const h=document.createElement('h2');h.textContent=a.logical_path;s.append(h);
 const hashes=document.createElement('p');hashes.className='hash';hashes.innerHTML='<code>'+a.source_sha256+'</code> → <code>'+a.output_sha256+'</code>';s.append(hashes);
-const players=document.createElement('div');players.className='players';
-for(const [label,path] of [['Canonical source',a.source_path],['Generated Opus candidate',a.candidate_path]]){{const box=document.createElement('div');const strong=document.createElement('strong');strong.textContent=label;const audio=document.createElement('audio');audio.controls=true;audio.loop=true;audio.preload='metadata';audio.src=path;box.append(strong,audio);players.append(box)}}s.append(players);
+const gain=document.createElement('p');gain.className='gain';gain.textContent='Candidate gain: '+a.candidate_gain_db.toFixed(4)+' dB. Source playback is level-matched by the same amount for unbiased A/B comparison.';s.append(gain);
+const source=document.createElement('audio');source.preload='auto';source.src=a.source_path;source.volume=Math.pow(10,a.candidate_gain_db/20);
+const candidate=document.createElement('audio');candidate.preload='auto';candidate.src=a.candidate_path;
+const transport=document.createElement('div');transport.className='transport';
+const play=document.createElement('button');play.type='button';play.textContent='Play';
+const sourceButton=document.createElement('button');sourceButton.type='button';sourceButton.textContent='A: source';sourceButton.setAttribute('aria-pressed','true');
+const candidateButton=document.createElement('button');candidateButton.type='button';candidateButton.textContent='B: candidate';candidateButton.setAttribute('aria-pressed','false');
+const seek=document.createElement('input');seek.type='range';seek.min='0';seek.max='1000';seek.value='0';seek.setAttribute('aria-label','Playback position');
+const loopLabel=document.createElement('label');loopLabel.textContent=' Loop';loopLabel.style.margin='0';const loop=document.createElement('input');loop.type='checkbox';loopLabel.prepend(loop);
+const time=document.createElement('span');time.textContent='0:00';transport.append(play,sourceButton,candidateButton,seek,loopLabel,time);s.append(source,candidate,transport);
+let active=source;const other=()=>active===source?candidate:source;const sync=()=>{{if(Number.isFinite(active.duration)&&active.duration>0){{seek.value=String(Math.round(1000*active.currentTime/active.duration));time.textContent=Math.floor(active.currentTime/60)+':'+String(Math.floor(active.currentTime%60)).padStart(2,'0')}}}};
+const switchTo=next=>{{if(next===active)return;const wasPlaying=!active.paused;const at=active.currentTime;active.pause();active=next;active.currentTime=Math.min(at,Number.isFinite(active.duration)?active.duration:at);sourceButton.setAttribute('aria-pressed',String(active===source));candidateButton.setAttribute('aria-pressed',String(active===candidate));if(wasPlaying)active.play()}};
+play.onclick=()=>{{if(active.paused)active.play();else active.pause()}};sourceButton.onclick=()=>switchTo(source);candidateButton.onclick=()=>switchTo(candidate);
+seek.oninput=()=>{{if(Number.isFinite(active.duration))active.currentTime=active.duration*Number(seek.value)/1000}};loop.onchange=()=>{{source.loop=loop.checked;candidate.loop=loop.checked}};
+for(const audio of [source,candidate]){{audio.ontimeupdate=sync;audio.onplay=()=>{{other().pause();play.textContent='Pause'}};audio.onpause=()=>{{if(other().paused)play.textContent='Play'}};audio.onended=()=>{{play.textContent='Play';sync()}}}}
 for(const [name,label] of [['artifacts','Codec artifacts / tonal / transient changes'],['noise_floor','Noise floor and low-level content'],['duration_tail','Complete duration, tail, and truncation'],['loop_boundary','Loop-boundary comparison']]){{const l=document.createElement('label');l.textContent=label;const t=document.createElement('textarea');t.dataset.field=name;l.append(t);s.append(l)}}
 const v=document.createElement('label');v.textContent='Verdict';const select=document.createElement('select');select.dataset.field='verdict';select.innerHTML='<option value="">Select…</option><option value="passed">Passed</option><option value="failed">Failed</option>';v.append(select);s.append(v);root.append(s)}}
-document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;
+document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;const reviewerValid=/^[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?$/.test(reviewer);
 for(const section of document.querySelectorAll('.asset')){{const meta=assets.find(a=>a.logical_path===section.dataset.logical);const values={{logical_path:section.dataset.logical,source_sha256:meta.source_sha256,output_sha256:meta.output_sha256,review_evidence_path:meta.review_evidence_path}};for(const field of section.querySelectorAll('[data-field]')){{values[field.dataset.field]=field.value.trim();if(!values[field.dataset.field])missing=true}}reviews.push(values)}}
 if(missing){{alert('Complete the reviewer identity, every note field, and every verdict before export.');return}}
+if(!reviewerValid){{alert('Use a valid GitHub username without a leading @.');return}}
 const payload={{schema_version:1,non_publishing:true,reviewed_by:reviewer,reviewed_at:new Date().toISOString().replace(/\\.\\d{{3}}Z$/,'Z'),source_manifest_sha256:'{bundle["source_manifest_sha256"]}',toolchain_sha256:'{bundle["toolchain_sha256"]}',reviews}};
 const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)+'\\n'],{{type:'application/json'}}));const link=document.createElement('a');link.href=url;link.download='atrinik-critical-listening-review.json';link.click();URL.revokeObjectURL(url)}};</script>
 </body></html>"""
@@ -1571,6 +1586,7 @@ def command_build_review_bundle(arguments: argparse.Namespace) -> None:
             "source_sha256": evidence["source_sha256"],
             "candidate_path": candidate_relative.as_posix(),
             "output_sha256": evidence["output_sha256"],
+            "candidate_gain_db": evidence["measurements"]["rendered_pcm"]["applied_gain_db"],  # type: ignore[index]
             "review_evidence_path": (candidate_root.relative_to(output_directory) / "review-evidence.json").as_posix(),
         })
     bundle = {

@@ -653,7 +653,11 @@ class SourceManifestTests(unittest.TestCase):
             output_path.parent.mkdir(parents=True, exist_ok=True)
             payload = f"candidate:{asset['logical_path']}".encode()
             output_path.write_bytes(payload)
-            return {"output": {"sha256": hashlib.sha256(payload).hexdigest(), "size_bytes": len(payload)}}
+            return {"output": {
+                "sha256": hashlib.sha256(payload).hexdigest(),
+                "size_bytes": len(payload),
+                "rendered_pcm": {"applied_gain_db": 0.0},
+            }}
 
         with tempfile.TemporaryDirectory() as temporary:
             output = Path(temporary) / "review"
@@ -665,6 +669,12 @@ class SourceManifestTests(unittest.TestCase):
             self.assertEqual(expected, {asset["logical_path"] for asset in bundle["assets"]})
             self.assertEqual(sound_release.sha256(ROOT / "manifests" / "source-assets.json"), bundle["source_manifest_sha256"])
             index = (output / "index.html").read_text()
+            self.assertIn("A: source", index)
+            self.assertIn("B: candidate", index)
+            self.assertIn("Candidate gain:", index)
+            self.assertIn("Source playback is level-matched", index)
+            self.assertIn("Use a valid GitHub username without a leading @.", index)
+            self.assertIn("^[A-Za-z0-9]", index)
             for asset in bundle["assets"]:
                 source = output / asset["source_path"]
                 candidate = output / asset["candidate_path"]
@@ -672,6 +682,7 @@ class SourceManifestTests(unittest.TestCase):
                 self.assertEqual(sound_release.sha256(ROOT / asset["logical_path"]), sound_release.sha256(source))
                 self.assertEqual(asset["output_sha256"], sound_release.sha256(candidate))
                 self.assertTrue(evidence.is_file())
+                self.assertEqual(0.0, asset["candidate_gain_db"])
                 self.assertIn(asset["logical_path"], index)
             checksums = (output / "SHA256SUMS").read_text().splitlines()
             self.assertEqual(sorted(checksums, key=lambda line: line.split("  ", 1)[1]), checksums)
