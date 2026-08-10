@@ -177,10 +177,14 @@ rejected and must be built separately with `--asset-class`. It emits passed
 verdicts only, verifies the named reviewer and review time against the live
 GitHub comment, and requires that reviewer to have effective write, maintain,
 or admin access to `atrinik/sound`. It preserves existing reviews and never
-changes the repository. The exported result binds the canonical bundle and
-worksheet hashes; normal pinned-container validation independently regenerates
-every committed passed candidate, so this preparation command is not a
-bypassable release gate.
+changes the repository. The exported result binds a stable hash of the exact
+source/license/encoding inputs, the complete eligible asset set at the review
+time, the canonical bundle, and the canonical worksheet template. Normal
+validation reconstructs those contracts from current repository state and the
+chronological review ledger; pinned-container validation also independently
+regenerates every committed passed candidate. A hand-authored subset,
+arbitrary manifest coordinate, or noncanonical worksheet therefore cannot
+bypass the preparation checks.
 Inspect the proposed ledger before replacing
 `manifests/vorbis-quality-reviews.json`, then run `refresh` and the complete
 validation suite. Failed verdicts intentionally remain blocked.

@@ -401,9 +401,10 @@ class SourceManifestTests(unittest.TestCase):
             "$schema": "https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json",
             "schema_version": 1, "non_publishing": True,
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
-            "source_manifest_sha256": "c" * 64,
+            "review_input_sha256": "c" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
             "review_bundle_sha256": "d" * 64,
+            "worksheet_contract_sha256": "e" * 64,
             "procedure": {"headphones_checked": True, "representative_speakers_checked": True, "loop_boundaries_checked": True},
             "reviews": [{
                 "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
@@ -750,7 +751,8 @@ class SourceManifestTests(unittest.TestCase):
             bundle = json.loads((output / "review-bundle.json").read_text())
             self.assertTrue(bundle["non_publishing"])
             self.assertEqual(expected, {asset["logical_path"] for asset in bundle["assets"]})
-            self.assertEqual(sound_release.sha256(ROOT / "manifests" / "source-assets.json"), bundle["source_manifest_sha256"])
+            expected_inputs = [self.assets[path] for path in sorted(expected)]
+            self.assertEqual(sound_release.quality_review_input_sha256(expected_inputs), bundle["review_input_sha256"])
             index = (output / "index.html").read_text()
             self.assertIn("A: source", index)
             self.assertIn("B: candidate", index)
@@ -795,9 +797,10 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                 "non_publishing": True,
                 "reviewed_by": "reviewer",
                 "reviewed_at": "2026-08-10T12:00:00Z",
-                "source_manifest_sha256": bundle["source_manifest_sha256"],
+                "review_input_sha256": bundle["review_input_sha256"],
                 "toolchain_sha256": bundle["toolchain_sha256"],
                 "review_bundle_sha256": bundle["contract_sha256"],
+                "worksheet_contract_sha256": bundle["worksheet_contract_sha256"],
                 "procedure": {
                     "headphones_checked": True,
                     "representative_speakers_checked": True,
@@ -820,6 +823,18 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             }
             verified_bundle, verified_reviews = sound_release.verify_review_bundle_result(output, result)
             self.assertEqual(bundle, sound_release.quality_review_bundle_contract(result))
+            subset_result = copy.deepcopy(result)
+            subset_result["reviews"] = subset_result["reviews"][:1]
+            with self.assertRaisesRegex(sound_release.ReleaseError, "exact eligible asset set"):
+                sound_release.quality_review_bundle_contract(subset_result)
+            stale_input = copy.deepcopy(result)
+            stale_input["review_input_sha256"] = "0" * 64
+            with self.assertRaisesRegex(sound_release.ReleaseError, "review-input contract"):
+                sound_release.quality_review_bundle_contract(stale_input)
+            stale_worksheet = copy.deepcopy(result)
+            stale_worksheet["worksheet_contract_sha256"] = "0" * 64
+            with self.assertRaisesRegex(sound_release.ReleaseError, "canonical worksheet"):
+                sound_release.quality_review_bundle_contract(stale_worksheet)
             first_review = result["reviews"][0]
             ledger_entry = {
                 "output_sha256": first_review["output_sha256"],
@@ -922,11 +937,13 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             substituted_evidence = substituted_root / substituted_asset["review_evidence_path"]
             substituted_evidence.write_bytes(sound_release.canonical_json(substituted_asset["candidate_evidence"]))
             substituted_bundle.pop("contract_sha256")
+            substituted_bundle.pop("worksheet_contract_sha256")
             substituted_bundle.pop("worksheet_sha256")
             substituted_bundle = json.loads(sound_release.canonical_json(substituted_bundle))
             substituted_bundle["contract_sha256"] = hashlib.sha256(
                 sound_release.canonical_json(substituted_bundle),
             ).hexdigest()
+            substituted_bundle["worksheet_contract_sha256"] = sound_release.worksheet_contract_sha256(substituted_bundle)
             substituted_worksheet = sound_release.review_bundle_html(substituted_bundle)
             substituted_bundle["worksheet_sha256"] = hashlib.sha256(substituted_worksheet).hexdigest()
             (substituted_root / "review-bundle.json").write_bytes(sound_release.canonical_json(substituted_bundle))
@@ -935,6 +952,7 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             substituted_result["reviews"][0]["source_sha256"] = substituted_hash
             substituted_result["reviews"][0]["candidate_evidence"]["source_sha256"] = substituted_hash
             substituted_result["review_bundle_sha256"] = substituted_bundle["contract_sha256"]
+            substituted_result["worksheet_contract_sha256"] = substituted_bundle["worksheet_contract_sha256"]
             (substituted_root / "SHA256SUMS").unlink()
             sound_release.write_tree_checksums(substituted_root)
             with self.assertRaisesRegex(sound_release.ReleaseError, "current manifest"):

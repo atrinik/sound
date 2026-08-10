@@ -545,7 +545,51 @@ def checked_critical_listening_result(path: Path) -> dict[str, object]:
     return value
 
 
-def quality_review_bundle_contract(result: dict[str, object]) -> dict[str, object]:
+def quality_review_input_sha256(assets: list[dict[str, object]]) -> str:
+    inputs = [
+        {key: value for key, value in asset.items() if key != "quality_review"}
+        for asset in sorted(assets, key=lambda item: str(item["logical_path"]))
+    ]
+    return hashlib.sha256(canonical_json(inputs)).hexdigest()
+
+
+def eligible_vorbis_review_assets_at(
+    manifest: dict[str, object],
+    asset_class: str,
+    reviewed_at: str,
+    prior_reviewed_paths: set[str],
+) -> list[dict[str, object]]:
+    assets = manifest.get("assets")
+    assert isinstance(assets, list)
+    license_reviews = checked_license_reviews()
+    eligible: list[dict[str, object]] = []
+    for asset in assets:
+        if not isinstance(asset, dict):
+            continue
+        logical_path = str(asset.get("logical_path", ""))
+        source = asset.get("source")
+        license_contract = asset.get("license")
+        license_review = license_reviews.get(logical_path)
+        if (
+            logical_path.startswith(f"{asset_class}/")
+            and logical_path not in prior_reviewed_paths
+            and isinstance(source, dict)
+            and source.get("codec") == "vorbis"
+            and isinstance(license_contract, dict)
+            and license_contract.get("status") == "allowed"
+            and (
+                license_review is None
+                or str(license_review.get("reviewed_at", "")) <= reviewed_at
+            )
+        ):
+            eligible.append(asset)
+    return sorted(eligible, key=lambda item: str(item["logical_path"]))
+
+
+def quality_review_bundle_contract(
+    result: dict[str, object],
+    prior_reviewed_paths: set[str] | None = None,
+) -> dict[str, object]:
     manifest = checked_manifest()
     assets = manifest.get("assets")
     assert isinstance(assets, list)
@@ -599,10 +643,23 @@ def quality_review_bundle_contract(result: dict[str, object]) -> dict[str, objec
     asset_classes = {str(asset["logical_path"]).partition("/")[0] for asset in bundle_assets}
     if len(asset_classes) != 1 or not asset_classes <= {"background", "effects"}:
         raise ReleaseError("critical-listening result must contain exactly one asset class")
+    asset_class = next(iter(asset_classes))
+    expected_assets = eligible_vorbis_review_assets_at(
+        manifest,
+        asset_class,
+        str(result["reviewed_at"]),
+        prior_reviewed_paths or set(),
+    )
+    expected_paths = {str(asset["logical_path"]) for asset in expected_assets}
+    if {str(asset["logical_path"]) for asset in bundle_assets} != expected_paths:
+        raise ReleaseError("critical-listening result does not cover the exact eligible asset set")
+    review_input_sha256 = quality_review_input_sha256(expected_assets)
+    if result.get("review_input_sha256") != review_input_sha256:
+        raise ReleaseError("critical-listening result has a stale review-input contract")
     bundle: dict[str, object] = {
         "schema_version": 1,
         "non_publishing": True,
-        "source_manifest_sha256": result["source_manifest_sha256"],
+        "review_input_sha256": review_input_sha256,
         "toolchain_sha256": result["toolchain_sha256"],
         "assets": sorted(bundle_assets, key=lambda item: str(item["logical_path"])),
     }
@@ -610,15 +667,23 @@ def quality_review_bundle_contract(result: dict[str, object]) -> dict[str, objec
     assert isinstance(canonical_core, dict)
     bundle = canonical_core
     bundle["contract_sha256"] = hashlib.sha256(canonical_json(bundle)).hexdigest()
+    bundle["worksheet_contract_sha256"] = worksheet_contract_sha256(bundle)
     bundle["worksheet_sha256"] = hashlib.sha256(review_bundle_html(bundle)).hexdigest()
     if bundle["contract_sha256"] != result.get("review_bundle_sha256"):
         raise ReleaseError("critical-listening result does not bind its canonical review bundle")
+    if bundle["worksheet_contract_sha256"] != result.get("worksheet_contract_sha256"):
+        raise ReleaseError("critical-listening result does not bind its canonical worksheet")
     return bundle
 
 
-def verify_quality_review_result(entry: dict[str, object], evidence: dict[str, object], logical_path: str) -> None:
+def verify_quality_review_result(
+    entry: dict[str, object],
+    evidence: dict[str, object],
+    logical_path: str,
+    prior_reviewed_paths: set[str] | None = None,
+) -> None:
     result = checked_critical_listening_result(ROOT / str(evidence["artifact_locator"]))
-    quality_review_bundle_contract(result)
+    quality_review_bundle_contract(result, prior_reviewed_paths)
     reviews = result["reviews"]
     assert isinstance(reviews, list)
     matches = [review for review in reviews if isinstance(review, dict) and review.get("logical_path") == logical_path]
@@ -682,8 +747,16 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
         if evidence.get("method") != "critical-listening" or not re.fullmatch(r"evidence/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)*", str(evidence.get("artifact_locator", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not re.fullmatch(r"https://github\.com/atrinik/sound/issues/(21|22)#issuecomment-[1-9][0-9]*", str(evidence.get("github_attestation_url", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
             raise ReleaseError(f"quality review has invalid evidence: {logical_path}")
         verify_review_evidence(evidence, logical_path)
-        verify_quality_review_result(entry, evidence, logical_path)
         reviews[logical_path] = entry
+    for logical_path, entry in reviews.items():
+        evidence = entry["evidence"]
+        assert isinstance(evidence, dict)
+        reviewed_at = str(entry["reviewed_at"])
+        prior_reviewed_paths = {
+            path for path, prior in reviews.items()
+            if str(prior["reviewed_at"]) < reviewed_at
+        }
+        verify_quality_review_result(entry, evidence, logical_path, prior_reviewed_paths)
     return reviews
 
 
@@ -1638,7 +1711,10 @@ def command_build_review_candidate(arguments: argparse.Namespace) -> None:
     print(output_directory / str(asset["generated_path"]))
 
 
-def review_bundle_html(bundle: dict[str, object]) -> bytes:
+WORKSHEET_CONTRACT_PLACEHOLDER = "ATRINIK_WORKSHEET_CONTRACT_SHA256_PLACEHOLDER"
+
+
+def review_bundle_html_template(bundle: dict[str, object]) -> bytes:
     assets_json = json.dumps(bundle["assets"], ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
     document = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1686,10 +1762,23 @@ const reviewFieldComplete=(name,value)=>name==='verdict'?['passed','failed'].inc
 for(const section of document.querySelectorAll('.asset')){{const meta=assets.find(a=>a.logical_path===section.dataset.logical);const values={{logical_path:section.dataset.logical,source_sha256:meta.source_sha256,output_sha256:meta.output_sha256,review_evidence_path:meta.review_evidence_path,candidate_evidence:meta.candidate_evidence,source_playback_completed:section.dataset.sourceComplete==='true',candidate_playback_completed:section.dataset.candidateComplete==='true'}};if(!values.source_playback_completed||!values.candidate_playback_completed)missing=true;for(const field of section.querySelectorAll('[data-field]')){{const name=field.dataset.field;values[name]=field.value.trim();if(!reviewFieldComplete(name,values[name]))missing=true}}reviews.push(values)}}
 if(missing){{alert('Complete both full playbacks, all procedure attestations, substantive notes, reviewer identity, and every verdict before export.');return}}
 if(!reviewerValid){{alert('Use a valid GitHub username without a leading @.');return}}
-const payload={{$schema:'https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json',schema_version:1,non_publishing:true,reviewed_by:reviewer,reviewed_at:new Date().toISOString().replace(/\\.\\d{{3}}Z$/,'Z'),source_manifest_sha256:'{bundle["source_manifest_sha256"]}',toolchain_sha256:'{bundle["toolchain_sha256"]}',review_bundle_sha256:'{bundle["contract_sha256"]}',procedure,reviews}};
+const payload={{$schema:'https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json',schema_version:1,non_publishing:true,reviewed_by:reviewer,reviewed_at:new Date().toISOString().replace(/\\.\\d{{3}}Z$/,'Z'),review_input_sha256:'{bundle["review_input_sha256"]}',toolchain_sha256:'{bundle["toolchain_sha256"]}',review_bundle_sha256:'{bundle["contract_sha256"]}',worksheet_contract_sha256:'{WORKSHEET_CONTRACT_PLACEHOLDER}',procedure,reviews}};
 const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)+'\\n'],{{type:'application/json'}}));const link=document.createElement('a');link.href=url;link.download='atrinik-critical-listening-review.json';link.click();URL.revokeObjectURL(url)}};</script>
 </body></html>"""
     return document.encode("utf-8")
+
+
+def review_bundle_html(bundle: dict[str, object]) -> bytes:
+    template = review_bundle_html_template(bundle)
+    contract_hash = hashlib.sha256(template).hexdigest().encode("ascii")
+    placeholder = WORKSHEET_CONTRACT_PLACEHOLDER.encode("ascii")
+    if template.count(placeholder) != 1:
+        raise ReleaseError("critical-listening worksheet contract placeholder is invalid")
+    return template.replace(placeholder, contract_hash)
+
+
+def worksheet_contract_sha256(bundle: dict[str, object]) -> str:
+    return hashlib.sha256(review_bundle_html_template(bundle)).hexdigest()
 
 
 def command_build_review_bundle(arguments: argparse.Namespace) -> None:
@@ -1731,7 +1820,7 @@ def command_build_review_bundle(arguments: argparse.Namespace) -> None:
     bundle = {
         "schema_version": 1,
         "non_publishing": True,
-        "source_manifest_sha256": sha256(SOURCE_MANIFEST),
+        "review_input_sha256": quality_review_input_sha256(selected),
         "toolchain_sha256": sha256(TOOLCHAIN),
         "assets": bundle_assets,
     }
@@ -1739,6 +1828,7 @@ def command_build_review_bundle(arguments: argparse.Namespace) -> None:
     assert isinstance(canonical_core, dict)
     bundle = canonical_core
     bundle["contract_sha256"] = hashlib.sha256(canonical_json(bundle)).hexdigest()
+    bundle["worksheet_contract_sha256"] = worksheet_contract_sha256(bundle)
     worksheet = review_bundle_html(bundle)
     bundle["worksheet_sha256"] = hashlib.sha256(worksheet).hexdigest()
     bundle_bytes = canonical_json(bundle)
@@ -1818,20 +1908,20 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
     verify_tree_checksums(bundle_root)
     bundle_value = read_json(bundle_root / "review-bundle.json")
     if not isinstance(bundle_value, dict) or set(bundle_value) != {
-        "schema_version", "non_publishing", "source_manifest_sha256", "toolchain_sha256",
-        "contract_sha256", "worksheet_sha256", "assets",
+        "schema_version", "non_publishing", "review_input_sha256", "toolchain_sha256",
+        "contract_sha256", "worksheet_contract_sha256", "worksheet_sha256", "assets",
     } or bundle_value.get("schema_version") != 1 or bundle_value.get("non_publishing") is not True:
         raise ReleaseError("invalid review-bundle manifest")
-    if bundle_value.get("source_manifest_sha256") != sha256(SOURCE_MANIFEST) or bundle_value.get("toolchain_sha256") != sha256(TOOLCHAIN):
-        raise ReleaseError("review bundle is stale for the current source/toolchain manifest")
+    if bundle_value.get("toolchain_sha256") != sha256(TOOLCHAIN):
+        raise ReleaseError("review bundle is stale for the current toolchain manifest")
     bundle_assets = bundle_value.get("assets")
     if not isinstance(bundle_assets, list):
         raise ReleaseError("review-bundle assets must be an array")
     index_path = checked_bundle_file(bundle_root, "index.html", "listening worksheet")
     canonical_worksheet = review_bundle_html(bundle_value)
-    if index_path.read_bytes() != canonical_worksheet or bundle_value.get("worksheet_sha256") != hashlib.sha256(canonical_worksheet).hexdigest():
+    if index_path.read_bytes() != canonical_worksheet or bundle_value.get("worksheet_contract_sha256") != worksheet_contract_sha256(bundle_value) or bundle_value.get("worksheet_sha256") != hashlib.sha256(canonical_worksheet).hexdigest():
         raise ReleaseError("review-bundle listening worksheet is not canonical")
-    core_bundle = {key: value for key, value in bundle_value.items() if key not in {"contract_sha256", "worksheet_sha256"}}
+    core_bundle = {key: value for key, value in bundle_value.items() if key not in {"contract_sha256", "worksheet_contract_sha256", "worksheet_sha256"}}
     if bundle_value.get("contract_sha256") != hashlib.sha256(canonical_json(core_bundle)).hexdigest():
         raise ReleaseError("review-bundle contract hash is not canonical")
     asset_classes = {
@@ -1847,6 +1937,8 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
         str(asset["logical_path"]): asset
         for asset in eligible_vorbis_review_assets(current_manifest, asset_class)
     }
+    if bundle_value.get("review_input_sha256") != quality_review_input_sha256(list(expected_by_path.values())):
+        raise ReleaseError("review bundle is stale for the current review inputs")
     bundle_by_path: dict[str, dict[str, object]] = {}
     for asset in bundle_assets:
         if not isinstance(asset, dict) or set(asset) != {
@@ -1891,7 +1983,7 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
 
     validate_schema_instance(result, checked_schema("critical-listening-review-v1.schema.json"))
     assert isinstance(result, dict)
-    if result.get("source_manifest_sha256") != bundle_value["source_manifest_sha256"] or result.get("toolchain_sha256") != bundle_value["toolchain_sha256"] or result.get("review_bundle_sha256") != bundle_value["contract_sha256"]:
+    if result.get("review_input_sha256") != bundle_value["review_input_sha256"] or result.get("toolchain_sha256") != bundle_value["toolchain_sha256"] or result.get("review_bundle_sha256") != bundle_value["contract_sha256"] or result.get("worksheet_contract_sha256") != bundle_value["worksheet_contract_sha256"]:
         raise ReleaseError("critical-listening result is stale for the review bundle")
     try:
         reviewed_at = datetime.strptime(str(result["reviewed_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
