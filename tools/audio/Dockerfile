@@ -69,6 +69,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         /tmp/sdl3-mixer-runtime-probe.c \
         -o /usr/local/bin/atrinik-sound-sdl3-mixer-probe \
         $(pkg-config --cflags --libs sdl3-mixer) \
+    && echo "cfbad665c7f7a22e5055e3ae4a81d44d1704c11e5e6514551f121f8b20c06dc9  /usr/local/bin/atrinik-sound-sdl3-mixer-probe" \
+        | sha256sum -c - \
     && rm -rf /tmp/freepats-source /tmp/freepats-source.tar.gz /tmp/freepats.tar.bz2
 
 RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \

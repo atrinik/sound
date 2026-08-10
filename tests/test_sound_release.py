@@ -759,9 +759,18 @@ class SourceManifestTests(unittest.TestCase):
         )
         for contract in toolchain["tools"].values():
             self.assertTrue(contract["version_pattern"])
-        for name, contract in toolchain["tools"].items():
-            if name != "sdl3_mixer_probe":
-                self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
+        for contract in toolchain["tools"].values():
+            self.assertRegex(contract["installed_path"], r"^/")
+            self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
+
+    def test_toolchain_rejects_path_shadowing(self) -> None:
+        toolchain = sound_release.checked_toolchain()
+        with mock.patch.object(sound_release.shutil, "which", return_value="/tmp/shadow/ffmpeg"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "pinned executable"):
+                sound_release.verify_toolchain(toolchain)
+        with mock.patch.dict(sound_release.os.environ, {"LD_PRELOAD": "/tmp/shadow.so"}):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "LD_PRELOAD"):
+                sound_release.verify_toolchain(toolchain)
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1244,12 +1253,37 @@ class PlaytestTreeTests(unittest.TestCase):
             sound_release.checked_playtest_output(ROOT.parent / "outside-playtest-tree")
         with self.assertRaisesRegex(sound_release.ReleaseError, "not build"):
             sound_release.checked_playtest_output(ROOT / "build")
+        with tempfile.TemporaryDirectory() as temporary:
+            fake_root = Path(temporary) / "sound"
+            fake_root.mkdir()
+            (fake_root / "build").symlink_to(Path(temporary) / "outside", target_is_directory=True)
+            with mock.patch.object(sound_release, "ROOT", fake_root):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "build root.*symlink"):
+                    sound_release.checked_playtest_output(fake_root / "build" / "tree")
 
     def test_dirty_playtest_source_is_rejected(self) -> None:
         completed = type("Completed", (), {"stdout": " M effects/campfire.ogg\n"})()
         with mock.patch.object(sound_release, "run", return_value=completed):
             with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
                 sound_release.clean_source_coordinates()
+
+    def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
+        asset = next(
+            item for item in self.source_manifest["assets"]
+            if item["logical_path"] == "background/fireside.mid"
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            def mutate_snapshot(
+                _asset: dict[str, object], _output: Path, _toolchain: dict[str, object],
+                *, source_root: Path | None = None,
+            ) -> dict[str, object]:
+                assert source_root is not None
+                (source_root / asset["source_path"]).write_bytes(b"changed during conversion")
+                return {}
+
+            with mock.patch.object(sound_release, "convert_asset", side_effect=mutate_snapshot):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "snapshot changed"):
+                    sound_release.convert_playtest_asset(asset, Path(temporary), {})
 
     def test_builds_are_deterministic_and_a_source_race_is_not_installed(self) -> None:
         build_root = ROOT / "build"
@@ -1262,13 +1296,14 @@ class PlaytestTreeTests(unittest.TestCase):
             name: "test" for name in
             ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
         }
+        toolchain = {"quality_budget": {"sample_rate": 48000}}
         with tempfile.TemporaryDirectory(prefix="test-playtest-build-", dir=build_root) as temporary:
             parent = Path(temporary)
             patches = (
                 mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
                 mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
                 mock.patch.object(sound_release, "validate_manifest", return_value=[]),
-                mock.patch.object(sound_release, "checked_toolchain", return_value={}),
+                mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain),
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
             )
@@ -1289,10 +1324,23 @@ class PlaytestTreeTests(unittest.TestCase):
                 "clean_source_coordinates",
                 side_effect=[("b" * 40, "c" * 40), ("b" * 40, "c" * 40), ("d" * 40, "e" * 40)],
             )
-            with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value={}), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+            with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "changed while building"):
                     sound_release.build_playtest_tree(raced)
             self.assertFalse(raced.exists())
+
+            collided = parent / "collided"
+            calls = 0
+            def create_destination() -> tuple[str, str]:
+                nonlocal calls
+                calls += 1
+                if calls == 3:
+                    collided.mkdir()
+                return "b" * 40, "c" * 40
+            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=create_destination), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
+                    sound_release.build_playtest_tree(collided)
+            self.assertTrue(collided.is_dir())
 
     def test_verifier_rejects_control_payload_and_closure_tampering(self) -> None:
         build_root = ROOT / "build"
@@ -1321,6 +1369,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 name: "test" for name in
                 ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
             }
+            toolchain = {"quality_budget": {"sample_rate": 48000}}
             marker = sound_release.canonical_json(sound_release.PLAYTEST_MARKER)
             blockers = sound_release.canonical_json(
                 sound_release.blocker_report(source_manifest, []),
@@ -1363,13 +1412,17 @@ class PlaytestTreeTests(unittest.TestCase):
                 mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
                 mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
                 mock.patch.object(sound_release, "validate_manifest", return_value=[]),
-                mock.patch.object(sound_release, "checked_toolchain", return_value={}),
+                mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain),
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
             )
             with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5] as probe:
                 sound_release.verify_playtest_tree(root)
                 probe.assert_called_once()
+                self.assertEqual(
+                    round(source["duration_seconds"] * 48000),
+                    probe.call_args.kwargs["expected_frames"],
+                )
 
                 marker_path.write_text("{}\n", encoding="utf-8")
                 with self.assertRaisesRegex(sound_release.ReleaseError, "marker"):

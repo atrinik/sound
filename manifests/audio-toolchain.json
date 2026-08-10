@@ -163,6 +163,8 @@
       "purpose": "device-free SDL3_mixer Opus backend full decode",
       "source_path": "tools/audio/sdl3-mixer-runtime-probe.c",
       "source_sha256": "6a68c6535e9865e4198501348689b89cd63f7c36f29ee70182f3bcc65eea9dba",
+      "installed_path": "/usr/local/bin/atrinik-sound-sdl3-mixer-probe",
+      "installed_sha256": "cfbad665c7f7a22e5055e3ae4a81d44d1704c11e5e6514551f121f8b20c06dc9",
       "decoder_library_source_repository": "atrinik/devcontainer",
       "decoder_library_source_commit": "66b8508434044ca50822558172c5cef47a888762",
       "decoded_pcm_safety_bound_bytes": 268435456,
