@@ -20,5 +20,5 @@
     {"duration_seconds": 38.399, "logical_path": "background/wood.s3m", "source_sha256": "c2290e3175b3baf6eb3aea3cc912fe44f1b6bd7d6838d9c3c4a0f804e0b3ebaf"}
   ],
   "schema_version": 1,
-  "toolchain_sha256": "16b4fef4cf148aba3cf7b7f1d70f8101cadb5434a3c677fe85b45e13dba7933a"
+  "toolchain_sha256": "a9e724c89afdd50834f42237181b2c9ac809c22000f80bf627f1978e768a7159"
 }

@@ -667,7 +667,12 @@ def archived_repository_tree(source_tree: str) -> Iterator[Path]:
         required_export_ignored = ["tools/audio/Dockerfile", probe_source]
         if seed_source is not None:
             required_export_ignored.append(seed_source)
-        for relative in required_export_ignored:
+        if isinstance(tools, dict):
+            required_export_ignored.extend(
+                contract["source_path"] for contract in tools.values()
+                if isinstance(contract, dict) and isinstance(contract.get("source_path"), str)
+            )
+        for relative in dict.fromkeys(required_export_ignored):
             pure = PurePosixPath(str(relative))
             if not isinstance(relative, str) or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != relative:
                 raise ReleaseError("critical-listening source tree has an unsafe toolchain path")
@@ -944,7 +949,7 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
 
 def codec_contract(suffix: str) -> tuple[str, str, str]:
     if suffix == ".mid":
-        return "midi", "standard-midi-file", "timidity"
+        return "midi", "standard-midi-file", "wildmidi"
     if suffix in TRACKER_SUFFIXES:
         return suffix[1:], "tracker-module", "openmpt123"
     if suffix == ".ogg":
@@ -1016,6 +1021,10 @@ def build_source_manifest() -> dict[str, object]:
         logical = PurePosixPath(relative)
         metadata = source_metadata(path)
         codec, container, renderer = codec_contract(path.suffix.lower())
+        tools = toolchain["tools"]
+        assert isinstance(tools, dict)
+        if renderer == "wildmidi" and "wildmidi" not in tools:
+            renderer = "timidity"
         notice = catalogs[logical.parts[0]].get(logical.name)
         status, finding, expression, license_text_path = notice_status(notice)
         source_hash = sha256(path)
@@ -1036,6 +1045,7 @@ def build_source_manifest() -> dict[str, object]:
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
         render_recipes = {
+            "wildmidi": ["wildmidi", "-c", "{instrument_config}", "-r", str(sample_rate), "-o", "{output}", "{input}"],
             "timidity": ["timidity", "-c", "{instrument_config}", "-EFreverb=d", "-EFchorus=d", "-EFdelay=d", "-EFresamp=l", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"],
             "openmpt123": ["openmpt123", "--quiet", "--batch", "--samplerate", str(sample_rate), "--channels", "2", "--no-float", "--dither", "0", "--force", "--output", "{output}", "--", "{input}"],
             "ffmpeg": ["ffmpeg", "-nostdin", "-v", "error", "-i", "{input}", "-map_metadata", "-1", "-ar", str(sample_rate), "-c:a", "pcm_s16le", "-y", "{output}"],
@@ -1254,7 +1264,8 @@ def checked_toolchain() -> dict[str, object]:
         raise ReleaseError("quality-budget contract drifted from the validated deterministic recipe")
     if not isinstance(value.get("duration_tolerance_seconds"), (int, float)) or not 0 < float(value["duration_tolerance_seconds"]) <= 5:
         raise ReleaseError("duration tolerance must be a positive bounded number")
-    required = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
+    tools_schema = toolchain_schema.get("properties", {}).get("tools", {})  # type: ignore[union-attr]
+    required = set(tools_schema.get("required", [])) if isinstance(tools_schema, dict) else set()
     tools = value.get("tools")
     if not isinstance(tools, dict) or set(tools) != required:
         raise ReleaseError(f"toolchain must define exactly: {', '.join(sorted(required))}")
@@ -1302,6 +1313,14 @@ def checked_toolchain() -> dict[str, object]:
             upstream = contract.get("upstream")
             if not isinstance(upstream, dict) or set(upstream) != {"version", "url", "sha256"} or not str(upstream.get("url", "")).startswith("https://") or not re.fullmatch(r"[0-9a-f]{64}", str(upstream.get("sha256", ""))):
                 raise ReleaseError(f"tool upstream contract is invalid: {name}")
+            source_path = contract.get("source_path")
+            source_sha256 = contract.get("source_sha256")
+            if (source_path is None) != (source_sha256 is None):
+                raise ReleaseError(f"tool source contract is incomplete: {name}")
+            if isinstance(source_path, str):
+                source = ROOT / source_path
+                if not source.is_file() or sha256(source) != source_sha256:
+                    raise ReleaseError(f"tool source does not match its pinned SHA-256: {name}")
     probe = tools["sdl3_mixer_probe"]
     assert isinstance(probe, dict)
     probe_source = probe.get("source_path")
@@ -1319,24 +1338,8 @@ def checked_toolchain() -> dict[str, object]:
     probe_path = ROOT / probe_source
     if not probe_path.is_file() or sha256(probe_path) != probe_sha256:
         raise ReleaseError("SDL3_mixer probe source does not match its pinned SHA-256")
-    timidity = tools["timidity"]
-    assert isinstance(timidity, dict)
-    deterministic_seed = timidity.get("deterministic_seed")
-    tool_definition = toolchain_schema.get("$defs", {}).get("tool", {})  # type: ignore[union-attr]
-    tool_properties = tool_definition.get("properties", {}) if isinstance(tool_definition, dict) else {}
-    seed_contract_supported = isinstance(tool_properties, dict) and "deterministic_seed" in tool_properties
-    seed_definition = tool_properties.get("deterministic_seed", {}) if seed_contract_supported else {}
-    expected_seed_fields = set(seed_definition.get("required", [])) if isinstance(seed_definition, dict) else set()
-    if (
-        seed_contract_supported
-        and (
-            not isinstance(deterministic_seed, dict)
-            or set(deterministic_seed) != expected_seed_fields
-            or deterministic_seed.get("fixed_epoch") != 946684800
-            or ("heap_perturb" in expected_seed_fields and deterministic_seed.get("heap_perturb") != 165)
-        )
-    ):
-        raise ReleaseError("TiMidity must pin its deterministic RNG seed shim")
+    timidity = tools.get("timidity")
+    deterministic_seed = timidity.get("deterministic_seed") if isinstance(timidity, dict) else None
     if isinstance(deterministic_seed, dict):
         seed_source = ROOT / str(deterministic_seed["source_path"])
         if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
@@ -1347,7 +1350,12 @@ def checked_toolchain() -> dict[str, object]:
         str(value["apt_snapshot"]),
         str(debian_source["url"]), str(debian_source["sha256"]), str(bank["upstream_archive_sha256"]),
         *(str(contract[field]) for contract in license_texts.values() if str(contract["installed_path"]).startswith("/opt/") for field in ("source_url", "sha256")),
-        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "openmpt123", "opusenc"}),
+        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "wildmidi", "openmpt123", "opusenc"}),
+        *(
+            str(contract[field]) for name, contract in tools.items()
+            if name != "sdl3_mixer_probe" and isinstance(contract, dict) and isinstance(contract.get("source_path"), str)
+            for field in ("source_path", "source_sha256", "installed_path", "installed_sha256")
+        ),
         probe_installed, str(probe_installed_sha256),
         *(
             [str(deterministic_seed["installed_path"]), str(deterministic_seed["installed_sha256"])]
@@ -1569,13 +1577,6 @@ def verify_toolchain(toolchain: dict[str, object]) -> dict[str, str]:
         if not re.search(expected, output, re.MULTILINE):
             raise ReleaseError(f"unexpected {name} version; expected /{expected}/, got: {output}")
         versions[name] = output.splitlines()[0]
-    timidity = tools["timidity"]
-    assert isinstance(timidity, dict)
-    deterministic_seed = timidity["deterministic_seed"]
-    assert isinstance(deterministic_seed, dict)
-    seed_library = Path(str(deterministic_seed["installed_path"]))
-    if not seed_library.is_file() or sha256(seed_library) != deterministic_seed["installed_sha256"]:
-        raise ReleaseError("installed TiMidity deterministic seed shim hash mismatch")
     libraries = toolchain.get("runtime_libraries")
     if not isinstance(libraries, list):
         raise ReleaseError("toolchain runtime libraries must be an array")
@@ -1683,7 +1684,7 @@ def render_source(
     command_source = source.relative_to(command_root) if command_root is not None else source
     command_output = output.relative_to(command_root) if command_root is not None else output
     replacements = {"{input}": str(command_source), "{output}": str(command_output)}
-    if renderer == "timidity":
+    if renderer in {"wildmidi", "timidity"}:
         bank = toolchain["instrument_bank"]
         assert isinstance(bank, dict)
         config_path = Path(str(bank["installed_config"]))
@@ -1700,14 +1701,7 @@ def render_source(
     renderer_contract = toolchain["tools"][renderer]  # type: ignore[index]
     assert isinstance(renderer_contract, dict)
     command[0] = str(renderer_contract["installed_path"])
-    environment = None
-    if renderer == "timidity":
-        deterministic_seed = renderer_contract["deterministic_seed"]
-        assert isinstance(deterministic_seed, dict)
-        environment = dict(os.environ)
-        environment["LD_PRELOAD"] = str(deterministic_seed["installed_path"])
-        environment["MALLOC_PERTURB_"] = str(deterministic_seed["heap_perturb"])
-    run(command, cwd=command_root, env=environment)
+    run(command, cwd=command_root)
 
 
 def encode_opus(

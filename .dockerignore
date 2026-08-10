@@ -4,4 +4,4 @@ tools/*
 !tools/audio/
 tools/audio/*
 !tools/audio/sdl3-mixer-runtime-probe.c
-!tools/audio/timidity-deterministic-time.c
+!tools/audio/wildmidi-render.c

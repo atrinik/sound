@@ -5,11 +5,12 @@ FROM ghcr.io/atrinik/linux-build@sha256:1231b39d40161c1199fd3e45e99e3d826dde02da
 USER root
 
 COPY tools/audio/sdl3-mixer-runtime-probe.c /tmp/sdl3-mixer-runtime-probe.c
-COPY tools/audio/timidity-deterministic-time.c /tmp/timidity-deterministic-time.c
+COPY tools/audio/wildmidi-render.c /tmp/wildmidi-render.c
 
 ARG FFMPEG_PACKAGE=7:8.0.1-3ubuntu2
 ARG OPENMPT_PACKAGE=0.8.4-1
 ARG OPUS_TOOLS_PACKAGE=0.2-1build5
+ARG WILDMIDI_PACKAGE=0.4.6-1
 ARG GH_PACKAGE=2.46.0-4
 ARG UBUNTU_SNAPSHOT=https://snapshot.ubuntu.com/ubuntu/20260810T000000Z
 ARG FREEPATS_URL=https://deb.debian.org/debian/pool/main/f/freepats/freepats_20060219.orig.tar.gz
@@ -36,6 +37,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         "gh=${GH_PACKAGE}" \
         "openmpt123=${OPENMPT_PACKAGE}" \
         "opus-tools=${OPUS_TOOLS_PACKAGE}" \
+        "wildmidi=${WILDMIDI_PACKAGE}" \
+        "libwildmidi-dev=${WILDMIDI_PACKAGE}" \
     && curl --fail --location --silent --show-error \
         "${FREEPATS_URL}" --output /tmp/freepats-source.tar.gz \
     && echo "${FREEPATS_SHA256}  /tmp/freepats-source.tar.gz" | sha256sum -c - \
@@ -48,7 +51,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && test -s /opt/freepats/freepats.cfg \
     && printf 'dir /opt/freepats\nsource /opt/freepats/freepats.cfg\n' \
         >/opt/atrinik-freepats.cfg \
-    && ln -sf /opt/atrinik-freepats.cfg /etc/timidity/fluidr3_gm.cfg \
     && mkdir -p /opt/atrinik-sound-license-texts \
     && curl --fail --location --silent --show-error "${CC_BY_URL}" \
         --output /opt/atrinik-sound-license-texts/CC-BY-3.0.txt \
@@ -66,23 +68,27 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         | sha256sum -c - \
     && echo "${CC0_SHA256}  /opt/atrinik-sound-license-texts/CC0-1.0.txt" \
         | sha256sum -c - \
+    && echo "6a68c6535e9865e4198501348689b89cd63f7c36f29ee70182f3bcc65eea9dba  /tmp/sdl3-mixer-runtime-probe.c" \
+        | sha256sum -c - \
     && cc -std=c17 -O2 -Wall -Wextra -Werror \
         /tmp/sdl3-mixer-runtime-probe.c \
         -o /usr/local/bin/atrinik-sound-sdl3-mixer-probe \
         $(pkg-config --cflags --libs sdl3-mixer) \
-    && cc -std=c17 -O2 -Wall -Wextra -Werror -fPIC -shared \
-        -Wl,--build-id=none /tmp/timidity-deterministic-time.c \
-        -o /usr/local/lib/atrinik-timidity-deterministic-time.so \
-    && echo "f689567aea88a6ded55d3b9580b5a40eba0ee51897ae5e69af2ea2af3c41b0d0  /usr/local/lib/atrinik-timidity-deterministic-time.so" \
+    && echo "cfe59c824dfdf7b13d1f730d79e3f01627b4e82246b05433f5d8996a7ef750f4  /tmp/wildmidi-render.c" \
+        | sha256sum -c - \
+    && cc -std=c17 -O2 -Wall -Wextra -Werror -Wl,--build-id=none \
+        /tmp/wildmidi-render.c -lWildMidi \
+        -o /usr/local/bin/atrinik-wildmidi-render \
+    && echo "ee829ceed4dfff0c4d9f4b541140d3e77692676f1a9781316b45f84dc0ca6ff3  /usr/local/bin/atrinik-wildmidi-render" \
         | sha256sum -c - \
     && echo "cfbad665c7f7a22e5055e3ae4a81d44d1704c11e5e6514551f121f8b20c06dc9  /usr/local/bin/atrinik-sound-sdl3-mixer-probe" \
         | sha256sum -c - \
     && rm -rf /tmp/freepats-source /tmp/freepats-source.tar.gz /tmp/freepats.tar.bz2 \
-        /tmp/timidity-deterministic-time.c
+        /tmp/sdl3-mixer-runtime-probe.c /tmp/wildmidi-render.c
 
 RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \
     && gh --version | grep -F 'gh version 2.46.0' \
-    && timidity --version | grep -F 'TiMidity++ version 2.14.0' \
+    && atrinik-wildmidi-render --version | grep -F 'atrinik-wildmidi-render 1' \
     && openmpt123 --version | grep -F 'openmpt123 v0.8.4' \
     && opusenc --version | grep -F 'opusenc opus-tools 0.2' \
     && test "$(dpkg-query -W -f='${Version}' opus-tools)" = '0.2-1build5' \

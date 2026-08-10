@@ -131,7 +131,7 @@ class SourceManifestTests(unittest.TestCase):
     def test_midi_duration_uses_rendered_pcm_eof(self) -> None:
         midi = {
             "logical_path": "background/example.mid",
-            "render": {"renderer": "timidity"},
+            "render": {"renderer": "wildmidi"},
             "source": {"duration_seconds": 114.6},
         }
         sound_release.validate_conversion_durations(midi, 97.04, 97.04, 2.5)
@@ -143,16 +143,17 @@ class SourceManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(sound_release.ReleaseError, "truncated or extended tail"):
             sound_release.validate_conversion_durations(midi, 97.2, 97.04, 2.5)
 
-    def test_midi_recipe_disables_time_seeded_rendering(self) -> None:
+    def test_midi_recipe_uses_pinned_wildmidi(self) -> None:
         midi_assets = [
             asset for asset in self.assets.values()
-            if asset["render"]["renderer"] == "timidity"
+            if asset["render"]["renderer"] == "wildmidi"
         ]
         self.assertEqual(126, len(midi_assets))
         for asset in midi_assets:
             recipe = asset["render"]["recipe"]
-            for option in ("-EFreverb=d", "-EFchorus=d", "-EFdelay=d", "-EFresamp=l"):
-                self.assertIn(option, recipe)
+            self.assertEqual("wildmidi", recipe[0])
+            self.assertIn("{instrument_config}", recipe)
+            self.assertIn("48000", recipe)
 
     def test_renderer_command_paths_are_stable_and_relative(self) -> None:
         asset = copy.deepcopy(self.assets["background/burnt_forest.mid"])
@@ -165,10 +166,7 @@ class SourceManifestTests(unittest.TestCase):
             config.write_text("fixture\n", encoding="utf-8")
             toolchain = {
                 "instrument_bank": {"installed_config": str(config)},
-                "tools": {"timidity": {
-                    "installed_path": "/usr/bin/timidity",
-                    "deterministic_seed": {"installed_path": "/pinned/seed.so", "heap_perturb": 165},
-                }},
+                "tools": {"wildmidi": {"installed_path": "/usr/local/bin/atrinik-wildmidi-render"}},
             }
             with mock.patch.object(sound_release, "run") as run:
                 sound_release.render_source(
@@ -178,14 +176,14 @@ class SourceManifestTests(unittest.TestCase):
                     source_root=root / "source",
                     command_root=root,
                 )
+            self.assertEqual(1, run.call_count)
             command = run.call_args.args[0]
+            self.assertEqual("/usr/local/bin/atrinik-wildmidi-render", command[0])
             self.assertIn("source/background/burnt_forest.mid", command)
             self.assertIn("rendered.wav", command)
             self.assertNotIn(str(source), command)
             self.assertNotIn(str(root / "rendered.wav"), command)
             self.assertEqual(root, run.call_args.kwargs["cwd"])
-            self.assertEqual("/pinned/seed.so", run.call_args.kwargs["env"]["LD_PRELOAD"])
-            self.assertEqual("165", run.call_args.kwargs["env"]["MALLOC_PERTURB_"])
 
     def test_license_findings_fail_closed(self) -> None:
         self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])
@@ -720,7 +718,7 @@ class SourceManifestTests(unittest.TestCase):
             "quality_budget": toolchain["quality_budget"],
             "tool_versions": {
                 name: "test"
-                for name in ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+                for name in ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
             },
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
             "assets": [asset],
@@ -763,7 +761,7 @@ class SourceManifestTests(unittest.TestCase):
             "schema_sha256": "3" * 64,
             "tool_versions": {
                 name: "test" for name in
-                ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+                ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
             },
             "marker_sha256": "f" * 64,
             "blocker_report_sha256": "1" * 64,
@@ -1353,7 +1351,7 @@ class PlaytestTreeTests(unittest.TestCase):
         }
         versions = {
             name: "test" for name in
-            ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
         }
         toolchain = {"quality_budget": {"sample_rate": 48000}}
         with tempfile.TemporaryDirectory(prefix="test-playtest-build-", dir=build_root) as temporary:
@@ -1426,7 +1424,7 @@ class PlaytestTreeTests(unittest.TestCase):
             }
             versions = {
                 name: "test" for name in
-                ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+                ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
             }
             toolchain = {"quality_budget": {"sample_rate": 48000}}
             marker = sound_release.canonical_json(sound_release.PLAYTEST_MARKER)

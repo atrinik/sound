@@ -14,7 +14,7 @@
     "source_tree": {"$ref": "#/$defs/gitObject"},
     "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
     "toolchain_sha256": {"$ref": "#/$defs/sha256"},
-    "tool_versions": {"type": "object", "additionalProperties": false, "required": ["ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"], "properties": {"ffmpeg": {"type": "string", "minLength": 1}, "timidity": {"type": "string", "minLength": 1}, "openmpt123": {"type": "string", "minLength": 1}, "opusenc": {"type": "string", "minLength": 1}, "opusinfo": {"type": "string", "minLength": 1}, "sdl3_mixer_probe": {"type": "string", "minLength": 1}}},
+    "tool_versions": {"type": "object", "additionalProperties": false, "required": ["ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"], "properties": {"ffmpeg": {"type": "string", "minLength": 1}, "wildmidi": {"type": "string", "minLength": 1}, "openmpt123": {"type": "string", "minLength": 1}, "opusenc": {"type": "string", "minLength": 1}, "opusinfo": {"type": "string", "minLength": 1}, "sdl3_mixer_probe": {"type": "string", "minLength": 1}}},
     "schema_sha256": {"$ref": "#/$defs/sha256"},
     "marker_sha256": {"$ref": "#/$defs/sha256"},
     "blocker_report_sha256": {"$ref": "#/$defs/sha256"},
