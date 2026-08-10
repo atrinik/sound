@@ -899,6 +899,7 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             comment = {
                 "html_url": "https://github.com/atrinik/sound/issues/21#issuecomment-123",
                 "issue_url": "https://api.github.com/repos/atrinik/sound/issues/21",
+                "node_id": "IC_fixture",
                 "author_association": "OWNER",
                 "user": {"login": "reviewer"},
                 "body": sound_release.github_attestation_body(result_hash),
@@ -909,7 +910,10 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             permission = subprocess.CompletedProcess(
                 [], 0, json.dumps({"permission": "admin", "role_name": "admin"}), "",
             )
-            with mock.patch.object(sound_release, "run", side_effect=[completed, permission]):
+            unedited = subprocess.CompletedProcess(
+                [], 0, json.dumps({"data": {"node": {"lastEditedAt": None}}}), "",
+            )
+            with mock.patch.object(sound_release, "run", side_effect=[completed, unedited, permission]):
                 sound_release.checked_github_attestation(
                     "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                 )
@@ -927,20 +931,34 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             read_only = subprocess.CompletedProcess(
                 [], 0, json.dumps({"permission": "read", "role_name": "read"}), "",
             )
-            with mock.patch.object(sound_release, "run", side_effect=[completed, read_only]):
+            with mock.patch.object(sound_release, "run", side_effect=[completed, unedited, read_only]):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "write permission"):
                     sound_release.checked_github_attestation(
                         "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                     )
             edited = copy.deepcopy(comment)
             edited["updated_at"] = "2026-08-10T12:06:00Z"
-            with mock.patch.object(sound_release, "run", side_effect=[
-                subprocess.CompletedProcess([], 0, json.dumps(edited), ""), permission,
-            ]):
+            with mock.patch.object(sound_release, "run", return_value=
+                    subprocess.CompletedProcess([], 0, json.dumps(edited), "")):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "comment was edited"):
                     sound_release.checked_github_attestation(
                         "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
                     )
+            same_second_edit = subprocess.CompletedProcess(
+                [], 0, json.dumps({"data": {"node": {"lastEditedAt": "2026-08-10T12:05:00Z"}}}), "",
+            )
+            with mock.patch.object(sound_release, "run", side_effect=[completed, same_second_edit]):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "comment was edited"):
+                    sound_release.checked_github_attestation(
+                        "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
+                    )
+            custom_write = subprocess.CompletedProcess(
+                [], 0, json.dumps({"permission": "write", "role_name": "sound-reviewer"}), "",
+            )
+            with mock.patch.object(sound_release, "run", side_effect=[completed, unedited, custom_write]):
+                sound_release.checked_github_attestation(
+                    "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
+                )
             substituted_root = Path(temporary) / "substituted"
             shutil.copytree(output, substituted_root)
             substituted_bundle = json.loads((substituted_root / "review-bundle.json").read_text())

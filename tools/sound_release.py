@@ -2042,18 +2042,9 @@ def checked_github_attestation(url: str, result: dict[str, object], result_sha25
     expected_html_url = f"https://github.com/atrinik/sound/issues/{issue_number}#issuecomment-{comment_id}"
     expected_issue_url = f"https://api.github.com/repos/atrinik/sound/issues/{issue_number}"
     user = comment.get("user") if isinstance(comment, dict) else None
-    if not isinstance(comment, dict) or comment.get("html_url") != expected_html_url or comment.get("issue_url") != expected_issue_url or comment.get("author_association") not in {"OWNER", "MEMBER", "COLLABORATOR"} or not isinstance(user, dict) or user.get("login") != result.get("reviewed_by") or str(comment.get("body", "")).strip() != github_attestation_body(result_sha256):
+    node_id = comment.get("node_id") if isinstance(comment, dict) else None
+    if not isinstance(comment, dict) or comment.get("html_url") != expected_html_url or comment.get("issue_url") != expected_issue_url or comment.get("author_association") not in {"OWNER", "MEMBER", "COLLABORATOR"} or not isinstance(user, dict) or user.get("login") != result.get("reviewed_by") or not isinstance(node_id, str) or not node_id or str(comment.get("body", "")).strip() != github_attestation_body(result_sha256):
         raise ReleaseError("GitHub critical-listening attestation does not match the review result")
-    reviewer = str(result["reviewed_by"])
-    permission_completed = run([
-        "gh", "api", f"repos/atrinik/sound/collaborators/{reviewer}/permission",
-    ], capture=True)
-    try:
-        permission = json.loads(permission_completed.stdout)
-    except json.JSONDecodeError as exc:
-        raise ReleaseError("GitHub returned an invalid reviewer permission") from exc
-    if not isinstance(permission, dict) or permission.get("permission") not in {"write", "admin"} or permission.get("role_name") not in {"write", "maintain", "admin"}:
-        raise ReleaseError("critical-listening reviewer lacks repository write permission")
     try:
         comment_time = datetime.strptime(str(comment["created_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
         updated_time = datetime.strptime(str(comment["updated_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
@@ -2062,6 +2053,30 @@ def checked_github_attestation(url: str, result: dict[str, object], result_sha25
         raise ReleaseError("GitHub critical-listening attestation has an invalid timestamp") from exc
     if updated_time != comment_time:
         raise ReleaseError("GitHub critical-listening attestation comment was edited")
+    edit_completed = run([
+        "gh", "api", "graphql",
+        "-f", "query=query($id:ID!){node(id:$id){... on IssueComment{lastEditedAt}}}",
+        "-F", f"id={node_id}",
+    ], capture=True)
+    try:
+        edit_state = json.loads(edit_completed.stdout)
+        edit_node = edit_state["data"]["node"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise ReleaseError("GitHub returned invalid critical-listening edit metadata") from exc
+    if not isinstance(edit_node, dict) or "lastEditedAt" not in edit_node:
+        raise ReleaseError("GitHub returned invalid critical-listening edit metadata")
+    if edit_node["lastEditedAt"] is not None:
+        raise ReleaseError("GitHub critical-listening attestation comment was edited")
+    reviewer = str(result["reviewed_by"])
+    permission_completed = run([
+        "gh", "api", f"repos/atrinik/sound/collaborators/{reviewer}/permission",
+    ], capture=True)
+    try:
+        permission = json.loads(permission_completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise ReleaseError("GitHub returned an invalid reviewer permission") from exc
+    if not isinstance(permission, dict) or permission.get("permission") not in {"write", "admin"} or not isinstance(permission.get("role_name"), str):
+        raise ReleaseError("critical-listening reviewer lacks repository write permission")
     age_seconds = (comment_time - review_time).total_seconds()
     if age_seconds < 0 or age_seconds > 24 * 60 * 60:
         raise ReleaseError("critical-listening result timestamp is not bound to its GitHub attestation")
