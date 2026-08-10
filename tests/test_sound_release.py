@@ -143,6 +143,15 @@ class SourceManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(sound_release.ReleaseError, "truncated or extended tail"):
             sound_release.validate_conversion_durations(midi, 97.2, 97.04, 2.5)
 
+    def test_midi_recipe_pins_deterministic_linear_resampling(self) -> None:
+        midi_assets = [
+            asset for asset in self.assets.values()
+            if asset["render"]["renderer"] == "timidity"
+        ]
+        self.assertEqual(126, len(midi_assets))
+        for asset in midi_assets:
+            self.assertIn("-EFresamp=l", asset["render"]["recipe"])
+
     def test_license_findings_fail_closed(self) -> None:
         self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])
         self.assertIn("per-asset license review", self.assets["background/aa_arofl.xm"]["license"]["blocking_finding"])

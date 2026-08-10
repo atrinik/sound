@@ -1031,7 +1031,7 @@ def build_source_manifest() -> dict[str, object]:
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
         render_recipes = {
-            "timidity": ["timidity", "-c", "{instrument_config}", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"],
+            "timidity": ["timidity", "-c", "{instrument_config}", "-EFresamp=l", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"],
             "openmpt123": ["openmpt123", "--quiet", "--batch", "--samplerate", str(sample_rate), "--channels", "2", "--no-float", "--dither", "0", "--force", "--output", "{output}", "--", "{input}"],
             "ffmpeg": ["ffmpeg", "-nostdin", "-v", "error", "-i", "{input}", "-map_metadata", "-1", "-ar", str(sample_rate), "-c:a", "pcm_s16le", "-y", "{output}"],
         }
