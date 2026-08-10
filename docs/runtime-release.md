@@ -124,6 +124,7 @@ quality review, build a self-contained non-publishing listening bundle:
 ```sh
 mkdir -p build/review-bundle
 docker run --rm --user "$(id -u):$(id -g)" \
+  --env ATRINIK_SOURCE_TREE="$(git rev-parse 'HEAD^{tree}')" \
   --volume "$PWD:/workspaces/sound:ro" \
   --volume "$PWD/build/review-bundle:/output" atrinik-sound-audio \
   python3 tools/sound_release.py build-review-bundle /output \
@@ -181,9 +182,11 @@ permission is `write`. REST timestamps and GraphQL `lastEditedAt` must both show
 that the attestation was never edited. The command preserves existing reviews
 and never changes the repository. The exported result binds a stable hash of the exact
 source/license/encoding inputs, the complete eligible asset set at the review
-time, the canonical bundle, and the canonical worksheet template. Normal
-validation reconstructs those contracts from current repository state and the
-chronological review ledger; pinned-container validation also independently
+tree, the canonical bundle, and the canonical worksheet template. The evidence
+file must be introduced by a single-parent commit directly over that immutable
+tree. Normal validation reconstructs the exact source manifest from the bound
+Git tree rather than trusting reviewer-supplied timestamps; pinned-container
+validation also independently
 regenerates every committed passed candidate. A hand-authored subset,
 arbitrary manifest coordinate, or noncanonical worksheet therefore cannot
 bypass the preparation checks.

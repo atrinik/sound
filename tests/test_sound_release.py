@@ -387,9 +387,10 @@ class SourceManifestTests(unittest.TestCase):
             sound_release.command_validate(type("Arguments", (), {})())
         verify.assert_called_once_with(reviews)
 
+    @mock.patch.object(sound_release, "verify_quality_review_source_tree")
     @mock.patch.object(sound_release, "quality_review_bundle_contract")
     def test_quality_review_rejects_malformed_or_mutable_evidence(
-        self, _bundle_contract: mock.Mock,
+        self, _bundle_contract: mock.Mock, _source_tree: mock.Mock,
     ) -> None:
         entry = {
             "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
@@ -401,6 +402,7 @@ class SourceManifestTests(unittest.TestCase):
             "$schema": "https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json",
             "schema_version": 1, "non_publishing": True,
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
+            "source_tree": "a" * 40,
             "review_input_sha256": "c" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
             "review_bundle_sha256": "d" * 64,
@@ -797,6 +799,7 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                 "non_publishing": True,
                 "reviewed_by": "reviewer",
                 "reviewed_at": "2026-08-10T12:00:00Z",
+                "source_tree": bundle["source_tree"],
                 "review_input_sha256": bundle["review_input_sha256"],
                 "toolchain_sha256": bundle["toolchain_sha256"],
                 "review_bundle_sha256": bundle["contract_sha256"],
@@ -827,6 +830,11 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             subset_result["reviews"] = subset_result["reviews"][:1]
             with self.assertRaisesRegex(sound_release.ReleaseError, "exact eligible asset set"):
                 sound_release.quality_review_bundle_contract(subset_result)
+            backdated_subset = copy.deepcopy(result)
+            backdated_subset["reviewed_at"] = "2026-08-10T07:40:00Z"
+            backdated_subset["reviews"] = backdated_subset["reviews"][:4]
+            with self.assertRaisesRegex(sound_release.ReleaseError, "exact eligible asset set"):
+                sound_release.quality_review_bundle_contract(backdated_subset)
             duplicate_result = copy.deepcopy(result)
             duplicate = copy.deepcopy(duplicate_result["reviews"][0])
             duplicate["artifacts"] = "Different substantive artifact notes."
@@ -841,6 +849,17 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             stale_worksheet["worksheet_contract_sha256"] = "0" * 64
             with self.assertRaisesRegex(sound_release.ReleaseError, "canonical worksheet"):
                 sound_release.quality_review_bundle_contract(stale_worksheet)
+            introduction = subprocess.CompletedProcess([], 0, "f" * 40 + "\n", "")
+            parent = subprocess.CompletedProcess([], 0, "e" * 40 + "\n", "")
+            parent_tree = subprocess.CompletedProcess([], 0, result["source_tree"] + "\n", "")
+            with mock.patch.object(sound_release, "git_metadata_available", return_value=True), \
+                    mock.patch.object(sound_release, "run", side_effect=[introduction, parent, parent_tree]):
+                sound_release.verify_quality_review_source_tree(result, "evidence/review.json")
+            wrong_tree = subprocess.CompletedProcess([], 0, "0" * 40 + "\n", "")
+            with mock.patch.object(sound_release, "git_metadata_available", return_value=True), \
+                    mock.patch.object(sound_release, "run", side_effect=[introduction, parent, wrong_tree]):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "introduced over its source tree"):
+                    sound_release.verify_quality_review_source_tree(result, "evidence/review.json")
             first_review = result["reviews"][0]
             ledger_entry = {
                 "output_sha256": first_review["output_sha256"],
