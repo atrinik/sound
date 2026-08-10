@@ -22,6 +22,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          printf '%s' "${GHCR_TOKEN}"
+          | docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
+
       - name: Build pinned audio toolchain
         run: >-
           docker build --platform linux/amd64
