@@ -67,7 +67,8 @@ No input is truncated: each renderer runs to decoder EOF. Background entries
 are loopable and effects are one-shot. A generated output must pass `opusinfo`,
 fully decode through FFmpeg and the pinned SDL3_mixer Opus backend, contain
 nonzero PCM, match the expected decoded length, remain within the documented
-2.5-second duration tolerance, and report no clipping. Fixture tracks also
+5-second source-estimate tolerance (including preserved synthesizer release
+tails), and report no clipping. Fixture tracks also
 execute device-free seek, stop, loop, decoded-channel, and short-effect
 natural-EOF transitions through SDL3_mixer. The
 runtime manifest reports source/runtime totals so bitrate or size changes are
