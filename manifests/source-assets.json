@@ -5410,7 +5410,7 @@
         "license_text_path": "licenses/GPL-3.0.txt",
         "notice": "Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+",
         "notice_reference": "background/LICENSE:45",
-        "notice_sha256": "50fba41dad4c1a039296a8f0070e57f0748281b01ceb45cf8bfc3b9323cb3572",
+        "notice_sha256": "50ce1a8b4bdaff75635924aae62026e9f2b3708aac8c58f462074c35b5849513",
         "spdx_expression": "GPL-3.0-or-later",
         "status": "allowed"
       },
@@ -5445,7 +5445,7 @@
         "sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53"
       },
       "source_path": "background/piano.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 31a0b5106455ca713bfb3eadb4b41a907650a3397d3bdbb50bf813425b97b218"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: f67ac2858cf077709a97eeda8a78f2e3a73b1daf432f131dfbb51b90a8ddd2ab"
     },
     {
       "encode": {

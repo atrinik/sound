@@ -221,7 +221,11 @@ class SourceManifestTests(unittest.TestCase):
     def test_approved_gpl_notices_preserve_authors_and_modification_dates(self) -> None:
         catalog = sound_release.notice_catalog(ROOT / "background")
         expectations = {
-            "piano.mid": ("Sylvain Beucler", "Copyright (C) 2008 Sylvain Beucler"),
+            "piano.mid": (
+                "supplied title: “Rêverie” by Claude Debussy 1890",
+                "Sylvain Beucler",
+                "Copyright (C) 2008 Sylvain Beucler",
+            ),
             "run_for_your_life.mid": ("Tistou Blomberg", "supplied title: Excitement! Run for your life"),
             "ultimate_run.mid": ("Tistou Blomberg", "supplied title: Ultimate run"),
         }

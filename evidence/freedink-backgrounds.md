@@ -16,8 +16,9 @@ GNU publishes the official FreeDink data release at:
 The archive's `README-REPLACEMENTS.txt` has SHA-256
 `0ccc8f5fee7ed8a76daa6ffb81a3668c072d7934d34f7bf8b2b09430b365ed5e`.
 For replacement `105.mid`, it records copyright (C) 2008 Sylvain Beucler and
-offers `GPLv3+ | Art Libre | CC-BY-SA`. This review selects
-`GPL-3.0-or-later`; the archive's complete GPL version 3 text has SHA-256
+the supplied work identity `“Rêverie” by Claude Debussy 1890`, and offers
+`GPLv3+ | Art Libre | CC-BY-SA`. This review selects `GPL-3.0-or-later`; the
+archive's complete GPL version 3 text has SHA-256
 `8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903`.
 
 The local `background/piano.mid` SHA-256 is
@@ -40,8 +41,9 @@ ambiguous and fail closed.
 
 Only `background/piano.mid` is approved for deterministic conversion to Opus
 and redistribution under `GPL-3.0-or-later`. Its packaged per-asset notice
-preserves Sylvain Beucler's exact copyright, the release member identity, and
-Atrinik's dated MIDI-to-Opus modification statement. `background/insper.mid`,
+preserves the supplied title/composer/date, Sylvain Beucler's exact copyright,
+the release member identity, and Atrinik's dated MIDI-to-Opus modification
+statement. `background/insper.mid`,
 `background/lively.mid`, and `background/love.mid` remain blocked until an
 explicit grant for their exact musical works is preserved. Any byte, notice,
 logical-path, or upstream-evidence change requires a new review.

@@ -6,11 +6,11 @@
       "evidence": {
         "locator": "evidence/freedink-backgrounds.md",
         "notes": "Byte-identical official FreeDink replacement member with Sylvain Beucler's GPLv3-or-later grant.",
-        "sha256": "be2eacdbfc285950b5ab18a16ae7240f84d279c27f1629836c10e3c36b0cf957"
+        "sha256": "9c5db5b1d82ddcd2a3294261154b0349ef7f3a824afa25ef2c49f69fcde03c92"
       },
       "logical_path": "background/piano.mid",
-      "notice_sha256": "50fba41dad4c1a039296a8f0070e57f0748281b01ceb45cf8bfc3b9323cb3572",
-      "reviewed_at": "2026-08-10T07:13:59Z",
+      "notice_sha256": "50ce1a8b4bdaff75635924aae62026e9f2b3708aac8c58f462074c35b5849513",
+      "reviewed_at": "2026-08-10T07:25:21Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53",
       "spdx_expression": "GPL-3.0-or-later"
