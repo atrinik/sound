@@ -17,6 +17,30 @@ nearest applicable attribution when adding or replacing media.
 ## Releases
 
 Every squash merge uses its Conventional Commits pull-request title to create
-at least a patch release. Each release publishes a deterministic
-`atrinik-sound-VERSION.tar.gz` archive and `SHA256SUMS`; consumers pin the tag,
-source commit, asset URL, and SHA-256 digest.
+at least a patch release. Each release continues to publish the preserved-source
+`atrinik-sound-VERSION.tar.gz` archive and `SHA256SUMS`.
+
+The checked [source manifest](manifests/source-assets.json) inventories all 339
+current audio inputs and maps each legacy logical path to a collision-free Opus
+path. For example, `background/fireside.mid` maps to
+`audio/background/fireside.mid.opus`; consumers resolve the mapping instead of
+renaming authored content.
+
+When every source has exact conversion and redistribution permission, the same
+release also publishes `atrinik-sound-runtime-VERSION.tar.gz`. The runtime
+archive contains only generated `.opus` audio, its complete measured manifest,
+the applicable notices, and the pinned transformation contract. A release with
+any unresolved finding publishes an explicit
+`atrinik-sound-runtime-VERSION-BLOCKED.json` report and no partial runtime
+archive.
+
+Consumers pin source and runtime products independently by all four immutable
+coordinates:
+
+1. release tag, such as `v1.2.0`;
+2. the tag's source commit;
+3. the exact GitHub release asset URL;
+4. the asset's entry in `SHA256SUMS`.
+
+See [the runtime release contract](docs/runtime-release.md) for build,
+determinism, quality, validation, and consumer details.
