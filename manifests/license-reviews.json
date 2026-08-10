@@ -4,6 +4,58 @@
   "reviews": [
     {
       "evidence": {
+        "locator": "evidence/freedink-backgrounds.md",
+        "notes": "Byte-identical official FreeDink data member with the original-data Zlib grant.",
+        "sha256": "462f6032c967090a08181024e8b74d3d672b890a77aa758d7032ec23157cd7fe"
+      },
+      "logical_path": "background/insper.mid",
+      "notice_sha256": "e549636c888f8f8608e37278986514de3696fe9be8b43728dc7876d740d54245",
+      "reviewed_at": "2026-08-10T07:45:00Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "65aec6f7f05615422bd7da2301b07a6bc688c1fb219b43b7571b4b68d37cf7ea",
+      "spdx_expression": "Zlib"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/freedink-backgrounds.md",
+        "notes": "Byte-identical official FreeDink data member with the original-data Zlib grant.",
+        "sha256": "462f6032c967090a08181024e8b74d3d672b890a77aa758d7032ec23157cd7fe"
+      },
+      "logical_path": "background/lively.mid",
+      "notice_sha256": "e549636c888f8f8608e37278986514de3696fe9be8b43728dc7876d740d54245",
+      "reviewed_at": "2026-08-10T07:45:00Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "8fc6aae4b07fe0d03eabe100708f8582e0af5f2eab436c91833f5ea813b836dd",
+      "spdx_expression": "Zlib"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/freedink-backgrounds.md",
+        "notes": "Byte-identical official FreeDink data member with the original-data Zlib grant.",
+        "sha256": "462f6032c967090a08181024e8b74d3d672b890a77aa758d7032ec23157cd7fe"
+      },
+      "logical_path": "background/love.mid",
+      "notice_sha256": "e549636c888f8f8608e37278986514de3696fe9be8b43728dc7876d740d54245",
+      "reviewed_at": "2026-08-10T07:45:00Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "b5aa92dfe42a2da9820e5ccea05cd1c5b64b5a71e1f71afaab24ae0542d65db0",
+      "spdx_expression": "Zlib"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/freedink-backgrounds.md",
+        "notes": "Byte-identical official FreeDink replacement member with Sylvain Beucler's GPLv3-or-later grant.",
+        "sha256": "462f6032c967090a08181024e8b74d3d672b890a77aa758d7032ec23157cd7fe"
+      },
+      "logical_path": "background/piano.mid",
+      "notice_sha256": "23d226810742a93a7d5019238ba5245f6d8b3351f22866430f4c90acfcd7e000",
+      "reviewed_at": "2026-08-10T07:45:00Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53",
+      "spdx_expression": "GPL-3.0-or-later"
+    },
+    {
+      "evidence": {
         "locator": "evidence/openmsx-gpl2-backgrounds.md",
         "notes": "Byte-identical official OpenMSX source and repository GPL-2.0 grant for this exact MIDI input.",
         "sha256": "a29f97389a09bd6c8fd9bc0533fb65958fa7088ecfb8ece2eaecc17cf87757e8"

@@ -47,7 +47,7 @@
       "source_url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt",
       "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6"
     },
-    "GPL-3.0-only": {
+    "GPL-3.0-or-later": {
       "installed_path": "/usr/share/common-licenses/GPL-3",
       "archive_path": "licenses/GPL-3.0.txt",
       "source_url": "https://www.gnu.org/licenses/gpl-3.0.txt",
@@ -76,6 +76,12 @@
       "archive_path": "licenses/CC0-1.0.txt",
       "source_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
       "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    },
+    "Zlib": {
+      "installed_path": "/opt/atrinik-sound-license-texts/Zlib.txt",
+      "archive_path": "licenses/Zlib.txt",
+      "source_url": "https://raw.githubusercontent.com/spdx/license-list-data/5bf6d9610255540bfbee6890765a616042bf1e11/text/Zlib.txt",
+      "sha256": "bfb1112d49db5b1daecdfef24bd7e2f3ea0bafb33aa67aa0ab51e2bf8407c03d"
     }
   },
   "runtime_libraries": [

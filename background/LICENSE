@@ -36,10 +36,12 @@ Allacrost - http://allacrost.org/ - GPLv2:
     town_folk.ogg (Town music, peaceful)
     venturing_dragons.ogg (Very dark cave with wet floor, tunnels, dwarvish mines)
 
-GNU FreeDink - http://www.freedink.org/ - GPLv3:
+FreeDink original Dink Smallwood data - https://www.gnu.org/software/freedink/ - Zlib:
     insper.mid (Sad, determined)
     lively.mid (Town music, lively place, battle)
     love.mid (Wedding)
+
+Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+:
     piano.mid (Reverie)
 
 ZhayTee - http://www.zhaymusic.com/ - GPLv2:
