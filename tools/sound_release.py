@@ -56,7 +56,6 @@ REVIEWED_NOTICE_LICENSES = {
     'Daniel "Lippy" Liptrot - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'ZhayTee - http://www.zhaymusic.com/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
-    'Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL': ("GPL-2.0-or-later", "licenses/GPL-2.0.txt"),
     'Jute - http://alturl.com/quao - GNU GPL 2.0': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'Ulrich Metzner - http://commons.wikimedia.org/wiki/User:Metzner - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'n3b - http://opengameart.org/users/n3b - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),

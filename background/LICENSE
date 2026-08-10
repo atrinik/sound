@@ -56,12 +56,12 @@ Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL:
     the_forsaken_mine.ogg (Abandoned mine, eerie, forbidden mines)
     the_old_tavern.ogg (Very lively tavern)
     warriors_fight.ogg (Fight, fight at the bar, clash of the titans)
-    dungeon_entrance.ogg (Dungeon)
-    deep_forest.ogg (Forest)
-    sacred_moments.ogg (Scene with awe, hopeful sorrow, chapel)
-    magical_tower.ogg (Magic, dark)
-    mystical_aura.ogg (Magic place, crystal, ice)
-    new_hope.ogg (Church, pipe organ)
+    dungeon_entrance.ogg (Atrinik use: dungeon; author: Storyteller; source: arianne/stendhal data/music/dungeon_entrance.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    deep_forest.ogg (Atrinik use: forest; author: Storyteller; source: arianne/stendhal data/music/deep_forest.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    sacred_moments.ogg (Atrinik use: scene with awe, hopeful sorrow, chapel; author: Storyteller; source: arianne/stendhal data/music/sacred_moments.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    magical_tower.ogg (Atrinik use: magic, dark; author: Storyteller; source: arianne/stendhal data/music/the_magical_tower.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    mystical_aura.ogg (Atrinik use: magic place, crystal, ice; author: Storyteller; source: arianne/stendhal data/music/mystical_aura.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    new_hope.ogg (Atrinik use: church, pipe organ; author: Storyteller; source: arianne/stendhal data/music/new_hope.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
 
 Meritous - http://www.asceai.net/meritous/ - GPLv3:
     amblight.xm (Techno, boss battle)

@@ -4,91 +4,13 @@
   "reviews": [
     {
       "evidence": {
-        "locator": "evidence/stendhal-storyteller-backgrounds.md",
-        "notes": "Byte-identical Stendhal client-music blob with Storyteller attribution and the repository GPL-2.0-or-later grant.",
-        "sha256": "bbe4c206580ce8d80f85b1a71dc9dd89c620508c4de96f75bc53c3b1f14daacb"
-      },
-      "logical_path": "background/deep_forest.ogg",
-      "notice_sha256": "ee54a425683d5241f4846f12ee1e8328955a351c6007c9187dea37160bfc8be5",
-      "reviewed_at": "2026-08-10T08:00:00Z",
-      "reviewed_by": "zoeyrose",
-      "source_sha256": "ca4c5ba437ba7fa1bb20e87474348ca67e271a963c040bdd00e19015063e9acb",
-      "spdx_expression": "GPL-2.0-or-later"
-    },
-    {
-      "evidence": {
-        "locator": "evidence/stendhal-storyteller-backgrounds.md",
-        "notes": "Byte-identical Stendhal client-music blob with Storyteller attribution and the repository GPL-2.0-or-later grant.",
-        "sha256": "bbe4c206580ce8d80f85b1a71dc9dd89c620508c4de96f75bc53c3b1f14daacb"
-      },
-      "logical_path": "background/dungeon_entrance.ogg",
-      "notice_sha256": "7028a97c813e1aeb4fe8ce82f9e15f751d0acabf0b54491c577abb635dae07e3",
-      "reviewed_at": "2026-08-10T08:00:00Z",
-      "reviewed_by": "zoeyrose",
-      "source_sha256": "b3e04539527fcc64562cd02057d67cf01218ce92c513c0a85cc3e7853ab1dc0c",
-      "spdx_expression": "GPL-2.0-or-later"
-    },
-    {
-      "evidence": {
-        "locator": "evidence/stendhal-storyteller-backgrounds.md",
-        "notes": "Byte-identical Stendhal client-music blob with Storyteller attribution and the repository GPL-2.0-or-later grant.",
-        "sha256": "bbe4c206580ce8d80f85b1a71dc9dd89c620508c4de96f75bc53c3b1f14daacb"
-      },
-      "logical_path": "background/magical_tower.ogg",
-      "notice_sha256": "cb87951ffc782bdb7d2c4d53b2e97c7758a69bdd2213a4652402e38e5363bcbd",
-      "reviewed_at": "2026-08-10T08:00:00Z",
-      "reviewed_by": "zoeyrose",
-      "source_sha256": "c17a3122fd35c0908a5c30da0f8d604838b18f17c0c7057c688b0a790af86a69",
-      "spdx_expression": "GPL-2.0-or-later"
-    },
-    {
-      "evidence": {
-        "locator": "evidence/stendhal-storyteller-backgrounds.md",
-        "notes": "Byte-identical Stendhal client-music blob with Storyteller attribution and the repository GPL-2.0-or-later grant.",
-        "sha256": "bbe4c206580ce8d80f85b1a71dc9dd89c620508c4de96f75bc53c3b1f14daacb"
-      },
-      "logical_path": "background/mystical_aura.ogg",
-      "notice_sha256": "7bd4eff48b27be7a6ec117d00e5c19de358afb48cd4a807238fe636f0088f7d3",
-      "reviewed_at": "2026-08-10T08:00:00Z",
-      "reviewed_by": "zoeyrose",
-      "source_sha256": "04f8be579aced562790ef0851ec83ec4f42a6cf6063f765155c40962c58b1d38",
-      "spdx_expression": "GPL-2.0-or-later"
-    },
-    {
-      "evidence": {
-        "locator": "evidence/stendhal-storyteller-backgrounds.md",
-        "notes": "Byte-identical Stendhal client-music blob with Storyteller attribution and the repository GPL-2.0-or-later grant.",
-        "sha256": "bbe4c206580ce8d80f85b1a71dc9dd89c620508c4de96f75bc53c3b1f14daacb"
-      },
-      "logical_path": "background/new_hope.ogg",
-      "notice_sha256": "959bf865e40502277545845ed519977a0248532378405fcbfb535f6ec2ee671d",
-      "reviewed_at": "2026-08-10T08:00:00Z",
-      "reviewed_by": "zoeyrose",
-      "source_sha256": "39d4e4c1f6d2bd2578cfcb1b9e0532f149330754e00bf6548fce2007d37c68a4",
-      "spdx_expression": "GPL-2.0-or-later"
-    },
-    {
-      "evidence": {
-        "locator": "evidence/stendhal-storyteller-backgrounds.md",
-        "notes": "Byte-identical Stendhal client-music blob with Storyteller attribution and the repository GPL-2.0-or-later grant.",
-        "sha256": "bbe4c206580ce8d80f85b1a71dc9dd89c620508c4de96f75bc53c3b1f14daacb"
-      },
-      "logical_path": "background/sacred_moments.ogg",
-      "notice_sha256": "21bd95e6e6281c184507cf78f5d513399ea4a9f8d3ff294ed49e20a947d27ec6",
-      "reviewed_at": "2026-08-10T08:00:00Z",
-      "reviewed_by": "zoeyrose",
-      "source_sha256": "6bf6488fa093b21d34697afaba3f75ae69656569f7851fad6a60cbd9bbddb7ac",
-      "spdx_expression": "GPL-2.0-or-later"
-    },
-    {
-      "evidence": {
         "locator": "evidence/freedink-backgrounds.md",
         "notes": "Byte-identical official FreeDink replacement member with Sylvain Beucler's GPLv3-or-later grant.",
         "sha256": "2326bcfacb0ce04ae7cfe0923bcb7d4763caef44e887b6508a3d9a22ca866a52"
       },
       "logical_path": "background/piano.mid",
       "notice_sha256": "8687300b74a80a69155e0529495a8587cf16927ca8549352877748aa43ed35a7",
-      "reviewed_at": "2026-08-10T07:45:00Z",
+      "reviewed_at": "2026-08-10T06:54:47Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53",
       "spdx_expression": "GPL-3.0-or-later"

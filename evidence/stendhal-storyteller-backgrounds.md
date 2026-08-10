@@ -1,9 +1,9 @@
-# Stendhal Storyteller background review
+# Stendhal Storyteller background research
 
-Retrieved and reviewed on 2026-08-10 for Atrinik sound issue #18. This
-evidence approves only the six current, byte-identical repository blobs listed
-below. The other eight Atrinik files under the shared Stendhal notice differ
-from the current authoritative blobs and remain blocked.
+Retrieved and reviewed on 2026-08-10 for Atrinik sound issues #18 and #20.
+This evidence establishes six current, byte-identical repository blobs and
+their Storyteller authorship, but does not approve them. All fourteen Atrinik
+files under the shared Stendhal notice remain blocked.
 
 ## Immutable repository evidence
 
@@ -21,10 +21,12 @@ Authoritative repository: <https://github.com/arianne/stendhal> at commit
   `260270432dabb1653c0944a1091adc827711fccd0f1af636156a247d4b9abd0a`
 
 The per-asset attribution file identifies Storyteller as the author of each of
-the six tracks and marks each one `GPL`. The same immutable repository's legal
-section states that its clients are licensed under GNU GPL version 2 or later,
-and `LICENSE.txt` supplies the complete GPL version 2 terms. This review
-therefore records `GPL-2.0-or-later` for the client music assets.
+the six tracks and marks each one only `GPL`. The same immutable repository's
+legal section assigns GNU GPL version 2 or later to the server, Java client,
+and Android client, but it does not explicitly include `data/music` in that
+scope. `LICENSE.txt` supplies GPL version 2 text without resolving whether the
+music grant is version 2 only, version 2 or later, or another GPL version.
+Therefore no exact SPDX expression is established for these works.
 
 ## Exact source identity
 
@@ -40,10 +42,17 @@ therefore records `GPL-2.0-or-later` for the client music assets.
 Each local file's Git blob is exactly the named authoritative repository blob;
 the SHA-256 values bind the same bytes in the Atrinik source manifest.
 
+For each exact track, `background/LICENSE` preserves Storyteller's supplied
+author identity, the immutable repository source coordinate, and an indication
+that Atrinik converts the preserved Vorbis input to Opus. Each license review
+binds the complete heading-and-asset-line notice hash, so attribution or
+modification-notice drift invalidates the generated manifest.
+
 ## Decision
 
-The six exact inputs above are approved for non-publishing candidate conversion
-under `GPL-2.0-or-later`. Because they are preserved Vorbis sources, separate
-critical-listening evidence remains mandatory before runtime publication. Any
-byte, notice, path, attribution, grant, or upstream-coordinate change requires
-a new review.
+The six exact inputs above remain blocked until an authoritative grant
+explicitly establishes the GPL version and scope for the music, or permission
+is obtained. The other eight Stendhal-noticed files also lack exact current
+source identity. No Stendhal candidate is eligible for critical listening.
+Any byte, notice, path, attribution, grant, or upstream-coordinate change
+requires a new review.

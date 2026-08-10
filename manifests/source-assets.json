@@ -15,12 +15,12 @@
       "generated_path": "audio/background/a_weird_place.ogg.opus",
       "id": "sound:background/a_weird_place.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:52",
         "notice_sha256": "2a9f2e91bb32c40fe18e63d039c0b8e134eec675a7609a33a4af17dd45bd1a06",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/a_weird_place.ogg",
@@ -138,12 +138,12 @@
       "generated_path": "audio/background/adventurers_wish.ogg.opus",
       "id": "sound:background/adventurers_wish.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:51",
         "notice_sha256": "01431b4d2360772fc6d13c49d01f403c6f4a4727966c2f5634c6361a2b49459f",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/adventurers_wish.ogg",
@@ -1448,12 +1448,12 @@
       "generated_path": "audio/background/come_to_rest.ogg.opus",
       "id": "sound:background/come_to_rest.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:53",
         "notice_sha256": "5e0e8b074b7ac2812dab8f50d759a5725187a3691140ba334659ba22842b57d6",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/come_to_rest.ogg",
@@ -1867,13 +1867,13 @@
       "generated_path": "audio/background/deep_forest.ogg.opus",
       "id": "sound:background/deep_forest.ogg",
       "license": {
-        "blocking_finding": null,
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:60",
-        "notice_sha256": "ee54a425683d5241f4846f12ee1e8328955a351c6007c9187dea37160bfc8be5",
-        "spdx_expression": "GPL-2.0-or-later",
-        "status": "allowed"
+        "notice_sha256": "6611de09f5999a396212e1a9f85fa3bcec4867a4c0df227bc6ad4b2f1dfd80b9",
+        "spdx_expression": null,
+        "status": "blocked"
       },
       "logical_path": "background/deep_forest.ogg",
       "quality_review": {
@@ -1913,7 +1913,7 @@
         "sha256": "ca4c5ba437ba7fa1bb20e87474348ca67e271a963c040bdd00e19015063e9acb"
       },
       "source_path": "background/deep_forest.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: d5a1d3ca0e9eea8e55fe58d015ddaf3b749a7a94e4247ebca3dd0d6fc63ca76e"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required"
     },
     {
       "encode": {
@@ -2651,13 +2651,13 @@
       "generated_path": "audio/background/dungeon_entrance.ogg.opus",
       "id": "sound:background/dungeon_entrance.ogg",
       "license": {
-        "blocking_finding": null,
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:59",
-        "notice_sha256": "7028a97c813e1aeb4fe8ce82f9e15f751d0acabf0b54491c577abb635dae07e3",
-        "spdx_expression": "GPL-2.0-or-later",
-        "status": "allowed"
+        "notice_sha256": "9f98f8a7de369ad5e3924245b1ec94c56940ad4781709f798813edc13fa25086",
+        "spdx_expression": null,
+        "status": "blocked"
       },
       "logical_path": "background/dungeon_entrance.ogg",
       "quality_review": {
@@ -2697,7 +2697,7 @@
         "sha256": "b3e04539527fcc64562cd02057d67cf01218ce92c513c0a85cc3e7853ab1dc0c"
       },
       "source_path": "background/dungeon_entrance.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: e3380179953e74436ec224d2dcb22656207f60f365a4308f7322b2efe15a3cf1"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required"
     },
     {
       "encode": {
@@ -5048,13 +5048,13 @@
       "generated_path": "audio/background/magical_tower.ogg.opus",
       "id": "sound:background/magical_tower.ogg",
       "license": {
-        "blocking_finding": null,
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:62",
-        "notice_sha256": "cb87951ffc782bdb7d2c4d53b2e97c7758a69bdd2213a4652402e38e5363bcbd",
-        "spdx_expression": "GPL-2.0-or-later",
-        "status": "allowed"
+        "notice_sha256": "a8523838c1afe4106800e0a0ec06195225055c8c4253a3d6a10b5f2fb1688af9",
+        "spdx_expression": null,
+        "status": "blocked"
       },
       "logical_path": "background/magical_tower.ogg",
       "quality_review": {
@@ -5094,7 +5094,7 @@
         "sha256": "c17a3122fd35c0908a5c30da0f8d604838b18f17c0c7057c688b0a790af86a69"
       },
       "source_path": "background/magical_tower.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 7b42ce6b0a7dcc02d42ff56498a58da8731bff9472384df29165a94a798581ad"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required"
     },
     {
       "encode": {
@@ -5110,12 +5110,12 @@
       "generated_path": "audio/background/medieval_harp.ogg.opus",
       "id": "sound:background/medieval_harp.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:54",
         "notice_sha256": "b30ed2f3d84ac7672d8341dfd0e4c9d4295872883ea1c31e0a539c9470f9060e",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/medieval_harp.ogg",
@@ -5172,13 +5172,13 @@
       "generated_path": "audio/background/mystical_aura.ogg.opus",
       "id": "sound:background/mystical_aura.ogg",
       "license": {
-        "blocking_finding": null,
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:63",
-        "notice_sha256": "7bd4eff48b27be7a6ec117d00e5c19de358afb48cd4a807238fe636f0088f7d3",
-        "spdx_expression": "GPL-2.0-or-later",
-        "status": "allowed"
+        "notice_sha256": "94b2b27a8bbf25eb206822ab265e66770564d834a121d30c21fb3081e595ea6c",
+        "spdx_expression": null,
+        "status": "blocked"
       },
       "logical_path": "background/mystical_aura.ogg",
       "quality_review": {
@@ -5218,7 +5218,7 @@
         "sha256": "04f8be579aced562790ef0851ec83ec4f42a6cf6063f765155c40962c58b1d38"
       },
       "source_path": "background/mystical_aura.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 4e4bef433bdfa3af32a6a1071fc40309a367e099ede76fd6ee4d283777a4536e"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required"
     },
     {
       "encode": {
@@ -5234,13 +5234,13 @@
       "generated_path": "audio/background/new_hope.ogg.opus",
       "id": "sound:background/new_hope.ogg",
       "license": {
-        "blocking_finding": null,
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:64",
-        "notice_sha256": "959bf865e40502277545845ed519977a0248532378405fcbfb535f6ec2ee671d",
-        "spdx_expression": "GPL-2.0-or-later",
-        "status": "allowed"
+        "notice_sha256": "8b8b109382b276da5e02c06c6bd01b4238c49197d411f74d45405c0150600594",
+        "spdx_expression": null,
+        "status": "blocked"
       },
       "logical_path": "background/new_hope.ogg",
       "quality_review": {
@@ -5280,7 +5280,7 @@
         "sha256": "39d4e4c1f6d2bd2578cfcb1b9e0532f149330754e00bf6548fce2007d37c68a4"
       },
       "source_path": "background/new_hope.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: cad2d72dcb7d2ac0f7b54968be3dc9d4d15a2765203f19bf173373b5bc5b237b"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required"
     },
     {
       "encode": {
@@ -5445,7 +5445,7 @@
         "sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53"
       },
       "source_path": "background/piano.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 04db16618a0e50ba61aae57ecee20077d8d9b244d34fe6e9341506340f70fbf7"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: c25c1e77b0db1f2ea40f670eca6b5a3505fa719078458e0ef5fdf5dfff76fce5"
     },
     {
       "encode": {
@@ -6373,13 +6373,13 @@
       "generated_path": "audio/background/sacred_moments.ogg.opus",
       "id": "sound:background/sacred_moments.ogg",
       "license": {
-        "blocking_finding": null,
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:61",
-        "notice_sha256": "21bd95e6e6281c184507cf78f5d513399ea4a9f8d3ff294ed49e20a947d27ec6",
-        "spdx_expression": "GPL-2.0-or-later",
-        "status": "allowed"
+        "notice_sha256": "5aa1abbf5cf6e819834665b0fee358c2d796aa91101dc92e58691cf0a3b78266",
+        "spdx_expression": null,
+        "status": "blocked"
       },
       "logical_path": "background/sacred_moments.ogg",
       "quality_review": {
@@ -6419,7 +6419,7 @@
         "sha256": "6bf6488fa093b21d34697afaba3f75ae69656569f7851fad6a60cbd9bbddb7ac"
       },
       "source_path": "background/sacred_moments.ogg",
-      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required; license review SHA-256: 1bbaf4b49aec7bd1c5cb73cb20fd3e94c1c7be135a042a229f7d47f199d9f36b"
+      "transformation_notes": "second lossy generation from the only preserved Vorbis source; quality review required"
     },
     {
       "encode": {
@@ -6552,12 +6552,12 @@
       "generated_path": "audio/background/sewers.ogg.opus",
       "id": "sound:background/sewers.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:55",
         "notice_sha256": "f2f2b2fd67b0eb5162454a254554b347610415a5a668fffc698f0fd4d5b969a2",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/sewers.ogg",
@@ -9034,12 +9034,12 @@
       "generated_path": "audio/background/the_forsaken_mine.ogg.opus",
       "id": "sound:background/the_forsaken_mine.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:56",
         "notice_sha256": "4911fd48bd00f908744f0d37eb8eb15fea87b5d5373a87e0852e6ea77418923e",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/the_forsaken_mine.ogg",
@@ -9151,12 +9151,12 @@
       "generated_path": "audio/background/the_old_tavern.ogg.opus",
       "id": "sound:background/the_old_tavern.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:57",
         "notice_sha256": "89d163be21ea6ccb5ba95efae31f4cebba1f571a3e4acc7c14ea3fa8d4cf115b",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/the_old_tavern.ogg",
@@ -10216,12 +10216,12 @@
       "generated_path": "audio/background/warriors_fight.ogg.opus",
       "id": "sound:background/warriors_fight.ogg",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-2.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL",
         "notice_reference": "background/LICENSE:58",
         "notice_sha256": "14743159217895179de60fd08815ea17749423170b2fc6307df036965b99319c",
-        "spdx_expression": "GPL-2.0-or-later",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/warriors_fight.ogg",
