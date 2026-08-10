@@ -9,7 +9,7 @@
     "release": "1.2.0",
     "platform": "linux/amd64"
   },
-  "duration_tolerance_seconds": 5.0,
+  "duration_tolerance_seconds": 2.5,
   "quality_budget": {
     "sample_rate": 48000,
     "sample_format": "signed 16-bit PCM intermediate",

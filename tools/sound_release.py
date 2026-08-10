@@ -1703,6 +1703,25 @@ def run_sdl_probe(
     run(command)
 
 
+def validate_conversion_durations(
+    asset: dict[str, object],
+    rendered_duration: float,
+    decoded_duration: float,
+    tolerance: float,
+) -> None:
+    if abs(decoded_duration - rendered_duration) > 0.1:
+        raise ReleaseError(f"Opus output has a truncated or extended tail for {asset['logical_path']}")
+    render = asset["render"]
+    source = asset["source"]
+    assert isinstance(render, dict) and isinstance(source, dict)
+    source_duration = float(source["duration_seconds"])
+    if render["renderer"] == "openmpt123" and abs(decoded_duration - source_duration) > tolerance:
+        raise ReleaseError(
+            f"duration outside {tolerance}s tolerance for {asset['logical_path']}: "
+            f"source={source_duration}, decoded={decoded_duration}"
+        )
+
+
 def convert_asset(
     asset: dict[str, object],
     output_root: Path,
@@ -1743,15 +1762,13 @@ def convert_asset(
         raise ReleaseError(f"unexpected output sample rate for {asset['logical_path']}")
     if rendered["channels"] != intended_channels or decoded["channels"] != intended_channels:
         raise ReleaseError(f"unexpected output channel count for {asset['logical_path']}")
-    if abs(float(decoded["duration_seconds"]) - float(rendered["duration_seconds"])) > 0.1:
-        raise ReleaseError(f"Opus output has a truncated or extended tail for {asset['logical_path']}")
-    source_duration = float(asset["source"]["duration_seconds"])  # type: ignore[index]
     tolerance = float(toolchain["duration_tolerance_seconds"])
-    if abs(float(decoded["duration_seconds"]) - source_duration) > tolerance:
-        raise ReleaseError(
-            f"duration outside {tolerance}s tolerance for {asset['logical_path']}: "
-            f"source={source_duration}, decoded={decoded['duration_seconds']}"
-        )
+    validate_conversion_durations(
+        asset,
+        float(rendered["duration_seconds"]),
+        float(decoded["duration_seconds"]),
+        tolerance,
+    )
     output_sha256 = sha256(generated)
     quality_review = asset.get("quality_review")
     if isinstance(quality_review, dict) and quality_review.get("status") == "passed" and quality_review.get("output_sha256") != output_sha256:

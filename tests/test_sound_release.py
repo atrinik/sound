@@ -128,6 +128,21 @@ class SourceManifestTests(unittest.TestCase):
         self.assertNotIn("background/toroia.s3m", self.assets)
         self.assertFalse((ROOT / "background" / "durations").exists())
 
+    def test_midi_duration_uses_rendered_pcm_eof(self) -> None:
+        midi = {
+            "logical_path": "background/example.mid",
+            "render": {"renderer": "timidity"},
+            "source": {"duration_seconds": 114.6},
+        }
+        sound_release.validate_conversion_durations(midi, 97.04, 97.04, 2.5)
+        tracker = copy.deepcopy(midi)
+        tracker["logical_path"] = "background/example.mod"
+        tracker["render"]["renderer"] = "openmpt123"
+        with self.assertRaisesRegex(sound_release.ReleaseError, "duration outside"):
+            sound_release.validate_conversion_durations(tracker, 97.04, 97.04, 2.5)
+        with self.assertRaisesRegex(sound_release.ReleaseError, "truncated or extended tail"):
+            sound_release.validate_conversion_durations(midi, 97.2, 97.04, 2.5)
+
     def test_license_findings_fail_closed(self) -> None:
         self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])
         self.assertIn("per-asset license review", self.assets["background/aa_arofl.xm"]["license"]["blocking_finding"])
