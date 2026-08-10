@@ -122,25 +122,37 @@ speakers, and record substantive notes for every required listening category.
 The shared transport switches mutually exclusively between synchronized A/B
 players, level-matches the source to any deterministic candidate gain, leaves
 looping off for tail inspection, and provides an explicit loop toggle. Export
-the completed JSON when every verdict is recorded. The bundle includes copied
+is enabled only after both complete streams have ended for every asset, all
+notes and verdicts are recorded, and the headphones, representative-speaker,
+and loop-boundary attestations are checked. The bundle includes copied
 source bytes, generated candidate bytes, per-candidate evidence, a bundle
 manifest, and `SHA256SUMS`.
 The exported JSON is review input, not an automatic approval: verify it before
 committing evidence and source/toolchain/output-bound quality-ledger records.
-Copy a completed export to a unique `evidence/` path and stage that evidence
-file, then prepare a fail-closed proposed ledger:
+Copy a completed export to a unique `evidence/` path. The identified reviewer
+must then post its exact SHA-256 from their GitHub account on #21 (or #22 for an
+effects-only review):
 
 ```sh
+review_result=evidence/critical-listening-REVIEWER-DATE.json
+review_sha256=$(sha256sum "${review_result}" | cut -d' ' -f1)
+printf 'Atrinik critical-listening attestation v1\nresult_sha256: %s\n' \
+  "${review_sha256}" > /tmp/atrinik-listening-attestation.txt
+gh issue comment 21 --repo atrinik/sound \
+  --body-file /tmp/atrinik-listening-attestation.txt
 git add evidence/critical-listening-REVIEWER-DATE.json
 python3 tools/sound_release.py prepare-quality-review \
   build/review-bundle \
   evidence/critical-listening-REVIEWER-DATE.json \
+  'https://github.com/atrinik/sound/issues/21#issuecomment-COMMENT_ID' \
   > /tmp/proposed-vorbis-quality-reviews.json
 ```
 
 The command rejects an incomplete, stale, future-dated, path-unsafe,
 untracked, checksum-drifted, or asset-mismatched review. It emits passed
-verdicts only, preserves existing reviews, and never changes the repository.
+verdicts only, verifies the named reviewer and review time against the live
+GitHub comment from a repository owner, member, or collaborator, preserves
+existing reviews, and never changes the repository.
 Inspect the proposed ledger before replacing
 `manifests/vorbis-quality-reviews.json`, then run `refresh` and the complete
 validation suite. Failed verdicts intentionally remain blocked.

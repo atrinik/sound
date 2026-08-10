@@ -22,6 +22,8 @@ jobs:
           fetch-depth: 0
 
       - name: Validate package publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           tools/validate.sh
           test -s background/LICENSE

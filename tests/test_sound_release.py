@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import struct
 import subprocess
 import sys
@@ -359,25 +360,58 @@ class SourceManifestTests(unittest.TestCase):
             "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN), "output_sha256": "b" * 64,
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
-            "evidence": {"method": "critical-listening", "artifact_locator": "evidence/README.md", "artifact_sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a", "notes": "schema verification fixture only"},
+            "evidence": {"method": "critical-listening", "artifact_locator": "evidence/README.md", "artifact_sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a", "github_attestation_url": "https://github.com/atrinik/sound/issues/22#issuecomment-123", "notes": "schema verification fixture only"},
+        }
+        artifact = {
+            "$schema": "https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json",
+            "schema_version": 1, "non_publishing": True,
+            "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
+            "source_manifest_sha256": "c" * 64,
+            "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+            "procedure": {"headphones_checked": True, "representative_speakers_checked": True, "loop_boundaries_checked": True},
+            "reviews": [{
+                "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
+                "output_sha256": "b" * 64,
+                "review_evidence_path": "candidates/effects/example.ogg/review-evidence.json",
+                "candidate_evidence": {
+                    "schema_version": 1, "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
+                    "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN), "output_sha256": "b" * 64,
+                    "generated_path": "audio/effects/example.ogg.opus", "tool_versions": {}, "measurements": {}, "non_publishing": True,
+                },
+                "source_playback_completed": True, "candidate_playback_completed": True,
+                "artifacts": "No artifacts detected.", "noise_floor": "Noise floor matched.",
+                "duration_tail": "Duration and tail matched.", "loop_boundary": "Loop boundary matched.",
+                "verdict": "passed",
+            }],
         }
         document = {"$schema": "../schemas/vorbis-quality-reviews-v2.schema.json", "schema_version": 2, "reviews": [entry]}
         original_read_json = sound_release.read_json
-        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: document if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+        def fixture_read(path: Path, quality_document: object = document) -> object:
+            if path == sound_release.QUALITY_REVIEWS:
+                return quality_document
+            if path == ROOT / "evidence/README.md":
+                return artifact
+            return original_read_json(path)
+        with mock.patch.object(sound_release, "read_json", side_effect=fixture_read):
             self.assertIn("effects/example.ogg", sound_release.checked_quality_reviews())
+        failed_artifact = copy.deepcopy(artifact)
+        failed_artifact["reviews"][0]["verdict"] = "failed"
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: failed_artifact if path == ROOT / "evidence/README.md" else fixture_read(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "does not match passed artifact"):
+                sound_release.checked_quality_reviews()
         broken = copy.deepcopy(document)
         broken["reviews"][0]["reviewed_at"] = "yesterday"
-        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: broken if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: fixture_read(path, broken)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "timestamp"):
                 sound_release.checked_quality_reviews()
         invalid_reviewer = copy.deepcopy(document)
         invalid_reviewer["reviews"][0]["reviewed_by"] = "a--b"
-        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: invalid_reviewer if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: fixture_read(path, invalid_reviewer)):
             with self.assertRaises(sound_release.ReleaseError):
                 sound_release.checked_quality_reviews()
         wrong_hash = copy.deepcopy(document)
         wrong_hash["reviews"][0]["evidence"]["artifact_sha256"] = "0" * 64
-        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: wrong_hash if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: fixture_read(path, wrong_hash)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "hash mismatch"):
                 sound_release.checked_quality_reviews()
 
@@ -707,12 +741,19 @@ class SourceManifestTests(unittest.TestCase):
                 "reviewed_at": "2026-08-10T12:00:00Z",
                 "source_manifest_sha256": bundle["source_manifest_sha256"],
                 "toolchain_sha256": bundle["toolchain_sha256"],
+                "procedure": {
+                    "headphones_checked": True,
+                    "representative_speakers_checked": True,
+                    "loop_boundaries_checked": True,
+                },
                 "reviews": [{
                     "logical_path": asset["logical_path"],
                     "source_sha256": asset["source_sha256"],
                     "output_sha256": asset["output_sha256"],
                     "review_evidence_path": asset["review_evidence_path"],
                     "candidate_evidence": asset["candidate_evidence"],
+                    "source_playback_completed": True,
+                    "candidate_playback_completed": True,
                     "artifacts": "No audible codec, tonal, or transient regression.",
                     "noise_floor": "No noise-floor modulation or low-level loss.",
                     "duration_tail": "Complete duration and tail; no truncation.",
@@ -723,6 +764,7 @@ class SourceManifestTests(unittest.TestCase):
             verified_bundle, verified_reviews = sound_release.verify_review_bundle_result(output, result)
             proposed = sound_release.proposed_quality_review_ledger(
                 verified_bundle, result, verified_reviews, "evidence/review.json", "c" * 64,
+                "https://github.com/atrinik/sound/issues/21#issuecomment-123",
             )
             self.assertEqual(expected, {entry["logical_path"] for entry in proposed["reviews"]})
             failed = copy.deepcopy(result)
@@ -730,6 +772,7 @@ class SourceManifestTests(unittest.TestCase):
             failed_bundle, failed_reviews = sound_release.verify_review_bundle_result(output, failed)
             failed_proposal = sound_release.proposed_quality_review_ledger(
                 failed_bundle, failed, failed_reviews, "evidence/review.json", "c" * 64,
+                "https://github.com/atrinik/sound/issues/21#issuecomment-123",
             )
             self.assertEqual(len(expected) - 1, len(failed_proposal["reviews"]))
             drifted = copy.deepcopy(result)
@@ -740,9 +783,71 @@ class SourceManifestTests(unittest.TestCase):
             future["reviewed_at"] = "2999-01-01T00:00:00Z"
             with self.assertRaisesRegex(sound_release.ReleaseError, "future"):
                 sound_release.verify_review_bundle_result(output, future)
+            whitespace = copy.deepcopy(result)
+            whitespace["reviews"][0]["artifacts"] = "        "
+            with self.assertRaises(sound_release.ReleaseError):
+                sound_release.verify_review_bundle_result(output, whitespace)
+            incomplete_playback = copy.deepcopy(result)
+            incomplete_playback["reviews"][0]["source_playback_completed"] = False
+            with self.assertRaises(sound_release.ReleaseError):
+                sound_release.verify_review_bundle_result(output, incomplete_playback)
+            effect_shape = copy.deepcopy(result)
+            effect_shape["reviews"][0]["logical_path"] = "effects/example.ogg"
+            effect_shape["reviews"][0]["review_evidence_path"] = "candidates/effects/example.ogg/review-evidence.json"
+            sound_release.validate_schema_instance(
+                effect_shape, sound_release.checked_schema("critical-listening-review-v1.schema.json"),
+            )
+            result_hash = "c" * 64
+            comment = {
+                "html_url": "https://github.com/atrinik/sound/issues/21#issuecomment-123",
+                "issue_url": "https://api.github.com/repos/atrinik/sound/issues/21",
+                "author_association": "OWNER",
+                "user": {"login": "reviewer"},
+                "body": sound_release.github_attestation_body(result_hash),
+                "created_at": "2026-08-10T12:05:00Z",
+            }
+            completed = subprocess.CompletedProcess([], 0, json.dumps(comment), "")
+            with mock.patch.object(sound_release, "run", return_value=completed):
+                sound_release.checked_github_attestation(
+                    "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
+                )
+            wrong_author = copy.deepcopy(comment)
+            wrong_author["user"]["login"] = "somebody-else"
+            with mock.patch.object(sound_release, "run", return_value=subprocess.CompletedProcess([], 0, json.dumps(wrong_author), "")):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "does not match"):
+                    sound_release.checked_github_attestation(
+                        "https://github.com/atrinik/sound/issues/21#issuecomment-123", result, result_hash,
+                    )
+            substituted_root = Path(temporary) / "substituted"
+            shutil.copytree(output, substituted_root)
+            substituted_bundle = json.loads((substituted_root / "review-bundle.json").read_text())
+            substituted_asset = substituted_bundle["assets"][0]
+            substituted_source = substituted_root / substituted_asset["source_path"]
+            substituted_source.write_bytes(b"substituted source")
+            substituted_hash = sound_release.sha256(substituted_source)
+            substituted_asset["source_sha256"] = substituted_hash
+            substituted_asset["candidate_evidence"]["source_sha256"] = substituted_hash
+            substituted_evidence = substituted_root / substituted_asset["review_evidence_path"]
+            substituted_evidence.write_bytes(sound_release.canonical_json(substituted_asset["candidate_evidence"]))
+            (substituted_root / "review-bundle.json").write_bytes(sound_release.canonical_json(substituted_bundle))
+            substituted_result = copy.deepcopy(result)
+            substituted_result["reviews"][0]["source_sha256"] = substituted_hash
+            substituted_result["reviews"][0]["candidate_evidence"]["source_sha256"] = substituted_hash
+            (substituted_root / "SHA256SUMS").unlink()
+            sound_release.write_tree_checksums(substituted_root)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "current manifest"):
+                sound_release.verify_review_bundle_result(substituted_root, substituted_result)
+            symlink_target = Path(temporary) / "symlink-target"
+            symlink_target.mkdir()
+            bundle_symlink = output / "unexpected-directory-link"
+            bundle_symlink.symlink_to(symlink_target, target_is_directory=True)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "contains a symlink"):
+                sound_release.verify_review_bundle_result(output, result)
+            bundle_symlink.unlink()
             unsafe_arguments = type("Arguments", (), {
                 "bundle_directory": output,
                 "evidence_locator": "../review.json",
+                "github_attestation_url": "https://github.com/atrinik/sound/issues/21#issuecomment-123",
             })()
             with self.assertRaisesRegex(sound_release.ReleaseError, "repository-owned"):
                 sound_release.command_prepare_quality_review(unsafe_arguments)
