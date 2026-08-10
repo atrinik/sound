@@ -192,7 +192,10 @@ arbitrary manifest coordinate, or noncanonical worksheet therefore cannot
 bypass the preparation checks.
 Inspect the proposed ledger before replacing
 `manifests/vorbis-quality-reviews.json`, then run `refresh` and the complete
-validation suite. Failed verdicts intentionally remain blocked.
+validation suite. The generated source/runtime v1 manifests preserve the v2
+review and GitHub attestation identity inside their existing evidence notes,
+without mutating the published v1 schema contract. Failed verdicts
+intentionally remain blocked.
 
 Build the pinned conversion environment and the six-format fixture archive:
 

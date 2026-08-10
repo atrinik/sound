@@ -570,7 +570,33 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_current_source_asset_is_runtime_schema_compatible(self) -> None:
         toolchain = sound_release.checked_toolchain()
-        asset = copy.deepcopy(next(iter(self.assets.values())))
+        logical_path = "background/crystal_falls.ogg"
+        review = {
+            "logical_path": logical_path,
+            "status": "passed",
+            "source_sha256": self.assets[logical_path]["source"]["sha256"],
+            "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+            "output_sha256": "a" * 64,
+            "reviewed_by": "reviewer",
+            "reviewed_at": "2026-08-10T12:00:00Z",
+            "evidence": {
+                "method": "critical-listening",
+                "artifact_locator": "evidence/review.json",
+                "artifact_sha256": "d" * 64,
+                "github_attestation_url": "https://github.com/atrinik/sound/issues/21#issuecomment-123",
+                "notes": "Complete critical-listening evidence.",
+            },
+        }
+        projected_review = sound_release.published_quality_review(review)
+        self.assertNotIn("github_attestation_url", projected_review["evidence"])
+        self.assertIn(review["evidence"]["github_attestation_url"], projected_review["evidence"]["notes"])
+        source_manifest = copy.deepcopy(self.manifest)
+        source_asset = next(
+            item for item in source_manifest["assets"] if item["logical_path"] == logical_path
+        )
+        source_asset["quality_review"] = projected_review
+        sound_release.validate_manifest(source_manifest, compare_generated=False)
+        asset = copy.deepcopy(source_asset)
         asset["output"] = {
             "sha256": "a" * 64,
             "size_bytes": 1,

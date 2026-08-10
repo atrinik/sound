@@ -807,6 +807,25 @@ def checked_license_reviews() -> dict[str, dict[str, object]]:
     return reviews
 
 
+def published_quality_review(review: dict[str, object]) -> dict[str, object]:
+    evidence = review.get("evidence")
+    if not isinstance(evidence, dict):
+        raise ReleaseError("passed quality review lacks evidence")
+    attestation_url = evidence.get("github_attestation_url")
+    if not isinstance(attestation_url, str):
+        raise ReleaseError("passed quality review lacks a GitHub attestation")
+    published_evidence = {
+        key: value for key, value in evidence.items()
+        if key != "github_attestation_url"
+    }
+    published_evidence["notes"] = (
+        f"{str(evidence.get('notes', '')).strip()} "
+        f"Quality-review ledger SHA-256: {hashlib.sha256(canonical_json(review)).hexdigest()}; "
+        f"GitHub attestation: {attestation_url}"
+    )
+    return {**review, "evidence": published_evidence}
+
+
 def build_source_manifest() -> dict[str, object]:
     toolchain = checked_toolchain()
     budget = toolchain["quality_budget"]
@@ -898,7 +917,7 @@ def build_source_manifest() -> dict[str, object]:
             quality_review = quality_reviews.get(relative)
             if quality_review is not None and quality_review.get("source_sha256") != asset["source"]["sha256"]:  # type: ignore[index]
                 raise ReleaseError(f"stale Vorbis quality review: {relative}")
-            asset["quality_review"] = quality_review or {
+            asset["quality_review"] = published_quality_review(quality_review) if quality_review is not None else {
                 "status": "blocked",
                 "blocking_finding": "second-generation Vorbis-to-Opus review evidence is missing",
                 "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
