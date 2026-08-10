@@ -185,6 +185,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_piano_approvals_bind_archived_first_party_grants_and_attribution(self) -> None:
         catalog = sound_release.notice_catalog(ROOT / "background")
+        reviews = sound_release.checked_license_reviews()
         attributed = {
             filename for filename, notice in catalog.items()
             if "source: https://www.piano-midi.de/" in notice["text"]
@@ -205,6 +206,13 @@ class SourceManifestTests(unittest.TestCase):
                 self.assertIn("Atrinik modification (2026-08-10): MIDI rendered to Opus", notice["text"])
                 self.assertEqual("allowed", self.assets[logical_path]["license"]["status"])
                 self.assertEqual("CC-BY-SA-3.0-DE", self.assets[logical_path]["license"]["spdx_expression"])
+                self.assertEqual(
+                    [{
+                        "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+                        "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078",
+                    }],
+                    reviews[logical_path]["evidence"]["artifacts"],
+                )
 
     def test_game_game_approvals_bind_first_party_archive_and_attribution(self) -> None:
         filenames = {
@@ -214,6 +222,17 @@ class SourceManifestTests(unittest.TestCase):
             "the_end.mid", "underground.mid", "vonstantine.mid",
         }
         catalog = sound_release.notice_catalog(ROOT / "background")
+        reviews = sound_release.checked_license_reviews()
+        artifacts = [
+            {
+                "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+                "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19",
+            },
+            {
+                "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+                "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70",
+            },
+        ]
         for filename in filenames:
             logical_path = f"background/{filename}"
             with self.subTest(filename=filename):
@@ -224,6 +243,7 @@ class SourceManifestTests(unittest.TestCase):
                 self.assertIn("Atrinik modification (2026-08-10): original MIDI rendered to Opus", notice)
                 self.assertEqual("allowed", self.assets[logical_path]["license"]["status"])
                 self.assertEqual("CC-BY-SA-3.0", self.assets[logical_path]["license"]["spdx_expression"])
+                self.assertEqual(artifacts, reviews[logical_path]["evidence"]["artifacts"])
 
     def test_notice_hash_preserves_exact_packaged_whitespace(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -389,9 +409,17 @@ class SourceManifestTests(unittest.TestCase):
             "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
             "notice_sha256": "b" * 64, "spdx_expression": "CC0-1.0",
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
-            "evidence": {"locator": "evidence/README.md", "sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a", "notes": "schema verification fixture only"},
+            "evidence": {
+                "locator": "evidence/README.md",
+                "sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a",
+                "notes": "schema verification fixture only",
+                "artifacts": [{
+                    "locator": "evidence/freedink-backgrounds.md",
+                    "sha256": "9c5db5b1d82ddcd2a3294261154b0349ef7f3a824afa25ef2c49f69fcde03c92",
+                }],
+            },
         }
-        document = {"$schema": "../schemas/license-reviews-v1.schema.json", "schema_version": 1, "reviews": [review]}
+        document = {"$schema": "../schemas/license-reviews-v2.schema.json", "schema_version": 2, "reviews": [review]}
         original_read_json = sound_release.read_json
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: document if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
             self.assertIn("effects/example.ogg", sound_release.checked_license_reviews())
@@ -404,6 +432,11 @@ class SourceManifestTests(unittest.TestCase):
         missing["reviews"][0]["evidence"]["locator"] = "evidence/missing.txt"
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: missing if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "missing"):
+                sound_release.checked_license_reviews()
+        corrupted_artifact = copy.deepcopy(document)
+        corrupted_artifact["reviews"][0]["evidence"]["artifacts"][0]["sha256"] = "0" * 64
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: corrupted_artifact if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "hash mismatch"):
                 sound_release.checked_license_reviews()
         noncanonical = copy.deepcopy(document)
         noncanonical["reviews"][0]["reviewed_at"] = "2026-8-1T0:0:0Z"
@@ -443,6 +476,7 @@ class SourceManifestTests(unittest.TestCase):
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
             "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
             "vorbis-quality-reviews-v1.schema.json", "license-reviews-v1.schema.json",
+            "license-reviews-v2.schema.json",
             "tracker-durations-v1.schema.json",
         ):
             self.assertEqual(f"https://atrinik.org/schemas/sound/{name}", sound_release.checked_schema(name)["$id"])

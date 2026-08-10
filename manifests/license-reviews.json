@@ -1,6 +1,6 @@
 {
-  "$schema": "../schemas/license-reviews-v1.schema.json",
-  "schema_version": 1,
+  "$schema": "../schemas/license-reviews-v2.schema.json",
+  "schema_version": 2,
   "reviews": [
     {
       "evidence": {
@@ -279,7 +279,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/autumn.mid",
       "notice_sha256": "79036d972e6fb710473ed52ef71df897c561db9fa52bcca5d2109e22df96dcc7",
@@ -292,7 +298,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/barcarolle.mid",
       "notice_sha256": "622c789538256d255aada1b1f116651d72b9e6f5abd59743bf87a401b84a849c",
@@ -305,7 +317,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/carnival.mid",
       "notice_sha256": "23e3c8262a73b8d552c74a2831448ca6005eebd783ed4a1b31943a14c05c60e3",
@@ -318,7 +336,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/christmas1.mid",
       "notice_sha256": "02b1cf5ae7ad1835c699deb2c5cee54f350c65612a7a3791201fbd09a836f5d1",
@@ -331,7 +355,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/christmas2.mid",
       "notice_sha256": "cccd6698a4fd72c2249e810e92cef930ee6105d4d21c81e926c8beaca8fe7517",
@@ -344,7 +374,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/christmas3.mid",
       "notice_sha256": "968f9fb5e758ae28c2951dd0d1ed7b2cd6f24660bc5b8ec35d2f5eeb3183bad4",
@@ -357,7 +393,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/christmas4.mid",
       "notice_sha256": "db29a2374b3db58412c7c1899b23590059fae221f034545194e1538609392df3",
@@ -370,7 +412,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/christmas5.mid",
       "notice_sha256": "7a3b596967989019ea23cc35747340992de28bffd6097de64c4b564a29ca8504",
@@ -383,7 +431,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/christmas6.mid",
       "notice_sha256": "29a8fa8fbef6e85c7ed5bef310a7efd1b4c6586646f5107d3821b3b7cfd99ac4",
@@ -396,7 +450,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/elise.mid",
       "notice_sha256": "2a9ce4550800b527e8ca1f87d842875c86ca6caaf4ec0a2018c470f7c505eaaa",
@@ -409,7 +469,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/fireside.mid",
       "notice_sha256": "4103d77bd14ac1f05a47114de0e6085bfa5a2dda4661253b7a08c039cfb0097f",
@@ -422,7 +488,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/fountain.mid",
       "notice_sha256": "b7273eb7782f5d5e5a64916b0cf3009d23365ee7850eca0c5c80c5b325d5a679",
@@ -435,7 +507,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/harvest.mid",
       "notice_sha256": "14b820a5a98eecba25f8d2833a1732aa4c60c8a14cde531456fe8eec5a053d09",
@@ -448,7 +526,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/lark.mid",
       "notice_sha256": "7e172c4c5e0d9bed54c904b0d00b9a32762e100ab724322cba5871aa57459d20",
@@ -461,7 +545,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/pearls.mid",
       "notice_sha256": "4a5094503df71260ec14a76ec91fdeac2fa155b3ecd388d7995cae1439c33e2e",
@@ -474,7 +564,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/prelude1.mid",
       "notice_sha256": "ced77413a7ca5cf952919fa7872310d4e6c7e9112461ebbf5488d3b4afa6cf9f",
@@ -487,7 +583,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/prelude2.mid",
       "notice_sha256": "b2634b74067cceeada633f2b2e4ffd4c0be87839ddc334f642515f00a0e1fc6b",
@@ -500,7 +602,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/prelude3.mid",
       "notice_sha256": "0c68c7367baec0f04521f45a1c50c51c3cb9408d7247be595469f9ee4c32d72d",
@@ -513,7 +621,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/reaper.mid",
       "notice_sha256": "8df58b61a8c67a9e2974b46560214280d6803d48f8cfca987b887fddc8d00c89",
@@ -526,7 +640,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/ride.mid",
       "notice_sha256": "167c867d47cbab02631ad39307dd2d1258bf4a4d3309a096680a685f5bae8345",
@@ -539,7 +659,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/snowdrop.mid",
       "notice_sha256": "93aa04650eaee1c3bc71e1d00019e8da9cbacb33a9924bcc460b9405dab02732",
@@ -552,7 +678,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/starlight.mid",
       "notice_sha256": "d8b2df265de9e0373e6aa9a9d207a3a46aabb653a6239fdf2522841df045f619",
@@ -565,7 +697,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/tango.mid",
       "notice_sha256": "bb976e06b6648c7ffcfa20cb775eb687e608ab3734a6ed5ffbdc5d58475ebb46",
@@ -578,7 +716,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/the_hunt.mid",
       "notice_sha256": "7cee97244721b505f2fa894f5b8628c76732087941d3781950c906a49542fc6a",
@@ -591,7 +735,13 @@
       "evidence": {
         "locator": "evidence/piano-midi-de-backgrounds.md",
         "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
-        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/piano-midi-de-copy-20160409000057.html",
+            "sha256": "9675b087f9cf38bba94c7edd3ea0827fb13d42452168a453f6a3823d58603078"
+          }
+        ]
       },
       "logical_path": "background/thunderstorm.mid",
       "notice_sha256": "ab99d918baff48130390b683eba06f856c3b8d7f83146c0436d112eed821c72b",
@@ -604,7 +754,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/battle.mid",
       "notice_sha256": "2c5dc68814a0ed9fb1471f27fbe851e888519485497bfad0ca98e42616067749",
@@ -617,7 +777,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/endless_sands.mid",
       "notice_sha256": "b9e9e0d09d57d9bd7f9150c79f92d3ed98f3bf823f6371b042b99188c8e5a3ce",
@@ -630,7 +800,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/game_over.mid",
       "notice_sha256": "27990552ef6f261d17f0a9d3ae462ce267834d53882ca5ee4544b838f5148625",
@@ -643,7 +823,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/gg.mid",
       "notice_sha256": "6d3f3bdae63b28e6a642a700a0c56e727c7ee7432f1bbee4311bee11700578fb",
@@ -656,7 +846,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/gg2.mid",
       "notice_sha256": "5cc6f7f607ac38e42384066cb0a8df921b9451aa720a6180f6befd002f655535",
@@ -669,7 +869,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/green_forest.mid",
       "notice_sha256": "f6ae690a5ab8268562891ee97b0351752deb3d86bd37b853273e7f352700e364",
@@ -682,7 +892,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/high_mountains.mid",
       "notice_sha256": "5cc3fcbb6057d2f66a4cfbcdb9f29252e4db535bb56bac64a28896846b52f67d",
@@ -695,7 +915,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/interlude.mid",
       "notice_sha256": "677f956afe762d722464592089fcb77c50f6af60b801cd04282f075ac5120274",
@@ -708,7 +938,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/lava_city.mid",
       "notice_sha256": "ecd50ee5994fbb05dedb224d2ac8dbf4c0991c1decd29290cc2c2d16534a1429",
@@ -721,7 +961,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/level_win.mid",
       "notice_sha256": "d4dd4da3c2c6a00b19abae06fc874e115778909924ffde2c5ff932522beba17e",
@@ -734,7 +984,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/pirates.mid",
       "notice_sha256": "244966d3efcbfa8dc78dbe8b5ec251a8ec5a35763753bc4a52b32e4477c0e29c",
@@ -747,7 +1007,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/running_wild.mid",
       "notice_sha256": "ef1906e9dfa131bf93047a9f8e728bff01cd1d9237e25f790a97ffcb089851aa",
@@ -760,7 +1030,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/ship.mid",
       "notice_sha256": "0e5c2b148627ac71f24f01b68ac492cc05582186a319a5684f2d9537f4145ee4",
@@ -773,7 +1053,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/tethanus.mid",
       "notice_sha256": "262d9f746820358a617d42b6d311437cfa49d09fada16f8acda201a451adc1ae",
@@ -786,7 +1076,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/the_end.mid",
       "notice_sha256": "5c78685d09a108e603cbbc52f3851f3eaeaee9e6777719cb3ad0f4257fcca172",
@@ -799,7 +1099,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/underground.mid",
       "notice_sha256": "a7f196fca1c2e32586fe4da3a6160d6b0b3c46f7903739b59fa50435c768c2ee",
@@ -812,7 +1122,17 @@
       "evidence": {
         "locator": "evidence/metaruka-game-game-backgrounds.md",
         "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
-        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d",
+        "artifacts": [
+          {
+            "locator": "evidence/captures/metaruka-game-game-20190826013953.html",
+            "sha256": "329b5abf485654b2e5c14674008000d50fab9fa92a53435643e0508eedc91c19"
+          },
+          {
+            "locator": "evidence/captures/opengameart-game-game-20100909174726.html",
+            "sha256": "7660f3f9d46671f0f18e167c7ef3e65876766ac3ecc300325e49123d0a0f8b70"
+          }
+        ]
       },
       "logical_path": "background/vonstantine.mid",
       "notice_sha256": "631d386aca1cd14dde37a8620b0db310b75f35e917357c492fe630d8ee1dfc5f",

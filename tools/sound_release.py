@@ -496,8 +496,8 @@ def notice_status(
     return "candidate", "per-asset license review evidence is missing", expression, license_text_path
 
 
-def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> None:
-    locator = evidence.get("artifact_locator", evidence.get("locator"))
+def verify_review_artifact(artifact: dict[str, object], logical_path: str) -> None:
+    locator = artifact.get("artifact_locator", artifact.get("locator"))
     pure = PurePosixPath(str(locator))
     if not isinstance(locator, str) or not locator.startswith("evidence/") or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != locator:
         raise ReleaseError(f"review evidence locator is unsafe or not repository-owned: {logical_path}")
@@ -509,8 +509,19 @@ def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> No
     except ReleaseError as exc:
         if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1" or git_metadata_available():
             raise ReleaseError(f"review evidence is not Git-tracked: {logical_path}") from exc
-    if sha256(path) != evidence.get("artifact_sha256", evidence.get("sha256")):
+    if sha256(path) != artifact.get("artifact_sha256", artifact.get("sha256")):
         raise ReleaseError(f"review evidence hash mismatch: {logical_path}")
+
+
+def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> None:
+    verify_review_artifact(evidence, logical_path)
+    artifacts = evidence.get("artifacts", [])
+    if not isinstance(artifacts, list):
+        raise ReleaseError(f"review supporting artifacts are invalid: {logical_path}")
+    for artifact in artifacts:
+        if not isinstance(artifact, dict):
+            raise ReleaseError(f"review supporting artifact is invalid: {logical_path}")
+        verify_review_artifact(artifact, logical_path)
 
 
 def checked_quality_reviews() -> dict[str, dict[str, object]]:
@@ -569,11 +580,11 @@ def codec_contract(suffix: str) -> tuple[str, str, str]:
 
 
 def checked_license_reviews() -> dict[str, dict[str, object]]:
-    checked_schema("license-reviews-v1.schema.json")
+    checked_schema("license-reviews-v2.schema.json")
     value = read_json(LICENSE_REVIEWS)
-    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/license-reviews-v1.schema.json" or value.get("schema_version") != 1 or not isinstance(value.get("reviews"), list):
-        raise ReleaseError("license-review ledger must use the complete version 1 contract")
-    validate_schema_instance(value, checked_schema("license-reviews-v1.schema.json"))
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/license-reviews-v2.schema.json" or value.get("schema_version") != 2 or not isinstance(value.get("reviews"), list):
+        raise ReleaseError("license-review ledger must use the complete version 2 contract")
+    validate_schema_instance(value, checked_schema("license-reviews-v2.schema.json"))
     reviews: dict[str, dict[str, object]] = {}
     for review in value["reviews"]:
         assert isinstance(review, dict)

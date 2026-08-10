@@ -33,7 +33,9 @@ generated output hashes, plus a GitHub reviewer identity and canonical UTC
 timestamp. The referenced `evidence/` file must be tracked and match its hash;
 stale, malformed, missing, or failed evidence blocks publication.
 `manifests/license-reviews.json` records those evidence-backed per-asset
-decisions, so an asset replacement cannot inherit a notice-level approval.
+decisions, including the primary evidence hash and every supporting capture
+hash. Each artifact must remain Git-tracked, regular, and byte-exact, so an
+asset replacement or corrupted capture cannot inherit an approval.
 These manifests and the
 stable sound IDs are shared groundwork for `atrinik/sound#13`, not a parallel
 Classic-only contract.
