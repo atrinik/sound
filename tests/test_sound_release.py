@@ -167,7 +167,7 @@ class SourceManifestTests(unittest.TestCase):
                 "instrument_bank": {"installed_config": str(config)},
                 "tools": {"timidity": {
                     "installed_path": "/usr/bin/timidity",
-                    "deterministic_seed": {"installed_path": "/pinned/seed.so"},
+                    "deterministic_seed": {"installed_path": "/pinned/seed.so", "heap_perturb": 165},
                 }},
             }
             with mock.patch.object(sound_release, "run") as run:
@@ -185,6 +185,7 @@ class SourceManifestTests(unittest.TestCase):
             self.assertNotIn(str(root / "rendered.wav"), command)
             self.assertEqual(root, run.call_args.kwargs["cwd"])
             self.assertEqual("/pinned/seed.so", run.call_args.kwargs["env"]["LD_PRELOAD"])
+            self.assertEqual("165", run.call_args.kwargs["env"]["MALLOC_PERTURB_"])
 
     def test_license_findings_fail_closed(self) -> None:
         self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])

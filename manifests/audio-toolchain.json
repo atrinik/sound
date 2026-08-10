@@ -119,6 +119,7 @@
       },
       "deterministic_seed": {
         "fixed_epoch": 946684800,
+        "heap_perturb": 165,
         "source_path": "tools/audio/timidity-deterministic-time.c",
         "source_sha256": "c854c34f0fbb86d42b26a282e3796cec7eaa189169439b03804573fde5914889",
         "installed_path": "/usr/local/lib/atrinik-timidity-deterministic-time.so",

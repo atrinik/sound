@@ -661,7 +661,12 @@ def archived_repository_tree(source_tree: str) -> Iterator[Path]:
         tools = toolchain.get("tools") if isinstance(toolchain, dict) else None
         probe = tools.get("sdl3_mixer_probe") if isinstance(tools, dict) else None
         probe_source = probe.get("source_path") if isinstance(probe, dict) else None
+        timidity = tools.get("timidity") if isinstance(tools, dict) else None
+        deterministic_seed = timidity.get("deterministic_seed") if isinstance(timidity, dict) else None
+        seed_source = deterministic_seed.get("source_path") if isinstance(deterministic_seed, dict) else None
         required_export_ignored = ["tools/audio/Dockerfile", probe_source]
+        if seed_source is not None:
+            required_export_ignored.append(seed_source)
         for relative in required_export_ignored:
             pure = PurePosixPath(str(relative))
             if not isinstance(relative, str) or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != relative:
@@ -1320,24 +1325,18 @@ def checked_toolchain() -> dict[str, object]:
     tool_definition = toolchain_schema.get("$defs", {}).get("tool", {})  # type: ignore[union-attr]
     tool_properties = tool_definition.get("properties", {}) if isinstance(tool_definition, dict) else {}
     seed_contract_supported = isinstance(tool_properties, dict) and "deterministic_seed" in tool_properties
+    seed_definition = tool_properties.get("deterministic_seed", {}) if seed_contract_supported else {}
+    expected_seed_fields = set(seed_definition.get("required", [])) if isinstance(seed_definition, dict) else set()
     if (
         seed_contract_supported
         and (
             not isinstance(deterministic_seed, dict)
-            or set(deterministic_seed) != {
-                "fixed_epoch", "source_path", "source_sha256", "installed_path", "installed_sha256",
-            }
+            or set(deterministic_seed) != expected_seed_fields
             or deterministic_seed.get("fixed_epoch") != 946684800
+            or ("heap_perturb" in expected_seed_fields and deterministic_seed.get("heap_perturb") != 165)
         )
     ):
         raise ReleaseError("TiMidity must pin its deterministic RNG seed shim")
-    if isinstance(deterministic_seed, dict) and (
-        set(deterministic_seed) != {
-            "fixed_epoch", "source_path", "source_sha256", "installed_path", "installed_sha256",
-        }
-        or deterministic_seed.get("fixed_epoch") != 946684800
-    ):
-        raise ReleaseError("invalid TiMidity deterministic RNG seed shim")
     if isinstance(deterministic_seed, dict):
         seed_source = ROOT / str(deterministic_seed["source_path"])
         if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
@@ -1707,6 +1706,7 @@ def render_source(
         assert isinstance(deterministic_seed, dict)
         environment = dict(os.environ)
         environment["LD_PRELOAD"] = str(deterministic_seed["installed_path"])
+        environment["MALLOC_PERTURB_"] = str(deterministic_seed["heap_perturb"])
     run(command, cwd=command_root, env=environment)
 
 
