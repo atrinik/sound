@@ -3,3 +3,4 @@
 /tools export-ignore
 /tests export-ignore
 /release-line.txt export-ignore
+/evidence/captures/*.html binary

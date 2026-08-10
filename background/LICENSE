@@ -36,11 +36,13 @@ Allacrost - http://allacrost.org/ - GPLv2:
     town_folk.ogg (Town music, peaceful)
     venturing_dragons.ogg (Very dark cave with wet floor, tunnels, dwarvish mines)
 
-GNU FreeDink - http://www.freedink.org/ - GPLv3:
+FreeDink original MIDI files - https://www.gnu.org/software/freedink/doc/sounds/ - licensing unresolved:
     insper.mid (Sad, determined)
     lively.mid (Town music, lively place, battle)
     love.mid (Wedding)
-    piano.mid (Reverie)
+
+Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+:
+    piano.mid (Atrinik use: Reverie; supplied title: “Rêverie” by Claude Debussy 1890; replacement author: Sylvain Beucler; source: GNU FreeDink freedink-data-1.08.20190120 dink/Sound/105.mid; Copyright (C) 2008 Sylvain Beucler; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 ZhayTee - http://www.zhaymusic.com/ - GPLv2:
     the_trail_2.ogg (Quest, all alone, trek through something)
@@ -54,12 +56,12 @@ Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL:
     the_forsaken_mine.ogg (Abandoned mine, eerie, forbidden mines)
     the_old_tavern.ogg (Very lively tavern)
     warriors_fight.ogg (Fight, fight at the bar, clash of the titans)
-    dungeon_entrance.ogg (Dungeon)
-    deep_forest.ogg (Forest)
-    sacred_moments.ogg (Scene with awe, hopeful sorrow, chapel)
-    magical_tower.ogg (Magic, dark)
-    mystical_aura.ogg (Magic place, crystal, ice)
-    new_hope.ogg (Church, pipe organ)
+    dungeon_entrance.ogg (Atrinik use: dungeon; author: Storyteller; source: arianne/stendhal data/music/dungeon_entrance.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    deep_forest.ogg (Atrinik use: forest; author: Storyteller; source: arianne/stendhal data/music/deep_forest.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    sacred_moments.ogg (Atrinik use: scene with awe, hopeful sorrow, chapel; author: Storyteller; source: arianne/stendhal data/music/sacred_moments.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    magical_tower.ogg (Atrinik use: magic, dark; author: Storyteller; source: arianne/stendhal data/music/the_magical_tower.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    mystical_aura.ogg (Atrinik use: magic place, crystal, ice; author: Storyteller; source: arianne/stendhal data/music/mystical_aura.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
+    new_hope.ogg (Atrinik use: church, pipe organ; author: Storyteller; source: arianne/stendhal data/music/new_hope.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
 
 Meritous - http://www.asceai.net/meritous/ - GPLv3:
     amblight.xm (Techno, boss battle)
@@ -80,9 +82,9 @@ Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ 
     no_worry.mid (Tropical paradise)
 
 OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2:
-    run_for_your_life.mid (Maze, beach)
-    the_fast_route.mid (Fancy restaurant, forest)
-    ultimate_run.mid (Beach)
+    run_for_your_life.mid (Atrinik use: maze, beach; musician: Tistou Blomberg; supplied title: Excitement! Run for your life; source: OpenTTD/OpenMSX src/run_for_your_life.mid at 312ca0ae46a271fb65ba49674b5e935ca0f41036; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    the_fast_route.mid (Atrinik use: fancy restaurant, forest; musician: mimm; supplied title: The Fast Route; source: OpenTTD/OpenMSX src/the_fast_route.mid at 1bc84b0f821daef86f2e938b75619a3085f79dd9; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (no later than 2014-02-13): Rosegarden rewrite changed 96 to 480 PPQN, omitted channel 5, and added controller/time-signature metadata; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    ultimate_run.mid (Atrinik use: beach; musician: Tistou Blomberg; supplied title: Ultimate run; source: OpenTTD/OpenMSX src/ultimate_run.mid at 312ca0ae46a271fb65ba49674b5e935ca0f41036; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 Sammy Broock - Freeware:
     crystal_cave.ogg (Eerie crystal cave, magic village)
@@ -94,43 +96,43 @@ Sammy Broock - Freeware:
     town_music.ogg (Town music, sinister, Berri Lur)
 
 Edwin "Mamoru" Miltenburg - GPLv2:
-    banrril.mid (Peaceful, homes)
-    burnt_forest.mid (Burnt Forest, grim, sadness, depressive)
-    burnt_forest2.mid (Burnt Forest, sadness)
-    chether.mid (Happy homes, town music, Asteria)
-    denkash.mid (Lazy town)
-    denkash-finale.mid (Related to denkash.mid)
-    endurance.mid (Holding breath, scanning machine)
-    essilda-finale.mid (Tavern, sub-boss)
-    kaitindam.mid (Palace, castle, fort, cathedral)
-    tutorialisland.mid (Tutorial island)
+    banrril.mid (Atrinik use: peaceful, homes; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/banrril.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    burnt_forest.mid (Atrinik use: burnt forest, grim, sadness, depressive; author: Edwin “Mamoru” Miltenburg; supplied title: Burnt Forest; source: atrinik/sound background/burnt_forest.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    burnt_forest2.mid (Atrinik use: burnt forest, sadness; author: Edwin “Mamoru” Miltenburg; supplied title: Burnt Forest; source: atrinik/sound background/burnt_forest2.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    chether.mid (Atrinik use: happy homes, town music, Asteria; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/chether.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    denkash.mid (Atrinik use: lazy town; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/denkash.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    denkash-finale.mid (Atrinik use: related to denkash.mid; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/denkash-finale.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    endurance.mid (Atrinik use: holding breath, scanning machine; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/endurance.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    essilda-finale.mid (Atrinik use: tavern, sub-boss; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/essilda-finale.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    kaitindam.mid (Atrinik use: palace, castle, fort, cathedral; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/kaitindam.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    tutorialisland.mid (Atrinik use: tutorial island; author: Edwin “Mamoru” Miltenburg; supplied title: tutorialisland; source: atrinik/sound background/tutorialisland.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
-http://piano-midi.de/ - CC BY-SA 3.0:
-    autumn.mid (Town dungeon, peaceful, tavern)
-    barcarolle.mid (Town)
-    carnival.mid (Carnival)
-    christmas1.mid (Silent night)
-    christmas2.mid (Christmas tree, cathedral)
-    christmas3.mid (Ice village)
-    christmas4.mid (Ice village)
-    christmas5.mid (Ice village)
-    christmas6.mid (Ice village)
-    elise.mid (Town)
-    fireside.mid (Inn)
-    fountain.mid (Fountain, happy place)
-    harvest.mid (Frantic, farm, running away)
-    lark.mid (Lazy village)
-    pearls.mid (Underwater)
-    prelude1.mid (Town, overland, forest)
-    prelude2.mid (Frantic)
-    prelude3.mid (Frantic run)
-    reaper.mid (Graveyard, boss fight)
-    ride.mid (Plains, farm)
-    snowdrop.mid (Snowy)
-    starlight.mid (Night, peaceful)
-    tango.mid (Ball music)
-    the_hunt.mid (Hunt)
-    thunderstorm.mid (Fast pouring rain, storm)
+Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany:
+    autumn.mid (Atrinik use: town dungeon, peaceful, tavern; supplied title: Tschaikowsky: The Seasons: Oktober; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    barcarolle.mid (Atrinik use: town; supplied title: Tschaikowsky: The Seasons: June; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    carnival.mid (Atrinik use: carnival; supplied title: Tschaikowsky: The Seasons: February; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    christmas1.mid (Atrinik use: Silent Night; supplied title: Heinrich Lichner: Fantasie über "Stille Nacht, heilige Nacht"; Copyright © 1998 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    christmas2.mid (Atrinik use: Christmas tree, cathedral; supplied title: Ferd. Keller: Weihnachtsfantasie; Copyright © 1999 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    christmas3.mid (Atrinik use: ice village; supplied title: Robert Leonard: Weihnachts-Fantasie; Copyright © 2000 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    christmas4.mid (Atrinik use: ice village; supplied title: M. P. Heller: Christfreuden - Weihnachtsfantasie; Copyright © 2005 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    christmas5.mid (Atrinik use: ice village; supplied title: Gustav Lange: Zu Weihnachten - Fantasie; Copyright © 2006 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    christmas6.mid (Atrinik use: ice village; supplied title: Tschaikowsky: The Seasons: December; Copyright © 2000 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    elise.mid (Atrinik use: town; supplied title: Ludwig van Beethoven: Für Elise; Copyright © 2004 by Bernd Krueger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    fireside.mid (Atrinik use: inn; supplied title: Tschaikowsky: The Seasons: January; Copyright © 2000 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    fountain.mid (Atrinik use: fountain, happy place; supplied title: Friedrich Burgmüller: Étude Op. 109 - Die Quelle; Copyright © 2004 by Bernd Krueger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    harvest.mid (Atrinik use: frantic, farm, running away; supplied title: Tschaikowsky: The Seasons: August; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    lark.mid (Atrinik use: lazy village; supplied title: Tschaikowsky: The Seasons: March; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    pearls.mid (Atrinik use: underwater; supplied title: Friedrich Burgmüller: Étude Op. 109 - Die Perlen; Copyright © 2004 by Bernd Krueger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    prelude1.mid (Atrinik use: town, overland, forest; supplied title: Bach: Prelude & Fugue in C major, BWV 846; Copyright 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    prelude2.mid (Atrinik use: frantic; supplied title: Bach: Prelude & Fugue in C minor, BWV 847; Copyright 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    prelude3.mid (Atrinik use: frantic run; supplied title: Bach: Prelude & Fugue in D major, BWV 850; Copyright 1997 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    reaper.mid (Atrinik use: graveyard, boss fight; supplied title: Tschaikowsky: The Seasons: July; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    ride.mid (Atrinik use: plains, farm; supplied title: Tschaikowsky: The Seasons: November; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    snowdrop.mid (Atrinik use: snowy; supplied title: Tschaikowsky: The Seasons: April; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    starlight.mid (Atrinik use: night, peaceful; supplied title: Tschaikowsky: The Seasons: May; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    tango.mid (Atrinik use: ball music; supplied title: Albeniz: Espana Op. 165 Tango; Copyright © 2001 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    the_hunt.mid (Atrinik use: hunt; supplied title: Tschaikowsky: The Seasons: September; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    thunderstorm.mid (Atrinik use: fast pouring rain, storm; supplied title: Friedrich Burgmüller: Étude Op. 109 - Gewitter; Copyright © 2004 by Bernd Krueger; source: https://www.piano-midi.de/; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-commercial purposes:
     dg1.mid (Inn, town)
@@ -143,14 +145,14 @@ David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-com
     dg8.mid (Magic forest)
     dg9.mid (Castle, fort, palace)
 
-Brandon Morris - http://opengameart.org/users/brandon-morris - CC-BY 3.0:
-    running.ogg (Dungeon, giants stronghold on top of a mountain)
-    evil_temple.ogg (Evil eerie temple, chanting)
-    lost_in_meadows.ogg (Peaceful, meadow)
-    sewer_rats.ogg (Sewers, abandoned church)
+Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0:
+    running.ogg (Atrinik use: dungeon, giants stronghold on top of a mountain; author: Augmentality (Brandon Morris), submitted by HaelDB; supplied title: Running from something; source: https://opengameart.org/content/running-from-something; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
+    evil_temple.ogg (Atrinik use: evil eerie temple, chanting; author: Brandon Morris, submitted by HaelDB; supplied title: Evil temple Ambiance loop; source: https://opengameart.org/content/evil-temple-ambiance-loop; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
+    lost_in_meadows.ogg (Atrinik use: peaceful, meadow; author: Augmentality, submitted by HaelDB; supplied title: Lost in the meadows; source: https://opengameart.org/content/lost-in-the-meadows; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
+    sewer_rats.ogg (Atrinik use: sewers, abandoned church; author: HaelDB; supplied title: Rat Sewer; source: https://opengameart.org/content/rat-sewer; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0:
-    hull_et_belle.ogg (Boss rush, pre-boss)
+    hull_et_belle.ogg (Atrinik use: boss rush, pre-boss; author: Gobusto; supplied title: Boss Music. Probably.; source: https://opengameart.org/content/boss-music-probably; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music:
     th_01.mid (Faith is For the Transient People: Castle, church, searching for something)
@@ -189,32 +191,32 @@ ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gram
     th_34.mid (At the End of Spring)
 
 http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0:
-    battle.mid (Boss battle)
-    endless_sands.mid (Maze)
-    game_over.mid (Sinister, eerie)
-    gg.mid (Slightly sinister, dark mountains, ancient passages under the mountains)
-    gg2.mid (Running, fighting, trek through something with a time limit)
-    green_forest.mid (Priest temple, peaceful place, pasture)
-    high_mountains.mid (Exploring, mountains)
-    interlude.mid (Shop of some sort)
-    lava_city.mid (Khazad-dum, balrog)
-    level_win.mid (Victory, quest done)
-    pirates.mid (Sinister, ships)
-    running_wild.mid (Sneaking, thieves hideout)
-    ship.mid (Stealing, thieves)
-    tethanus.mid (Thieves, obtaining quest item from a person)
-    the_end.mid (Outside of witches house, foreshadowing)
-    underground.mid (Large cavern, graveyard)
-    vonstantine.mid (Boss)
+    battle.mid (Atrinik use: boss battle; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Final Battle; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    endless_sands.mid (Atrinik use: maze; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Endless Sands; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    game_over.mid (Atrinik use: sinister, eerie; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Game Over; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    gg.mid (Atrinik use: slightly sinister, dark mountains, ancient passages under the mountains; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Intro; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    gg2.mid (Atrinik use: running, fighting, trek through something with a time limit; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Game-Game; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    green_forest.mid (Atrinik use: priest temple, peaceful place, pasture; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Green Forest; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    high_mountains.mid (Atrinik use: exploring, mountains; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: High In The Mountains; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    interlude.mid (Atrinik use: shop of some sort; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Short Interlude; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    lava_city.mid (Atrinik use: Khazad-dum, balrog; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Lava City; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    level_win.mid (Atrinik use: victory, quest done; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Level Win; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    pirates.mid (Atrinik use: sinister, ships; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Pirates Attack; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    running_wild.mid (Atrinik use: sneaking, thieves hideout; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Running Wild; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    ship.mid (Atrinik use: stealing, thieves; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Ship Interior; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    tethanus.mid (Atrinik use: thieves, obtaining quest item from a person; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Gaseous Tethanus; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    the_end.mid (Atrinik use: outside of witches house, foreshadowing; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: The End; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    underground.mid (Atrinik use: large cavern, graveyard; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Underground Cavern; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
+    vonstantine.mid (Atrinik use: boss; author: Max McCracken (Metaruka; submitted as maxstack); work: Game-Game; supplied title: Die Vonstantine; source: https://opengameart.org/content/game-game; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): original MIDI rendered to Opus)
 
 Ecrivain - http://opengameart.org/users/Ecrivain - CC0:
-    crystal_falls.ogg (Crystal cave)
+    crystal_falls.ogg (Atrinik use: crystal cave; author: Écrivain; supplied archive member: SFX/Background/Crystal Falls.wav; source: https://opengameart.org/content/random-sfx; Atrinik modification (no later than 2014-02-13): official WAV encoded to Vorbis; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 Future Wave Shaper - http://www.futurewaveshaper.com/ - CC BY-NC 3.0:
     thonkdonk.ogg (Tribal, dungeon-like)
 
 Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0:
-    frankie.ogg (Thieves, under city, caves)
+    frankie.ogg (Atrinik use: thieves, under city, caves; supplied archive member: audio/frankieloop2.wav; source: Blender Foundation Yo Frankie yofrankie_bge.zip, https://download.blender.org/apricot/yofrankie_bge.zip; attribution: (c) copyright Blender Foundation | apricot.blender.org; license: CC-BY-3.0, https://creativecommons.org/licenses/by/3.0/; Atrinik modification (no later than 2014-02-13): official WAV encoded to Vorbis; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 Mike Koenig - CC-BY:
     pure_romance.ogg (Techno, cave)

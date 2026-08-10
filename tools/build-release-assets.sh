@@ -47,6 +47,12 @@ if [[ ${blocker_count} -eq 0 ]]; then
   absolute_output=$(realpath "${output_directory}")
   docker build --platform linux/amd64 \
     --file tools/audio/Dockerfile --tag atrinik-sound-audio .
+  docker run --rm --platform linux/amd64 \
+    --user "$(id -u):$(id -g)" \
+    --volume "$PWD:/workspaces/sound:ro" \
+    --env ATRINIK_RELEASE_INPUT_ATTESTED=1 \
+    atrinik-sound-audio \
+    python3 tools/sound_release.py validate-quality-outputs
   comparison_directory=$(mktemp -d)
   trap 'rm -rf "${comparison_directory}"' EXIT
   run_runtime_build() {
@@ -59,6 +65,7 @@ if [[ ${blocker_count} -eq 0 ]]; then
       --env ATRINIK_SOURCE_COMMIT="${source_commit}" \
       --env ATRINIK_SOURCE_TREE="${source_tree}" \
       --env ATRINIK_RELEASE_INPUT_ATTESTED \
+      --env GH_TOKEN \
       atrinik-sound-audio \
       python3 tools/sound_release.py build-runtime "${tag}" /output
   }
