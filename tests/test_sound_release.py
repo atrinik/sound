@@ -361,7 +361,7 @@ class SourceManifestTests(unittest.TestCase):
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
             "evidence": {"method": "critical-listening", "artifact_locator": "evidence/README.md", "artifact_sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a", "notes": "schema verification fixture only"},
         }
-        document = {"$schema": "../schemas/vorbis-quality-reviews-v1.schema.json", "schema_version": 1, "reviews": [entry]}
+        document = {"$schema": "../schemas/vorbis-quality-reviews-v2.schema.json", "schema_version": 2, "reviews": [entry]}
         original_read_json = sound_release.read_json
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: document if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
             self.assertIn("effects/example.ogg", sound_release.checked_quality_reviews())
@@ -480,11 +480,15 @@ class SourceManifestTests(unittest.TestCase):
         for name in (
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
             "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
-            "vorbis-quality-reviews-v1.schema.json", "license-reviews-v1.schema.json",
+            "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json", "license-reviews-v1.schema.json",
             "license-reviews-v2.schema.json",
             "tracker-durations-v1.schema.json",
         ):
             self.assertEqual(f"https://atrinik.org/schemas/sound/{name}", sound_release.checked_schema(name)["$id"])
+        legacy_pattern = sound_release.checked_schema("vorbis-quality-reviews-v1.schema.json")["properties"]["reviews"]["items"]["properties"]["reviewed_by"]["pattern"]
+        current_pattern = sound_release.checked_schema("vorbis-quality-reviews-v2.schema.json")["properties"]["reviews"]["items"]["properties"]["reviewed_by"]["pattern"]
+        self.assertIsNotNone(re.fullmatch(legacy_pattern, "a--b"))
+        self.assertIsNone(re.fullmatch(current_pattern, "a--b"))
         drifted = copy.deepcopy(self.manifest)
         drifted["unexpected"] = True
         with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):

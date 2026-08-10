@@ -525,10 +525,10 @@ def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> No
 
 
 def checked_quality_reviews() -> dict[str, dict[str, object]]:
-    schema = checked_schema("vorbis-quality-reviews-v1.schema.json")
+    schema = checked_schema("vorbis-quality-reviews-v2.schema.json")
     value = read_json(QUALITY_REVIEWS)
-    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/vorbis-quality-reviews-v1.schema.json" or value.get("schema_version") != 1:
-        raise ReleaseError("Vorbis quality-review root must use schema version 1")
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/vorbis-quality-reviews-v2.schema.json" or value.get("schema_version") != 2:
+        raise ReleaseError("Vorbis quality-review root must use schema version 2")
     entries = value.get("reviews")
     if not isinstance(entries, list):
         raise ReleaseError("Vorbis quality reviews must be an array")
