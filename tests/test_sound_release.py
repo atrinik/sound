@@ -36,9 +36,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(393, len(blockers))
+        self.assertEqual(535, len(blockers))
         self.assertEqual(
-            {"license/provenance": 197, "quality-review": 196},
+            {"license/provenance": 339, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -114,8 +114,8 @@ class SourceManifestTests(unittest.TestCase):
         self.assertFalse((ROOT / "background" / "durations").exists())
 
     def test_license_findings_fail_closed(self) -> None:
-        self.assertEqual("allowed", self.assets["background/fireside.mid"]["license"]["status"])
-        self.assertEqual("allowed", self.assets["effects/campfire.ogg"]["license"]["status"])
+        self.assertEqual("blocked", self.assets["background/fireside.mid"]["license"]["status"])
+        self.assertIn("per-asset license review", self.assets["background/fireside.mid"]["license"]["blocking_finding"])
         for logical in (
             "background/campfire_tales.mid",
             "background/thonkdonk.ogg",
@@ -132,12 +132,15 @@ class SourceManifestTests(unittest.TestCase):
         }
         self.assertEqual("blocked", sound_release.notice_status(sampling)[0])
 
-    def test_allowed_notices_resolve_to_exact_lines_and_license_texts(self) -> None:
+    def test_candidate_notices_resolve_but_remain_blocked_without_evidence(self) -> None:
         toolchain = sound_release.checked_toolchain()
+        candidates = 0
         for logical, asset in self.assets.items():
             contract = asset["license"]
-            if contract["status"] != "allowed":
+            if not contract["spdx_expression"]:
                 continue
+            candidates += 1
+            self.assertEqual("blocked", contract["status"])
             notice_path, line_text = contract["notice_reference"].rsplit(":", 1)
             line = (ROOT / notice_path).read_text(encoding="utf-8").splitlines()[int(line_text) - 1]
             self.assertIn(Path(logical).name, line)
@@ -145,6 +148,7 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
+        self.assertEqual(142, candidates)
 
     def test_vorbis_quality_review_is_an_immutable_release_gate(self) -> None:
         vorbis = [asset for asset in self.assets.values() if asset["source"]["codec"] == "vorbis"]
@@ -157,7 +161,7 @@ class SourceManifestTests(unittest.TestCase):
             "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN), "output_sha256": "b" * 64,
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
-            "evidence": {"method": "critical-listening", "artifact_sha256": "c" * 64, "notes": "ABX comparison"},
+            "evidence": {"method": "critical-listening", "artifact_locator": "https://example.invalid/review.wav", "artifact_sha256": "c" * 64, "notes": "ABX comparison"},
         }
         document = {"$schema": "../schemas/vorbis-quality-reviews-v1.schema.json", "schema_version": 1, "reviews": [entry]}
         original_read_json = sound_release.read_json
@@ -170,22 +174,45 @@ class SourceManifestTests(unittest.TestCase):
                 sound_release.checked_quality_reviews()
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
-        contracts = sound_release.license_review_contract(list(self.assets.values()))
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(reviewed["reviewed_asset_set_sha256"], hashlib.sha256(sound_release.canonical_json(contracts)).hexdigest())
-        changed = copy.deepcopy(contracts)
-        changed[0]["source_sha256"] = "0" * 64
-        self.assertNotEqual(reviewed["reviewed_asset_set_sha256"], hashlib.sha256(sound_release.canonical_json(changed)).hexdigest())
+        self.assertEqual([], reviewed["reviews"])
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
             sound_release.validate_manifest(drifted)
+
+    def test_per_asset_license_review_requires_retrievable_immutable_evidence(self) -> None:
+        review = {
+            "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
+            "notice_sha256": "b" * 64, "spdx_expression": "CC0-1.0",
+            "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
+            "evidence": {"locator": "https://example.invalid/license.txt", "sha256": "c" * 64, "notes": "full grant"},
+        }
+        document = {"$schema": "../schemas/license-reviews-v1.schema.json", "schema_version": 1, "reviews": [review]}
+        original_read_json = sound_release.read_json
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: document if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
+            self.assertIn("effects/example.ogg", sound_release.checked_license_reviews())
+        broken = copy.deepcopy(document)
+        broken["reviews"][0]["evidence"].pop("locator")
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: broken if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "required"):
+                sound_release.checked_license_reviews()
+
+    def test_tracker_durations_are_bound_to_pinned_measurements(self) -> None:
+        ledger = json.loads(sound_release.TRACKER_DURATIONS.read_text())
+        self.assertEqual(sound_release.sha256(sound_release.TOOLCHAIN), ledger["toolchain_sha256"])
+        trackers = {entry["logical_path"]: entry for entry in ledger["entries"]}
+        self.assertEqual(17, len(trackers))
+        for logical, entry in trackers.items():
+            self.assertEqual(sound_release.sha256(ROOT / logical), entry["source_sha256"])
+            self.assertEqual(entry["duration_seconds"], self.assets[logical]["source"]["duration_seconds"])
 
     def test_project_schemas_are_versioned_and_unknown_fields_fail(self) -> None:
         for name in (
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
             "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
             "vorbis-quality-reviews-v1.schema.json", "license-reviews-v1.schema.json",
+            "tracker-durations-v1.schema.json",
         ):
             self.assertEqual(f"https://atrinik.org/schemas/sound/{name}", sound_release.checked_schema(name)["$id"])
         drifted = copy.deepcopy(self.manifest)
@@ -203,6 +230,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_toolchain_is_pinned_and_records_instrument_output_permission(self) -> None:
         toolchain = sound_release.checked_toolchain()
+        self.assertRegex(toolchain["apt_snapshot"], r"snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z$")
         self.assertRegex(toolchain["build_image"]["image"], r"@sha256:[0-9a-f]{64}$")
         self.assertTrue(toolchain["instrument_bank"]["recording_distribution_permission"])
         probe = toolchain["tools"]["sdl3_mixer_probe"]
@@ -218,8 +246,14 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "393 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "535 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
+
+    def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            arguments = type("Arguments", (), {"logical_path": "background/fireside.mid", "output_directory": temporary})()
+            with self.assertRaisesRegex(sound_release.ReleaseError, "passed per-asset license review"):
+                sound_release.command_build_review_candidate(arguments)
 
 
 class DeterministicArchiveTests(unittest.TestCase):

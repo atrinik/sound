@@ -1,6 +1,7 @@
 {
   "$schema": "../schemas/audio-toolchain-v1.schema.json",
   "schema_version": 1,
+  "apt_snapshot": "https://snapshot.ubuntu.com/ubuntu/20260810T000000Z",
   "build_image": {
     "image": "ghcr.io/atrinik/linux-build@sha256:1231b39d40161c1199fd3e45e99e3d826dde02dade79729c030cc0ce3710898f",
     "source_repository": "atrinik/devcontainer",

@@ -9,6 +9,7 @@ COPY tools/audio/sdl3-mixer-runtime-probe.c /tmp/sdl3-mixer-runtime-probe.c
 ARG FFMPEG_PACKAGE=7:8.0.1-3ubuntu2
 ARG OPENMPT_PACKAGE=0.8.4-1
 ARG OPUS_TOOLS_PACKAGE=0.2-1build5
+ARG UBUNTU_SNAPSHOT=https://snapshot.ubuntu.com/ubuntu/20260810T000000Z
 ARG FREEPATS_URL=https://deb.debian.org/debian/pool/main/f/freepats/freepats_20060219.orig.tar.gz
 ARG FREEPATS_SHA256=70bf8ca084df3903d6c9de43fe20539fc0a553d95cfba4d525da3fe66fda5f10
 ARG FREEPATS_UPSTREAM_SHA256=0261ea1057b232183fa472432d5cedb0dca33698a5319328cdf193d4b2193c8a
@@ -21,7 +22,11 @@ ARG CC0_SHA256=a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
-    apt-get update \
+    sed -i \
+        -e "s|http://archive.ubuntu.com/ubuntu/|${UBUNTU_SNAPSHOT}/|" \
+        -e "s|http://security.ubuntu.com/ubuntu/|${UBUNTU_SNAPSHOT}/|" \
+        /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         "ffmpeg=${FFMPEG_PACKAGE}" \
         "openmpt123=${OPENMPT_PACKAGE}" \

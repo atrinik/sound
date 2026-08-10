@@ -1,1 +1,21 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://atrinik.org/schemas/sound/vorbis-quality-reviews-v1.schema.json","title":"Atrinik Vorbis quality reviews v1","type":"object","additionalProperties":false,"required":["$schema","schema_version","reviews"],"properties":{"$schema":{"const":"../schemas/vorbis-quality-reviews-v1.schema.json"},"schema_version":{"const":1},"reviews":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["logical_path","status","source_sha256","toolchain_sha256","output_sha256","reviewed_by","reviewed_at","evidence"]}}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrinik.org/schemas/sound/vorbis-quality-reviews-v1.schema.json",
+  "title": "Atrinik Vorbis quality reviews v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["$schema", "schema_version", "reviews"],
+  "properties": {
+    "$schema": {"const": "../schemas/vorbis-quality-reviews-v1.schema.json"}, "schema_version": {"const": 1},
+    "reviews": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["logical_path", "status", "source_sha256", "toolchain_sha256", "output_sha256", "reviewed_by", "reviewed_at", "evidence"],
+      "properties": {
+        "logical_path": {"type": "string", "pattern": "^(background|effects)/.+\\.ogg$"}, "status": {"const": "passed"},
+        "source_sha256": {"$ref": "#/$defs/sha256"}, "toolchain_sha256": {"$ref": "#/$defs/sha256"}, "output_sha256": {"$ref": "#/$defs/sha256"},
+        "reviewed_by": {"type": "string", "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"},
+        "reviewed_at": {"type": "string", "format": "date-time"},
+        "evidence": {"type": "object", "additionalProperties": false, "required": ["method", "artifact_locator", "artifact_sha256", "notes"], "properties": {"method": {"const": "critical-listening"}, "artifact_locator": {"type": "string", "pattern": "^(https://|evidence/).+"}, "artifact_sha256": {"$ref": "#/$defs/sha256"}, "notes": {"type": "string", "minLength": 1}}}
+      }
+    }}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

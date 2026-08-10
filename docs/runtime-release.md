@@ -14,12 +14,15 @@ transformation note, and exact notice reference. Runtime generation adds the
 output hash, size, codec/container, sample rate, channels, duration, peak,
 loudness, clipping result, and rendered-PCM measurements.
 
-The current inventory intentionally records 197 fail-closed license/provenance
-findings for ambiguous `Permission to use`, `Freeware`, Sampling Plus,
-noncommercial, incomplete, and missing notices. Notice approval is an exact
-reviewed allowlist, never a default-allow keyword filter. All 196 preserved
-Vorbis inputs also have source-hash-bound quality reviews pending. Those 393
-release findings are not silently omitted: while any finding remains, releases
+The current inventory intentionally records 339 fail-closed license/provenance
+findings. This includes terse GPL/CC headings until a per-asset review binds
+the source and notice hashes, SPDX interpretation, reviewer, timestamp, and a
+retrievable hash-verified evidence document; ambiguous `Permission to use`,
+`Freeware`, Sampling Plus, noncommercial, incomplete, and missing notices have
+no candidate interpretation. Approval is never a default-allow keyword filter.
+All 196 preserved Vorbis inputs also have source-hash-bound quality reviews
+pending, producing 535 total gates. They are not silently omitted: while any
+finding remains, releases
 publish the complete blocker report and no runtime archive. Source archives
 continue unchanged.
 
@@ -27,9 +30,9 @@ continue unchanged.
 passed entry binds the source, toolchain, reviewed evidence artifact, and exact
 generated output hashes, plus a GitHub reviewer identity and canonical UTC
 timestamp; stale, malformed, missing, or failed evidence blocks publication.
-`manifests/license-reviews.json` likewise binds the complete set of allowed
-logical paths to each source hash, notice hash, and SPDX expression, so an asset
-replacement cannot inherit a notice-level approval. These manifests and the
+`manifests/license-reviews.json` records those evidence-backed per-asset
+decisions, so an asset replacement cannot inherit a notice-level approval.
+These manifests and the
 stable sound IDs are shared groundwork for `atrinik/sound#13`, not a parallel
 Classic-only contract.
 
@@ -40,7 +43,7 @@ missing and unknown fields; each runtime archive carries its runtime schema.
 ## Toolchain and encoding profile
 
 `manifests/audio-toolchain.json` pins the Linux build image by digest and source
-commit, direct package versions, upstream archive checksums, renderer settings,
+commit, an immutable Ubuntu package snapshot, direct package versions, upstream archive checksums, renderer settings,
 FreePats instrument bank and exception, Opus encoder, independent decoder, key
 runtime-library and executable hashes, exact asset license texts, and the
 repository-owned SDL3_mixer full-decode/playback probe compiled against the
@@ -78,6 +81,24 @@ The metadata and packaging checks need only Python 3.11+, Bash, and Git:
 ```sh
 tools/validate.sh
 python3 tools/sound_release.py blockers
+```
+
+Tracker duration refresh is performed inside the pinned image, never copied
+from the source manifest:
+
+```sh
+docker run --rm --volume "$PWD:/workspaces/sound:ro" atrinik-sound-audio \
+  python3 tools/sound_release.py measure-trackers
+```
+
+After a per-asset license review passes, generate a non-publishing candidate
+for critical listening and its exact output/toolchain evidence without waiting
+for the quality ledger to pass:
+
+```sh
+docker run --rm --volume "$PWD:/workspaces/sound:ro" \
+  --volume "$PWD/build/review-candidate:/output" atrinik-sound-audio \
+  python3 tools/sound_release.py build-review-candidate effects/example.ogg /output
 ```
 
 Build the pinned conversion environment and the six-format fixture archive:
@@ -150,6 +171,7 @@ licenses/GPL-3.0.txt
 background/LICENSE
 effects/LICENSE
 schemas/runtime-manifest-v1.schema.json
+schemas/audio-toolchain-v1.schema.json
 manifest.json
 SHA256SUMS
 ```
@@ -158,7 +180,10 @@ Consumers verify the release asset against the release-level `SHA256SUMS`, then
 verify every unpacked file against the archive's own `SHA256SUMS` and every
 payload against `manifest.json`. Requests use `logical_path` as the lookup key
 and load `generated_path`; raw MIDI or tracker files are never staged into a
-runtime bundle. Tags or URLs alone are insufficient pins.
+runtime bundle. In addition to JSON Schema validation, consumers reject
+duplicate logical/generated paths, unsafe paths, missing checksum members, and
+payload hashes that disagree with the manifest. Tags or URLs alone are
+insufficient pins.
 
 Workspace profile selection/staging belongs to `atrinik/atrinik#267`. Classic
 client fallback, decoder enforcement, playback behavior, and package tests

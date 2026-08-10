@@ -30,6 +30,7 @@ TOOLCHAIN = ROOT / "manifests" / "audio-toolchain.json"
 FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
 QUALITY_REVIEWS = ROOT / "manifests" / "vorbis-quality-reviews.json"
 LICENSE_REVIEWS = ROOT / "manifests" / "license-reviews.json"
+TRACKER_DURATIONS = ROOT / "manifests" / "tracker-durations.json"
 SCHEMA_ROOT = ROOT / "schemas"
 AUDIO_SUFFIXES = {".mid", ".mod", ".s3m", ".xm", ".ogg"}
 TRACKER_SUFFIXES = {".mod", ".s3m", ".xm"}
@@ -112,6 +113,88 @@ def checked_schema(name: str) -> dict[str, object]:
     if not isinstance(value, dict) or value.get("$schema") != "https://json-schema.org/draft/2020-12/schema" or value.get("$id") != expected_id:
         raise ReleaseError(f"invalid project schema: {name}")
     return value
+
+
+def validate_schema_instance(instance: object, schema: dict[str, object], *, root: dict[str, object] | None = None, location: str = "$") -> None:
+    root = schema if root is None else root
+    reference = schema.get("$ref")
+    if isinstance(reference, str):
+        if not reference.startswith("#/$defs/"):
+            raise ReleaseError(f"unsupported schema reference at {location}: {reference}")
+        target: object = root
+        for part in reference[2:].split("/"):
+            if not isinstance(target, dict) or part not in target:
+                raise ReleaseError(f"unresolved schema reference at {location}: {reference}")
+            target = target[part]
+        if not isinstance(target, dict):
+            raise ReleaseError(f"invalid schema reference at {location}: {reference}")
+        validate_schema_instance(instance, target, root=root, location=location)
+        return
+    choices = schema.get("oneOf")
+    if isinstance(choices, list):
+        matches = 0
+        for choice in choices:
+            try:
+                if isinstance(choice, dict):
+                    validate_schema_instance(instance, choice, root=root, location=location)
+                    matches += 1
+            except ReleaseError:
+                pass
+        if matches != 1:
+            raise ReleaseError(f"schema oneOf mismatch at {location}")
+        return
+    if "const" in schema and instance != schema["const"]:
+        raise ReleaseError(f"schema const mismatch at {location}")
+    if isinstance(schema.get("enum"), list) and instance not in schema["enum"]:
+        raise ReleaseError(f"schema enum mismatch at {location}")
+    expected = schema.get("type")
+    types = expected if isinstance(expected, list) else [expected] if isinstance(expected, str) else []
+    checks = {"object": lambda value: isinstance(value, dict), "array": lambda value: isinstance(value, list), "string": lambda value: isinstance(value, str), "integer": lambda value: isinstance(value, int) and not isinstance(value, bool), "number": lambda value: isinstance(value, (int, float)) and not isinstance(value, bool), "boolean": lambda value: isinstance(value, bool), "null": lambda value: value is None}
+    if types and not any(checks[kind](instance) for kind in types):
+        raise ReleaseError(f"schema type mismatch at {location}")
+    if isinstance(instance, dict):
+        required = schema.get("required", [])
+        if isinstance(required, list) and any(key not in instance for key in required):
+            raise ReleaseError(f"schema required field missing at {location}")
+        properties = schema.get("properties", {})
+        if not isinstance(properties, dict):
+            raise ReleaseError(f"invalid schema properties at {location}")
+        additional = schema.get("additionalProperties", True)
+        for key, value in instance.items():
+            child = properties.get(key)
+            if isinstance(child, dict):
+                validate_schema_instance(value, child, root=root, location=f"{location}.{key}")
+            elif additional is False:
+                raise ReleaseError(f"unknown schema field at {location}.{key}")
+            elif isinstance(additional, dict):
+                validate_schema_instance(value, additional, root=root, location=f"{location}.{key}")
+        minimum_properties = schema.get("minProperties")
+        if isinstance(minimum_properties, int) and len(instance) < minimum_properties:
+            raise ReleaseError(f"too few properties at {location}")
+    if isinstance(instance, list):
+        items = schema.get("items")
+        if isinstance(items, dict):
+            for index, value in enumerate(instance):
+                validate_schema_instance(value, items, root=root, location=f"{location}[{index}]")
+        if schema.get("uniqueItems") is True and len({json.dumps(value, sort_keys=True) for value in instance}) != len(instance):
+            raise ReleaseError(f"duplicate schema items at {location}")
+        minimum_items = schema.get("minItems")
+        if isinstance(minimum_items, int) and len(instance) < minimum_items:
+            raise ReleaseError(f"too few items at {location}")
+    if isinstance(instance, str):
+        pattern = schema.get("pattern")
+        if isinstance(pattern, str) and re.search(pattern, instance) is None:
+            raise ReleaseError(f"schema pattern mismatch at {location}")
+        minimum_length = schema.get("minLength")
+        if isinstance(minimum_length, int) and len(instance) < minimum_length:
+            raise ReleaseError(f"schema string too short at {location}")
+    if isinstance(instance, (int, float)) and not isinstance(instance, bool):
+        if isinstance(schema.get("minimum"), (int, float)) and instance < schema["minimum"]:
+            raise ReleaseError(f"schema minimum violation at {location}")
+        if isinstance(schema.get("exclusiveMinimum"), (int, float)) and instance <= schema["exclusiveMinimum"]:
+            raise ReleaseError(f"schema exclusive minimum violation at {location}")
+        if isinstance(schema.get("maximum"), (int, float)) and instance > schema["maximum"]:
+            raise ReleaseError(f"schema maximum violation at {location}")
 
 
 def atomic_write(path: Path, payload: bytes) -> None:
@@ -293,36 +376,31 @@ def ogg_vorbis_metadata(path: Path) -> SourceMetadata:
 
 
 def tracker_metadata(path: Path) -> SourceMetadata:
-    duration_path = ROOT / "background" / "durations" / path.name
-    try:
-        duration = float(duration_path.read_text(encoding="ascii").strip())
-    except (OSError, ValueError) as exc:
-        if SOURCE_MANIFEST.is_file():
-            existing = read_json(SOURCE_MANIFEST)
-            if isinstance(existing, dict) and isinstance(existing.get("assets"), list):
-                relative = path.relative_to(ROOT).as_posix()
-                for asset in existing["assets"]:
-                    if not isinstance(asset, dict) or asset.get("source_path") != relative:
-                        continue
-                    source = asset.get("source")
-                    if (
-                        isinstance(source, dict)
-                        and source.get("sha256") == sha256(path)
-                        and isinstance(source.get("duration_seconds"), (int, float))
-                    ):
-                        duration = float(source["duration_seconds"])
-                        break
-                else:
-                    raise ReleaseError(
-                        f"tracker metadata changed for {relative}; refresh it with the pinned openmpt123 tool"
-                    ) from exc
-            else:
-                raise ReleaseError(f"missing tracker metadata for {relative}") from exc
-        else:
-            raise ReleaseError(f"missing tracker metadata for {path.relative_to(ROOT)}") from exc
+    schema = checked_schema("tracker-durations-v1.schema.json")
+    value = read_json(TRACKER_DURATIONS)
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "toolchain_sha256", "entries"} or value.get("schema_version") != 1 or value.get("toolchain_sha256") != sha256(TOOLCHAIN) or not isinstance(value.get("entries"), list):
+        raise ReleaseError("tracker-duration ledger is invalid or stale")
+    validate_schema_instance(value, schema)
+    relative = path.relative_to(ROOT).as_posix()
+    matches = [entry for entry in value["entries"] if isinstance(entry, dict) and entry.get("logical_path") == relative]
+    if len(matches) != 1 or matches[0].get("source_sha256") != sha256(path) or not isinstance(matches[0].get("duration_seconds"), (int, float)):
+        raise ReleaseError(f"tracker metadata changed for {relative}; refresh it with the pinned openmpt123 tool")
+    duration = float(matches[0]["duration_seconds"])
     if not math.isfinite(duration) or duration <= 0:
         raise ReleaseError(f"non-positive tracker duration for {path.relative_to(ROOT)}")
     return SourceMetadata(duration, None, None)
+
+
+def measured_tracker_duration(path: Path) -> float:
+    completed = run(["openmpt123", "--info", str(path)], capture=True)
+    match = re.search(r"^Duration\.\.\.: (?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$", completed.stdout + completed.stderr, re.MULTILINE)
+    if match is None:
+        raise ReleaseError(f"cannot parse pinned openmpt123 duration: {path.relative_to(ROOT)}")
+    hours = int(match.group(1) or 0)
+    duration = hours * 3600 + int(match.group(2)) * 60 + float(match.group(3))
+    if not math.isfinite(duration) or duration <= 0:
+        raise ReleaseError(f"non-positive tracker duration for {path.relative_to(ROOT)}")
+    return round(duration, 6)
 
 
 def source_metadata(path: Path) -> SourceMetadata:
@@ -371,17 +449,18 @@ def notice_status(
             None,
         )
     expression, license_text_path = reviewed
-    return "allowed", None, expression, license_text_path
+    return "candidate", "per-asset license review evidence is missing", expression, license_text_path
 
 
 def checked_quality_reviews() -> dict[str, dict[str, object]]:
-    checked_schema("vorbis-quality-reviews-v1.schema.json")
+    schema = checked_schema("vorbis-quality-reviews-v1.schema.json")
     value = read_json(QUALITY_REVIEWS)
     if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/vorbis-quality-reviews-v1.schema.json" or value.get("schema_version") != 1:
         raise ReleaseError("Vorbis quality-review root must use schema version 1")
     entries = value.get("reviews")
     if not isinstance(entries, list):
         raise ReleaseError("Vorbis quality reviews must be an array")
+    validate_schema_instance(value, schema)
     reviews: dict[str, dict[str, object]] = {}
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != {
@@ -409,9 +488,9 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
         except ValueError as exc:
             raise ReleaseError(f"quality review has a non-canonical UTC timestamp: {logical_path}") from exc
         evidence = entry.get("evidence")
-        if not isinstance(evidence, dict) or set(evidence) != {"method", "artifact_sha256", "notes"}:
+        if not isinstance(evidence, dict) or set(evidence) != {"method", "artifact_locator", "artifact_sha256", "notes"}:
             raise ReleaseError(f"quality review lacks immutable evidence: {logical_path}")
-        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
+        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"(https://|evidence/).+", str(evidence.get("artifact_locator", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
             raise ReleaseError(f"quality review has invalid evidence: {logical_path}")
         reviews[logical_path] = entry
     return reviews
@@ -427,30 +506,25 @@ def codec_contract(suffix: str) -> tuple[str, str, str]:
     raise ReleaseError(f"unsupported suffix: {suffix}")
 
 
-def license_review_contract(assets: list[dict[str, object]]) -> list[dict[str, object]]:
-    return [
-        {
-            "logical_path": asset["logical_path"],
-            "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
-            "notice_sha256": asset["license"]["notice_sha256"],  # type: ignore[index]
-            "spdx_expression": asset["license"]["spdx_expression"],  # type: ignore[index]
-        }
-        for asset in assets
-        if asset["license"]["status"] == "allowed"  # type: ignore[index]
-    ]
-
-
-def checked_license_reviews(assets: list[dict[str, object]]) -> None:
+def checked_license_reviews() -> dict[str, dict[str, object]]:
     checked_schema("license-reviews-v1.schema.json")
     value = read_json(LICENSE_REVIEWS)
-    if not isinstance(value, dict) or set(value) != {
-        "$schema", "schema_version", "reviewed_asset_count", "reviewed_asset_set_sha256", "review_basis"
-    } or value.get("$schema") != "../schemas/license-reviews-v1.schema.json" or value.get("schema_version") != 1:
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/license-reviews-v1.schema.json" or value.get("schema_version") != 1 or not isinstance(value.get("reviews"), list):
         raise ReleaseError("license-review ledger must use the complete version 1 contract")
-    contract = license_review_contract(assets)
-    digest = hashlib.sha256(canonical_json(contract)).hexdigest()
-    if value.get("reviewed_asset_count") != len(contract) or value.get("reviewed_asset_set_sha256") != digest:
-        raise ReleaseError("license-review ledger is stale; perform a new per-asset provenance review")
+    validate_schema_instance(value, checked_schema("license-reviews-v1.schema.json"))
+    reviews: dict[str, dict[str, object]] = {}
+    for review in value["reviews"]:
+        assert isinstance(review, dict)
+        logical = str(review["logical_path"])
+        if logical in reviews:
+            raise ReleaseError(f"duplicate license review: {logical}")
+        reviewed_at = str(review["reviewed_at"])
+        try:
+            datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ")
+        except ValueError as exc:
+            raise ReleaseError(f"license review has a non-canonical UTC timestamp: {logical}") from exc
+        reviews[logical] = review
+    return reviews
 
 
 def build_source_manifest() -> dict[str, object]:
@@ -464,6 +538,7 @@ def build_source_manifest() -> dict[str, object]:
     }
     assets: list[dict[str, object]] = []
     quality_reviews = checked_quality_reviews()
+    license_reviews = checked_license_reviews()
     for path in discover_sources():
         relative = path.relative_to(ROOT).as_posix()
         logical = PurePosixPath(relative)
@@ -471,6 +546,17 @@ def build_source_manifest() -> dict[str, object]:
         codec, container, renderer = codec_contract(path.suffix.lower())
         notice = catalogs[logical.parts[0]].get(logical.name)
         status, finding, expression, license_text_path = notice_status(notice)
+        source_hash = sha256(path)
+        notice_hash = hashlib.sha256(notice["description"].encode("utf-8")).hexdigest() if notice else None
+        review = license_reviews.get(relative)
+        if status == "candidate" and review is not None:
+            expected = (source_hash, notice_hash, expression)
+            actual = (review.get("source_sha256"), review.get("notice_sha256"), review.get("spdx_expression"))
+            if actual != expected:
+                raise ReleaseError(f"stale per-asset license review: {relative}")
+            status, finding = "allowed", None
+        elif status == "candidate":
+            status = "blocked"
         generated = f"audio/{logical.parent}/{logical.name}.opus"
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
@@ -485,7 +571,7 @@ def build_source_manifest() -> dict[str, object]:
             "source_path": relative,
             "generated_path": generated,
             "source": {
-                "sha256": sha256(path),
+                "sha256": source_hash,
                 "codec": codec,
                 "container": container,
                 "sample_rate": metadata.sample_rate,
@@ -507,7 +593,7 @@ def build_source_manifest() -> dict[str, object]:
                 "mode": str(budget["rate_control"]).lower(),
                 "signal": "music" if logical.parts[0] == "background" else "auto",
                 "complexity": int(budget["encoder_complexity"]),
-                "serial": int(sha256(path)[0:8], 16),
+                "serial": int(source_hash[0:8], 16),
                 "discard_comments": True,
             },
             "transformation_notes": (
@@ -518,11 +604,7 @@ def build_source_manifest() -> dict[str, object]:
             "license": {
                 "status": status,
                 "notice": notice["description"] if notice else None,
-                "notice_sha256": (
-                    hashlib.sha256(notice["description"].encode("utf-8")).hexdigest()
-                    if notice
-                    else None
-                ),
+                "notice_sha256": notice_hash,
                 "notice_reference": notice["reference"] if notice else None,
                 "blocking_finding": finding,
                 "spdx_expression": expression,
@@ -544,7 +626,9 @@ def build_source_manifest() -> dict[str, object]:
     unused_reviews = set(quality_reviews) - {str(asset["logical_path"]) for asset in assets}
     if unused_reviews:
         raise ReleaseError(f"quality reviews reference unknown sources: {', '.join(sorted(unused_reviews))}")
-    checked_license_reviews(assets)
+    unused_license_reviews = set(license_reviews) - {str(asset["logical_path"]) for asset in assets}
+    if unused_license_reviews:
+        raise ReleaseError(f"license reviews reference unknown sources: {', '.join(sorted(unused_license_reviews))}")
     corpus_contract = [
         {"source_path": asset["source_path"], "sha256": asset["source"]["sha256"]}  # type: ignore[index]
         for asset in assets
@@ -562,12 +646,13 @@ def build_source_manifest() -> dict[str, object]:
 def validate_manifest(
     manifest: dict[str, object], *, compare_generated: bool = True, verify_tracked: bool = False
 ) -> list[dict[str, object]]:
-    checked_schema("source-assets-v1.schema.json")
+    schema = checked_schema("source-assets-v1.schema.json")
     if set(manifest) != {"$schema", "schema_version", "source_corpus_sha256", "audio_source_count", "source_size_bytes", "assets"} or manifest.get("$schema") != "../schemas/source-assets-v1.schema.json" or manifest.get("schema_version") != 1:
         raise ReleaseError("source manifest does not satisfy the version 1 schema")
     assets = manifest.get("assets")
     if not isinstance(assets, list):
         raise ReleaseError("source manifest assets must be an array")
+    validate_schema_instance(manifest, schema)
     discovered = discover_sources()
     if verify_tracked:
         ensure_sources_tracked(discovered)
@@ -666,8 +751,11 @@ def checked_manifest() -> dict[str, object]:
 def checked_toolchain() -> dict[str, object]:
     checked_schema("audio-toolchain-v1.schema.json")
     value = read_json(TOOLCHAIN)
-    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != "../schemas/audio-toolchain-v1.schema.json" or value.get("schema_version") != 1:
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "apt_snapshot", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != "../schemas/audio-toolchain-v1.schema.json" or value.get("schema_version") != 1:
         raise ReleaseError("toolchain root must use schema version 1")
+    validate_schema_instance(value, checked_schema("audio-toolchain-v1.schema.json"))
+    if not re.fullmatch(r"https://snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z", str(value.get("apt_snapshot", ""))):
+        raise ReleaseError("toolchain must pin an immutable Ubuntu package snapshot")
     build_image = value.get("build_image")
     if not isinstance(build_image, dict) or set(build_image) != {"image", "source_repository", "source_commit", "release", "platform"}:
         raise ReleaseError("build-image contract is incomplete")
@@ -751,6 +839,7 @@ def checked_toolchain() -> dict[str, object]:
     dockerfile = (ROOT / "tools" / "audio" / "Dockerfile").read_text(encoding="utf-8")
     required_literals = [
         str(build_image["image"]),
+        str(value["apt_snapshot"]),
         str(debian_source["url"]), str(debian_source["sha256"]), str(bank["upstream_archive_sha256"]),
         *(str(contract[field]) for contract in license_texts.values() if str(contract["installed_path"]).startswith("/opt/") for field in ("source_url", "sha256")),
         *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "openmpt123", "opusenc"}),
@@ -761,10 +850,11 @@ def checked_toolchain() -> dict[str, object]:
 
 
 def checked_fixture_plan(manifest: dict[str, object]) -> dict[str, object]:
-    checked_schema("fixture-plan-v1.schema.json")
+    schema = checked_schema("fixture-plan-v1.schema.json")
     value = read_json(FIXTURE_PLAN)
     if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "consumer_boundary", "fixtures"} or value.get("$schema") != "../schemas/fixture-plan-v1.schema.json" or value.get("schema_version") != 1 or not isinstance(value.get("fixtures"), list):
         raise ReleaseError("fixture plan must contain a fixtures array")
+    validate_schema_instance(value, schema)
     fixtures = value["fixtures"]
     planned = {fixture.get("logical_path") for fixture in fixtures if isinstance(fixture, dict)}
     if planned != set(FIXTURE_PATHS) or len(fixtures) != len(FIXTURE_PATHS):
@@ -802,10 +892,11 @@ def checked_fixture_plan(manifest: dict[str, object]) -> dict[str, object]:
 
 
 def validate_runtime_manifest(manifest: dict[str, object]) -> None:
-    checked_schema("runtime-manifest-v1.schema.json")
+    schema = checked_schema("runtime-manifest-v1.schema.json")
     required = {"$schema", "schema_version", "release_tag", "source_commit", "source_tree", "fixture_only", "source_size_bytes", "runtime_size_bytes", "quality_budget", "tool_versions", "toolchain_sha256", "assets"}
     if set(manifest) != required or manifest.get("$schema") != "schemas/runtime-manifest-v1.schema.json" or manifest.get("schema_version") != 1:
         raise ReleaseError("runtime manifest does not satisfy the version 1 schema")
+    validate_schema_instance(manifest, schema)
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", str(manifest.get("release_tag", ""))) or not isinstance(manifest.get("fixture_only"), bool):
         raise ReleaseError("runtime manifest has invalid release coordinates")
     for key in ("source_commit", "source_tree"):
@@ -1202,6 +1293,7 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
         schema_root = staging / "schemas"
         schema_root.mkdir()
         shutil.copyfile(SCHEMA_ROOT / "runtime-manifest-v1.schema.json", schema_root / "runtime-manifest-v1.schema.json")
+        shutil.copyfile(SCHEMA_ROOT / "audio-toolchain-v1.schema.json", schema_root / "audio-toolchain-v1.schema.json")
         for notice_path in ("background/LICENSE", "effects/LICENSE"):
             destination = staging / notice_path
             destination.parent.mkdir(exist_ok=True)
@@ -1244,6 +1336,63 @@ def command_refresh(_arguments: argparse.Namespace) -> None:
     print(f"wrote {SOURCE_MANIFEST.relative_to(ROOT)} with {manifest['audio_source_count']} assets")
 
 
+def command_measure_trackers(_arguments: argparse.Namespace) -> None:
+    toolchain = checked_toolchain()
+    verify_toolchain(toolchain)
+    entries = [
+        {
+            "logical_path": path.relative_to(ROOT).as_posix(),
+            "source_sha256": sha256(path),
+            "duration_seconds": measured_tracker_duration(path),
+        }
+        for path in discover_sources()
+        if path.suffix.lower() in TRACKER_SUFFIXES
+    ]
+    document = {
+        "$schema": "../schemas/tracker-durations-v1.schema.json",
+        "schema_version": 1,
+        "toolchain_sha256": sha256(TOOLCHAIN),
+        "entries": entries,
+    }
+    print(canonical_json(document).decode("utf-8"), end="")
+
+
+def command_build_review_candidate(arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    validate_manifest(manifest)
+    assets = manifest["assets"]
+    assert isinstance(assets, list)
+    selected = [asset for asset in assets if isinstance(asset, dict) and asset.get("logical_path") == arguments.logical_path]
+    if len(selected) != 1:
+        raise ReleaseError(f"unknown review-candidate source: {arguments.logical_path}")
+    asset = selected[0]
+    license_contract = asset.get("license")
+    if not isinstance(license_contract, dict) or license_contract.get("status") != "allowed":
+        raise ReleaseError("review candidate requires a passed per-asset license review")
+    output_directory = Path(arguments.output_directory)
+    output_directory.mkdir(parents=True, exist_ok=True)
+    if any(output_directory.iterdir()):
+        raise ReleaseError(f"review-candidate output directory must be empty: {output_directory}")
+    toolchain = checked_toolchain()
+    versions = verify_toolchain(toolchain)
+    converted = convert_asset(asset, output_directory, toolchain)
+    output = converted["output"]
+    assert isinstance(output, dict)
+    evidence = {
+        "schema_version": 1,
+        "logical_path": asset["logical_path"],
+        "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
+        "toolchain_sha256": sha256(TOOLCHAIN),
+        "output_sha256": output["sha256"],
+        "generated_path": asset["generated_path"],
+        "tool_versions": versions,
+        "measurements": output,
+        "non_publishing": True,
+    }
+    atomic_write(output_directory / "review-evidence.json", canonical_json(evidence))
+    print(output_directory / str(asset["generated_path"]))
+
+
 def command_validate(_arguments: argparse.Namespace) -> None:
     manifest = checked_manifest()
     blockers = validate_manifest(manifest, verify_tracked=True)
@@ -1282,6 +1431,8 @@ def parser() -> argparse.ArgumentParser:
     commands = result.add_subparsers(dest="command", required=True)
     refresh = commands.add_parser("refresh", help="regenerate the checked source manifest")
     refresh.set_defaults(function=command_refresh)
+    trackers = commands.add_parser("measure-trackers", help="print tracker durations measured by the pinned toolchain")
+    trackers.set_defaults(function=command_measure_trackers)
     validate = commands.add_parser("validate", help="validate source, notice, and toolchain contracts")
     validate.set_defaults(function=command_validate)
     blockers = commands.add_parser("blockers", help="print fail-closed runtime findings as JSON")
@@ -1291,6 +1442,10 @@ def parser() -> argparse.ArgumentParser:
     build.add_argument("output_directory")
     build.add_argument("--fixtures", action="store_true", help="build the six-format CI fixture archive")
     build.set_defaults(function=command_build)
+    candidate = commands.add_parser("build-review-candidate", help="build one license-approved non-publishing quality-review candidate")
+    candidate.add_argument("logical_path")
+    candidate.add_argument("output_directory")
+    candidate.set_defaults(function=command_build_review_candidate)
     checksums = commands.add_parser("checksums", help="write deterministic checksums for release archives")
     checksums.add_argument("output_directory")
     checksums.set_defaults(function=command_checksums)
