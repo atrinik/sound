@@ -7,6 +7,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import struct
 import subprocess
 import sys
@@ -38,14 +39,25 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(508, len(blockers))
+        self.assertEqual(505, len(blockers))
         self.assertEqual(
-            {"license/provenance": 312, "quality-review": 196},
+            {"license/provenance": 309, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
             },
         )
+
+    def test_documented_gate_counts_match_manifest(self) -> None:
+        blockers = sound_release.validate_manifest(self.manifest)
+        license_count = sum(item["category"] == "license/provenance" for item in blockers)
+        documentation = (ROOT / "docs" / "runtime-release.md").read_text(encoding="utf-8")
+        documented_license = re.search(r"inventory records ([0-9]+) fail-closed license/provenance", documentation)
+        documented_total = re.search(r"producing ([0-9]+) total gates", documentation)
+        self.assertIsNotNone(documented_license)
+        self.assertIsNotNone(documented_total)
+        self.assertEqual(license_count, int(documented_license.group(1)))
+        self.assertEqual(len(blockers), int(documented_total.group(1)))
         self.assertEqual(
             {path.relative_to(ROOT).as_posix() for path in sound_release.discover_sources()},
             set(self.assets),
@@ -154,8 +166,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(108, candidates)
-        self.assertEqual(27, allowed)
+        self.assertEqual(116, candidates)
+        self.assertEqual(30, allowed)
 
     def test_meritous_project_notice_does_not_approve_music(self) -> None:
         notice = {
@@ -170,6 +182,28 @@ class SourceManifestTests(unittest.TestCase):
         )
         self.assertIsNone(expression)
         self.assertIsNone(license_path)
+
+    def test_piano_runtime_notices_preserve_supplied_attribution(self) -> None:
+        reviews = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())["reviews"]
+        reviewed_paths = {
+            entry["logical_path"]
+            for entry in reviews
+            if entry["evidence"]["locator"] == "evidence/piano-midi-de-backgrounds.md"
+        }
+        self.assertEqual(21, len(reviewed_paths))
+        catalog = sound_release.notice_catalog(ROOT / "background")
+        for logical_path in reviewed_paths:
+            filename = Path(logical_path).name
+            notice = catalog[filename]
+            with self.subTest(logical_path=logical_path):
+                self.assertIn("supplied title:", notice["text"])
+                self.assertIn("Copyright", notice["text"])
+                self.assertIn("source: https://www.piano-midi.de/", notice["text"])
+                self.assertIn("Atrinik modification: MIDI rendered to Opus", notice["text"])
+                self.assertEqual(
+                    hashlib.sha256(notice["text"].encode()).hexdigest(),
+                    self.assets[logical_path]["license"]["notice_sha256"],
+                )
 
     def test_vorbis_quality_review_is_an_immutable_release_gate(self) -> None:
         vorbis = [asset for asset in self.assets.values() if asset["source"]["codec"] == "vorbis"]
@@ -201,7 +235,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(27, len(reviewed["reviews"]))
+        self.assertEqual(30, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -365,7 +399,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "508 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "505 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:

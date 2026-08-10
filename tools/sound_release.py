@@ -52,11 +52,11 @@ REVIEWED_NOTICE_LICENSES = {
     'Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
     'Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
     'Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
-    'FreeDink original Dink Smallwood data - https://www.gnu.org/software/freedink/ - Zlib': ("Zlib", "licenses/Zlib.txt"),
     'Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+': ("GPL-3.0-or-later", "licenses/GPL-3.0.txt"),
     'Daniel "Lippy" Liptrot - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'ZhayTee - http://www.zhaymusic.com/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL': ("GPL-2.0-or-later", "licenses/GPL-2.0.txt"),
     'Jute - http://alturl.com/quao - GNU GPL 2.0': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'Ulrich Metzner - http://commons.wikimedia.org/wiki/User:Metzner - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'n3b - http://opengameart.org/users/n3b - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
@@ -472,6 +472,7 @@ def notice_catalog(directory: Path) -> dict[str, dict[str, str]]:
             notices[filename] = {
                 "description": current,
                 "reference": f"{directory.name}/LICENSE:{line_number}",
+                "text": f"{current}\n{line.strip()}",
             }
     return notices
 
@@ -610,7 +611,7 @@ def build_source_manifest() -> dict[str, object]:
         notice = catalogs[logical.parts[0]].get(logical.name)
         status, finding, expression, license_text_path = notice_status(notice)
         source_hash = sha256(path)
-        notice_hash = hashlib.sha256(notice["description"].encode("utf-8")).hexdigest() if notice else None
+        notice_hash = hashlib.sha256(notice["text"].encode("utf-8")).hexdigest() if notice else None
         review = license_reviews.get(relative)
         if status == "candidate" and review is not None:
             expected = (source_hash, notice_hash, expression)

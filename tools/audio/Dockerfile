@@ -21,8 +21,6 @@ ARG CC_BY_SA_DE_URL=https://raw.githubusercontent.com/spdx/license-list-data/5bf
 ARG CC_BY_SA_DE_SHA256=dfac6ca9c9b3082919f8e417e522e561e11c8402eab83e1099650b8e4347412d
 ARG CC0_URL=https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt
 ARG CC0_SHA256=a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499
-ARG ZLIB_URL=https://raw.githubusercontent.com/spdx/license-list-data/5bf6d9610255540bfbee6890765a616042bf1e11/text/Zlib.txt
-ARG ZLIB_SHA256=bfb1112d49db5b1daecdfef24bd7e2f3ea0bafb33aa67aa0ab51e2bf8407c03d
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
@@ -57,8 +55,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         --output /opt/atrinik-sound-license-texts/CC-BY-SA-3.0-DE.txt \
     && curl --fail --location --silent --show-error "${CC0_URL}" \
         --output /opt/atrinik-sound-license-texts/CC0-1.0.txt \
-    && curl --fail --location --silent --show-error "${ZLIB_URL}" \
-        --output /opt/atrinik-sound-license-texts/Zlib.txt \
     && echo "${CC_BY_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-3.0.txt" \
         | sha256sum -c - \
     && echo "${CC_BY_SA_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-SA-3.0.txt" \
@@ -66,8 +62,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && echo "${CC_BY_SA_DE_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-SA-3.0-DE.txt" \
         | sha256sum -c - \
     && echo "${CC0_SHA256}  /opt/atrinik-sound-license-texts/CC0-1.0.txt" \
-        | sha256sum -c - \
-    && echo "${ZLIB_SHA256}  /opt/atrinik-sound-license-texts/Zlib.txt" \
         | sha256sum -c - \
     && cc -std=c17 -O2 -Wall -Wextra -Werror \
         /tmp/sdl3-mixer-runtime-probe.c \

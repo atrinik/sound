@@ -64,4 +64,8 @@ The 21 byte-identical source hashes have full-work conversion and redistribution
 permission under `CC-BY-SA-3.0-DE`. The four differing historical hashes remain
 blocked until an authoritative exact revision is found or explicit permission
 is obtained. Runtime attribution for approved files must retain Bernd Krueger's
-name, <http://www.piano-midi.de>, and the same-license condition.
+name, <http://www.piano-midi.de>, the supplied work title and copyright, the
+same-license condition, and an indication that Atrinik rendered the MIDI to
+Opus. Each approved asset line in `background/LICENSE` now preserves those
+fields; the per-asset review binds that complete heading-and-line notice hash,
+and the runtime archive packages `background/LICENSE` unchanged.
