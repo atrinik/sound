@@ -1,4 +1,5 @@
 {
+  "$schema": "../schemas/source-assets-v1.schema.json",
   "assets": [
     {
       "encode": {

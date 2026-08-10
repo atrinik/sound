@@ -24,10 +24,18 @@ publish the complete blocker report and no runtime archive. Source archives
 continue unchanged.
 
 `manifests/vorbis-quality-reviews.json` is the independent review ledger. A
-passed entry must bind the source hash and record reviewer, timestamp, and
-evidence; stale, missing, or failed evidence blocks publication. This manifest
-and the stable sound IDs are shared groundwork for `atrinik/sound#13`, not a
-parallel Classic-only contract.
+passed entry binds the source, toolchain, reviewed evidence artifact, and exact
+generated output hashes, plus a GitHub reviewer identity and canonical UTC
+timestamp; stale, malformed, missing, or failed evidence blocks publication.
+`manifests/license-reviews.json` likewise binds the complete set of allowed
+logical paths to each source hash, notice hash, and SPDX expression, so an asset
+replacement cannot inherit a notice-level approval. These manifests and the
+stable sound IDs are shared groundwork for `atrinik/sound#13`, not a parallel
+Classic-only contract.
+
+Versioned JSON Schemas under `schemas/` are the consumer contract for source,
+toolchain, fixture, review, and generated runtime manifests. Producers reject
+missing and unknown fields; each runtime archive carries its runtime schema.
 
 ## Toolchain and encoding profile
 
@@ -39,7 +47,8 @@ repository-owned SDL3_mixer full-decode/playback probe compiled against the
 libraries delivered by `atrinik/devcontainer#21`.
 `tools/audio/Dockerfile` creates the exact runnable environment.
 
-The release recipe renders signed 16-bit PCM at 48 kHz, explicitly disables
+The checked quality budget authoritatively generates and validates the release
+recipe. It renders signed 16-bit PCM at 48 kHz, explicitly disables
 the tracker's otherwise-random dither, and encodes stereo music at
 160 kb/s VBR with `--music --comp 10`, and channel-scales mono to 80 kb/s. Ogg
 serial numbers derive from the immutable source SHA-256, all input comments are
@@ -52,7 +61,8 @@ are loopable and effects are one-shot. A generated output must pass `opusinfo`,
 fully decode through FFmpeg and the pinned SDL3_mixer Opus backend, contain
 nonzero PCM, match the expected decoded length, remain within the documented
 2.5-second duration tolerance, and report no clipping. Fixture tracks also
-execute device-free seek, stop, and loop transitions through SDL3_mixer. The
+execute device-free seek, stop, loop, decoded-channel, and short-effect
+natural-EOF transitions through SDL3_mixer. The
 runtime manifest reports source/runtime totals so bitrate or size changes are
 reviewable.
 
@@ -139,6 +149,7 @@ licenses/GPL-2.0.txt
 licenses/GPL-3.0.txt
 background/LICENSE
 effects/LICENSE
+schemas/runtime-manifest-v1.schema.json
 manifest.json
 SHA256SUMS
 ```

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "../schemas/fixture-plan-v1.schema.json",
   "schema_version": 1,
   "consumer_boundary": "Asset decoding, seek/stop/loop playback assertions are repeated by atrinik/classic#44 against these exact generated paths.",
   "fixtures": [

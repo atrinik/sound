@@ -21,6 +21,7 @@ import sys
 import tarfile
 import tempfile
 import wave
+from datetime import datetime
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -28,6 +29,8 @@ SOURCE_MANIFEST = ROOT / "manifests" / "source-assets.json"
 TOOLCHAIN = ROOT / "manifests" / "audio-toolchain.json"
 FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
 QUALITY_REVIEWS = ROOT / "manifests" / "vorbis-quality-reviews.json"
+LICENSE_REVIEWS = ROOT / "manifests" / "license-reviews.json"
+SCHEMA_ROOT = ROOT / "schemas"
 AUDIO_SUFFIXES = {".mid", ".mod", ".s3m", ".xm", ".ogg"}
 TRACKER_SUFFIXES = {".mod", ".s3m", ".xm"}
 FIXTURE_PATHS = (
@@ -103,6 +106,14 @@ def canonical_json(value: object) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
 
+def checked_schema(name: str) -> dict[str, object]:
+    value = read_json(SCHEMA_ROOT / name)
+    expected_id = f"https://atrinik.org/schemas/sound/{name}"
+    if not isinstance(value, dict) or value.get("$schema") != "https://json-schema.org/draft/2020-12/schema" or value.get("$id") != expected_id:
+        raise ReleaseError(f"invalid project schema: {name}")
+    return value
+
+
 def atomic_write(path: Path, payload: bytes) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -121,7 +132,7 @@ def atomic_write(path: Path, payload: bytes) -> None:
 def discover_sources() -> list[Path]:
     sources: list[Path] = []
     for directory in (ROOT / "background", ROOT / "effects"):
-        for path in directory.iterdir():
+        for path in directory.rglob("*"):
             if path.suffix.lower() not in AUDIO_SUFFIXES:
                 continue
             if path.is_symlink() or not path.is_file():
@@ -364,15 +375,19 @@ def notice_status(
 
 
 def checked_quality_reviews() -> dict[str, dict[str, object]]:
+    checked_schema("vorbis-quality-reviews-v1.schema.json")
     value = read_json(QUALITY_REVIEWS)
-    if not isinstance(value, dict) or value.get("schema_version") != 1:
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/vorbis-quality-reviews-v1.schema.json" or value.get("schema_version") != 1:
         raise ReleaseError("Vorbis quality-review root must use schema version 1")
     entries = value.get("reviews")
     if not isinstance(entries, list):
         raise ReleaseError("Vorbis quality reviews must be an array")
     reviews: dict[str, dict[str, object]] = {}
     for entry in entries:
-        if not isinstance(entry, dict) or not isinstance(entry.get("logical_path"), str):
+        if not isinstance(entry, dict) or set(entry) != {
+            "logical_path", "status", "source_sha256", "toolchain_sha256",
+            "output_sha256", "reviewed_by", "reviewed_at", "evidence",
+        } or not isinstance(entry.get("logical_path"), str):
             raise ReleaseError("invalid Vorbis quality-review entry")
         logical_path = str(entry["logical_path"])
         if logical_path in reviews:
@@ -381,8 +396,23 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"quality review is not passed: {logical_path}")
         if not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("source_sha256", ""))):
             raise ReleaseError(f"quality review lacks a source hash: {logical_path}")
-        if not entry.get("reviewed_by") or not entry.get("reviewed_at") or not entry.get("evidence"):
+        if entry.get("toolchain_sha256") != sha256(TOOLCHAIN):
+            raise ReleaseError(f"quality review has a stale toolchain hash: {logical_path}")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("output_sha256", ""))):
+            raise ReleaseError(f"quality review lacks an output hash: {logical_path}")
+        if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", str(entry.get("reviewed_by", ""))):
+            raise ReleaseError(f"quality review lacks a GitHub reviewer identity: {logical_path}")
+        reviewed_at = entry.get("reviewed_at")
+        try:
+            if not isinstance(reviewed_at, str) or datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%dT%H:%M:%SZ") != reviewed_at:
+                raise ValueError
+        except ValueError as exc:
+            raise ReleaseError(f"quality review has a non-canonical UTC timestamp: {logical_path}") from exc
+        evidence = entry.get("evidence")
+        if not isinstance(evidence, dict) or set(evidence) != {"method", "artifact_sha256", "notes"}:
             raise ReleaseError(f"quality review lacks immutable evidence: {logical_path}")
+        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
+            raise ReleaseError(f"quality review has invalid evidence: {logical_path}")
         reviews[logical_path] = entry
     return reviews
 
@@ -397,7 +427,37 @@ def codec_contract(suffix: str) -> tuple[str, str, str]:
     raise ReleaseError(f"unsupported suffix: {suffix}")
 
 
+def license_review_contract(assets: list[dict[str, object]]) -> list[dict[str, object]]:
+    return [
+        {
+            "logical_path": asset["logical_path"],
+            "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
+            "notice_sha256": asset["license"]["notice_sha256"],  # type: ignore[index]
+            "spdx_expression": asset["license"]["spdx_expression"],  # type: ignore[index]
+        }
+        for asset in assets
+        if asset["license"]["status"] == "allowed"  # type: ignore[index]
+    ]
+
+
+def checked_license_reviews(assets: list[dict[str, object]]) -> None:
+    checked_schema("license-reviews-v1.schema.json")
+    value = read_json(LICENSE_REVIEWS)
+    if not isinstance(value, dict) or set(value) != {
+        "$schema", "schema_version", "reviewed_asset_count", "reviewed_asset_set_sha256", "review_basis"
+    } or value.get("$schema") != "../schemas/license-reviews-v1.schema.json" or value.get("schema_version") != 1:
+        raise ReleaseError("license-review ledger must use the complete version 1 contract")
+    contract = license_review_contract(assets)
+    digest = hashlib.sha256(canonical_json(contract)).hexdigest()
+    if value.get("reviewed_asset_count") != len(contract) or value.get("reviewed_asset_set_sha256") != digest:
+        raise ReleaseError("license-review ledger is stale; perform a new per-asset provenance review")
+
+
 def build_source_manifest() -> dict[str, object]:
+    toolchain = checked_toolchain()
+    budget = toolchain["quality_budget"]
+    assert isinstance(budget, dict)
+    sample_rate = int(budget["sample_rate"])
     catalogs = {
         "background": notice_catalog(ROOT / "background"),
         "effects": notice_catalog(ROOT / "effects"),
@@ -413,11 +473,11 @@ def build_source_manifest() -> dict[str, object]:
         status, finding, expression, license_text_path = notice_status(notice)
         generated = f"audio/{logical.parent}/{logical.name}.opus"
         channels = metadata.channels if metadata.channels is not None else 2
-        bitrate = 80 if channels == 1 else 160
+        bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
         render_recipes = {
-            "timidity": ["timidity", "-c", "{instrument_config}", "-Ow", "-s", "48000", "-o", "{output}", "{input}"],
-            "openmpt123": ["openmpt123", "--quiet", "--batch", "--samplerate", "48000", "--channels", "2", "--no-float", "--dither", "0", "--force", "--output", "{output}", "--", "{input}"],
-            "ffmpeg": ["ffmpeg", "-nostdin", "-v", "error", "-i", "{input}", "-map_metadata", "-1", "-ar", "48000", "-c:a", "pcm_s16le", "-y", "{output}"],
+            "timidity": ["timidity", "-c", "{instrument_config}", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"],
+            "openmpt123": ["openmpt123", "--quiet", "--batch", "--samplerate", str(sample_rate), "--channels", "2", "--no-float", "--dither", "0", "--force", "--output", "{output}", "--", "{input}"],
+            "ffmpeg": ["ffmpeg", "-nostdin", "-v", "error", "-i", "{input}", "-map_metadata", "-1", "-ar", str(sample_rate), "-c:a", "pcm_s16le", "-y", "{output}"],
         }
         asset: dict[str, object] = {
             "id": f"sound:{relative}",
@@ -435,7 +495,7 @@ def build_source_manifest() -> dict[str, object]:
             "render": {
                 "renderer": renderer,
                 "recipe": render_recipes[renderer],
-                "sample_rate": 48_000,
+                "sample_rate": sample_rate,
                 "channels": channels,
                 "tail_policy": "preserve-decoder-eof",
                 "loop": logical.parts[0] == "background",
@@ -444,9 +504,9 @@ def build_source_manifest() -> dict[str, object]:
                 "codec": "opus",
                 "container": "ogg",
                 "bitrate_kbps": bitrate,
-                "mode": "vbr",
+                "mode": str(budget["rate_control"]).lower(),
                 "signal": "music" if logical.parts[0] == "background" else "auto",
-                "complexity": 10,
+                "complexity": int(budget["encoder_complexity"]),
                 "serial": int(sha256(path)[0:8], 16),
                 "discard_comments": True,
             },
@@ -484,11 +544,13 @@ def build_source_manifest() -> dict[str, object]:
     unused_reviews = set(quality_reviews) - {str(asset["logical_path"]) for asset in assets}
     if unused_reviews:
         raise ReleaseError(f"quality reviews reference unknown sources: {', '.join(sorted(unused_reviews))}")
+    checked_license_reviews(assets)
     corpus_contract = [
         {"source_path": asset["source_path"], "sha256": asset["source"]["sha256"]}  # type: ignore[index]
         for asset in assets
     ]
     return {
+        "$schema": "../schemas/source-assets-v1.schema.json",
         "schema_version": 1,
         "source_corpus_sha256": hashlib.sha256(canonical_json(corpus_contract)).hexdigest(),
         "audio_source_count": len(assets),
@@ -500,6 +562,9 @@ def build_source_manifest() -> dict[str, object]:
 def validate_manifest(
     manifest: dict[str, object], *, compare_generated: bool = True, verify_tracked: bool = False
 ) -> list[dict[str, object]]:
+    checked_schema("source-assets-v1.schema.json")
+    if set(manifest) != {"$schema", "schema_version", "source_corpus_sha256", "audio_source_count", "source_size_bytes", "assets"} or manifest.get("$schema") != "../schemas/source-assets-v1.schema.json" or manifest.get("schema_version") != 1:
+        raise ReleaseError("source manifest does not satisfy the version 1 schema")
     assets = manifest.get("assets")
     if not isinstance(assets, list):
         raise ReleaseError("source manifest assets must be an array")
@@ -514,6 +579,17 @@ def validate_manifest(
     for asset in assets:
         if not isinstance(asset, dict):
             raise ReleaseError("source manifest asset must be an object")
+        if set(asset) != {"id", "logical_path", "source_path", "generated_path", "source", "render", "encode", "transformation_notes", "license", "quality_review"}:
+            raise ReleaseError("source manifest asset has missing or unknown schema fields")
+        source_contract = asset.get("source")
+        render_contract = asset.get("render")
+        encode_contract = asset.get("encode")
+        if not isinstance(source_contract, dict) or set(source_contract) != {"sha256", "codec", "container", "sample_rate", "channels", "duration_seconds"}:
+            raise ReleaseError("source metadata has missing or unknown schema fields")
+        if not isinstance(render_contract, dict) or set(render_contract) != {"renderer", "recipe", "sample_rate", "channels", "tail_policy", "loop"}:
+            raise ReleaseError("render contract has missing or unknown schema fields")
+        if not isinstance(encode_contract, dict) or set(encode_contract) != {"codec", "container", "bitrate_kbps", "mode", "signal", "complexity", "serial", "discard_comments"}:
+            raise ReleaseError("encode contract has missing or unknown schema fields")
         logical_path = asset.get("logical_path")
         generated_path = asset.get("generated_path")
         if not isinstance(logical_path, str) or logical_path in logical:
@@ -588,9 +664,33 @@ def checked_manifest() -> dict[str, object]:
 
 
 def checked_toolchain() -> dict[str, object]:
+    checked_schema("audio-toolchain-v1.schema.json")
     value = read_json(TOOLCHAIN)
-    if not isinstance(value, dict):
-        raise ReleaseError("toolchain root must be an object")
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != "../schemas/audio-toolchain-v1.schema.json" or value.get("schema_version") != 1:
+        raise ReleaseError("toolchain root must use schema version 1")
+    build_image = value.get("build_image")
+    if not isinstance(build_image, dict) or set(build_image) != {"image", "source_repository", "source_commit", "release", "platform"}:
+        raise ReleaseError("build-image contract is incomplete")
+    if not re.fullmatch(r"ghcr\.io/atrinik/linux-build@sha256:[0-9a-f]{64}", str(build_image.get("image", ""))) or build_image.get("source_repository") != "atrinik/devcontainer" or not re.fullmatch(r"[0-9a-f]{40}", str(build_image.get("source_commit", ""))) or build_image.get("platform") != "linux/amd64":
+        raise ReleaseError("build-image coordinates are invalid")
+    budget = value.get("quality_budget")
+    expected_budget = {
+        "sample_rate": 48000,
+        "sample_format": "signed 16-bit PCM intermediate",
+        "stereo_music_bitrate_kbps": 160,
+        "mono_bitrate_kbps": 80,
+        "rate_control": "VBR",
+        "encoder_complexity": 10,
+        "clipping_allowed": False,
+        "clipped_render_peak_target_dbfs": -2.0,
+        "clipped_render_policy": "deterministically attenuate only full-scale rendered PCM before encoding",
+        "nonzero_pcm_required": True,
+        "vorbis_generation": "second lossy generation; each output requires quality review",
+    }
+    if budget != expected_budget:
+        raise ReleaseError("quality-budget contract drifted from the validated deterministic recipe")
+    if not isinstance(value.get("duration_tolerance_seconds"), (int, float)) or not 0 < float(value["duration_tolerance_seconds"]) <= 5:
+        raise ReleaseError("duration tolerance must be a positive bounded number")
     required = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
     tools = value.get("tools")
     if not isinstance(tools, dict) or set(tools) != required:
@@ -598,6 +698,15 @@ def checked_toolchain() -> dict[str, object]:
     bank = value.get("instrument_bank")
     if not isinstance(bank, dict) or not bank.get("recording_distribution_permission"):
         raise ReleaseError("instrument bank must record permission to distribute rendered recordings")
+    for key in ("name", "version", "installed_config", "installed_tree", "license", "license_reference", "transformation_note"):
+        if not isinstance(bank.get(key), str) or not bank[key]:
+            raise ReleaseError(f"instrument bank lacks {key}")
+    for key in ("installed_config_sha256", "installed_tree_sha256", "upstream_archive_sha256"):
+        if not re.fullmatch(r"[0-9a-f]{64}", str(bank.get(key, ""))):
+            raise ReleaseError(f"instrument bank lacks {key}")
+    debian_source = bank.get("debian_source")
+    if not isinstance(debian_source, dict) or set(debian_source) != {"url", "sha256"} or not str(debian_source.get("url", "")).startswith("https://") or not re.fullmatch(r"[0-9a-f]{64}", str(debian_source.get("sha256", ""))):
+        raise ReleaseError("instrument-bank source contract is invalid")
     license_texts = value.get("license_texts")
     required_licenses = set(REVIEWED_NOTICE_LICENSES.values())
     required_expressions = {expression for expression, _path in required_licenses}
@@ -611,6 +720,25 @@ def checked_toolchain() -> dict[str, object]:
             raise ReleaseError(f"license archive path drift: {expression}")
         if not re.fullmatch(r"[0-9a-f]{64}", str(contract.get("sha256", ""))):
             raise ReleaseError(f"license text lacks SHA-256: {expression}")
+        if set(contract) != {"installed_path", "archive_path", "source_url", "sha256"} or not str(contract.get("source_url", "")).startswith("https://"):
+            raise ReleaseError(f"license-text coordinates are incomplete: {expression}")
+    libraries = value.get("runtime_libraries")
+    if not isinstance(libraries, list) or not libraries:
+        raise ReleaseError("toolchain runtime libraries must be a nonempty array")
+    for library in libraries:
+        if not isinstance(library, dict) or set(library) != {"path", "sha256"} or not str(library.get("path", "")).startswith("/") or not re.fullmatch(r"[0-9a-f]{64}", str(library.get("sha256", ""))):
+            raise ReleaseError("runtime-library coordinates are invalid")
+    for name, contract in tools.items():
+        if not isinstance(contract, dict) or not isinstance(contract.get("purpose"), str):
+            raise ReleaseError(f"invalid tool contract: {name}")
+        if not isinstance(contract.get("version_command"), list) or not all(isinstance(part, str) and part for part in contract["version_command"]) or not isinstance(contract.get("version_pattern"), str):
+            raise ReleaseError(f"tool version contract is invalid: {name}")
+        if name != "sdl3_mixer_probe":
+            if not re.fullmatch(r"[^=]+=.+", str(contract.get("package", ""))) or not str(contract.get("installed_path", "")).startswith("/") or not re.fullmatch(r"[0-9a-f]{64}", str(contract.get("installed_sha256", ""))):
+                raise ReleaseError(f"tool package/install contract is invalid: {name}")
+            upstream = contract.get("upstream")
+            if not isinstance(upstream, dict) or set(upstream) != {"version", "url", "sha256"} or not str(upstream.get("url", "")).startswith("https://") or not re.fullmatch(r"[0-9a-f]{64}", str(upstream.get("sha256", ""))):
+                raise ReleaseError(f"tool upstream contract is invalid: {name}")
     probe = tools["sdl3_mixer_probe"]
     assert isinstance(probe, dict)
     probe_source = probe.get("source_path")
@@ -620,12 +748,22 @@ def checked_toolchain() -> dict[str, object]:
     probe_path = ROOT / probe_source
     if not probe_path.is_file() or sha256(probe_path) != probe_sha256:
         raise ReleaseError("SDL3_mixer probe source does not match its pinned SHA-256")
+    dockerfile = (ROOT / "tools" / "audio" / "Dockerfile").read_text(encoding="utf-8")
+    required_literals = [
+        str(build_image["image"]),
+        str(debian_source["url"]), str(debian_source["sha256"]), str(bank["upstream_archive_sha256"]),
+        *(str(contract[field]) for contract in license_texts.values() if str(contract["installed_path"]).startswith("/opt/") for field in ("source_url", "sha256")),
+        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "openmpt123", "opusenc"}),
+    ]
+    if any(literal not in dockerfile for literal in required_literals):
+        raise ReleaseError("Dockerfile drifts from pinned toolchain coordinates")
     return value
 
 
 def checked_fixture_plan(manifest: dict[str, object]) -> dict[str, object]:
+    checked_schema("fixture-plan-v1.schema.json")
     value = read_json(FIXTURE_PLAN)
-    if not isinstance(value, dict) or not isinstance(value.get("fixtures"), list):
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "consumer_boundary", "fixtures"} or value.get("$schema") != "../schemas/fixture-plan-v1.schema.json" or value.get("schema_version") != 1 or not isinstance(value.get("fixtures"), list):
         raise ReleaseError("fixture plan must contain a fixtures array")
     fixtures = value["fixtures"]
     planned = {fixture.get("logical_path") for fixture in fixtures if isinstance(fixture, dict)}
@@ -635,19 +773,54 @@ def checked_fixture_plan(manifest: dict[str, object]) -> dict[str, object]:
     assert isinstance(assets, list)
     known = {asset["logical_path"]: asset for asset in assets if isinstance(asset, dict)}
     represented: set[str] = set()
+    allowed = {"loop", "seek", "stop", "mono", "stereo", "short-effect"}
     for fixture in fixtures:
         assert isinstance(fixture, dict)
         logical = fixture["logical_path"]
         if logical not in known:
             raise ReleaseError(f"fixture plan references a missing source: {logical}")
         behaviors = fixture.get("behaviors")
-        if not isinstance(behaviors, list) or not all(isinstance(item, str) for item in behaviors):
+        if not isinstance(behaviors, list) or not behaviors or not all(isinstance(item, str) for item in behaviors) or len(behaviors) != len(set(behaviors)) or not set(behaviors) <= allowed:
             raise ReleaseError(f"fixture behaviors must be strings: {logical}")
+        asset = known[logical]
+        render = asset.get("render")
+        source = asset.get("source")
+        assert isinstance(render, dict) and isinstance(source, dict)
+        expected_channel_behavior = "mono" if render.get("channels") == 1 else "stereo"
+        if (set(behaviors) & {"mono", "stereo"}) != {expected_channel_behavior}:
+            raise ReleaseError(f"fixture channel behavior disagrees with metadata: {logical}")
+        if "short-effect" in behaviors:
+            if not str(logical).startswith("effects/") or not isinstance(source.get("duration_seconds"), (int, float)) or not 0 < float(source["duration_seconds"]) <= 10:
+                raise ReleaseError(f"short-effect fixture is not a measured short effect: {logical}")
+        if "loop" in behaviors and not render.get("loop"):
+            raise ReleaseError(f"loop fixture is not a looping asset: {logical}")
         represented.update(behaviors)
     required = {"loop", "seek", "stop", "mono", "stereo", "short-effect"}
     if not required <= represented:
         raise ReleaseError(f"fixture plan is missing behaviors: {', '.join(sorted(required - represented))}")
     return value
+
+
+def validate_runtime_manifest(manifest: dict[str, object]) -> None:
+    checked_schema("runtime-manifest-v1.schema.json")
+    required = {"$schema", "schema_version", "release_tag", "source_commit", "source_tree", "fixture_only", "source_size_bytes", "runtime_size_bytes", "quality_budget", "tool_versions", "toolchain_sha256", "assets"}
+    if set(manifest) != required or manifest.get("$schema") != "schemas/runtime-manifest-v1.schema.json" or manifest.get("schema_version") != 1:
+        raise ReleaseError("runtime manifest does not satisfy the version 1 schema")
+    if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", str(manifest.get("release_tag", ""))) or not isinstance(manifest.get("fixture_only"), bool):
+        raise ReleaseError("runtime manifest has invalid release coordinates")
+    for key in ("source_commit", "source_tree"):
+        if not re.fullmatch(r"[0-9a-f]{40}", str(manifest.get(key, ""))):
+            raise ReleaseError(f"runtime manifest has invalid {key}")
+    assets = manifest.get("assets")
+    if not isinstance(assets, list) or not assets:
+        raise ReleaseError("runtime manifest must contain assets")
+    for asset in assets:
+        if not isinstance(asset, dict) or "output" not in asset:
+            raise ReleaseError("runtime manifest asset lacks output metadata")
+        output = asset["output"]
+        expected_output = {"sha256", "size_bytes", "codec", "container", "channels", "sample_rate", "duration_seconds", "peak", "rms_dbfs", "clipping", "rendered_pcm"}
+        if not isinstance(output, dict) or set(output) != expected_output or output.get("codec") != "opus" or output.get("container") != "ogg" or output.get("clipping") is not False or not re.fullmatch(r"[0-9a-f]{64}", str(output.get("sha256", ""))):
+            raise ReleaseError("runtime output metadata violates the version 1 schema")
 
 
 def run(command: list[str], *, capture: bool = False) -> subprocess.CompletedProcess[str]:
@@ -805,37 +978,25 @@ def render_source(asset: dict[str, object], output: Path, toolchain: dict[str, o
     render = asset["render"]
     assert isinstance(render, dict)
     renderer = render["renderer"]
+    recipe = render.get("recipe")
+    if not isinstance(recipe, list) or not all(isinstance(part, str) for part in recipe):
+        raise ReleaseError(f"invalid render recipe for {asset['logical_path']}")
+    replacements = {"{input}": str(source), "{output}": str(output)}
     if renderer == "timidity":
         bank = toolchain["instrument_bank"]
         assert isinstance(bank, dict)
         config_path = Path(os.environ.get("ATRINIK_INSTRUMENT_CONFIG", str(bank["installed_config"])))
         if not config_path.is_file():
             raise ReleaseError(f"pinned instrument-bank config is missing: {config_path}")
-        run(["timidity", "-c", str(config_path), "-Ow", "-s", "48000", "-o", str(output), str(source)])
-    elif renderer == "openmpt123":
-        run(
-            [
-                "openmpt123",
-                "--quiet",
-                "--batch",
-                "--samplerate",
-                "48000",
-                "--channels",
-                "2",
-                "--no-float",
-                "--dither",
-                "0",
-                "--force",
-                "--output",
-                str(output),
-                "--",
-                str(source),
-            ]
-        )
-    elif renderer == "ffmpeg":
-        run(["ffmpeg", "-nostdin", "-v", "error", "-i", str(source), "-map_metadata", "-1", "-ar", "48000", "-c:a", "pcm_s16le", "-y", str(output)])
-    else:
+        replacements["{instrument_config}"] = str(config_path)
+    elif renderer not in {"openmpt123", "ffmpeg"}:
         raise ReleaseError(f"unknown renderer {renderer!r} for {asset['logical_path']}")
+    command = recipe
+    for placeholder, replacement in replacements.items():
+        command = [part.replace(placeholder, replacement) for part in command]
+    if any(re.fullmatch(r"\{[^}]+\}", part) for part in command):
+        raise ReleaseError(f"unresolved render recipe placeholder for {asset['logical_path']}")
+    run(command)
 
 
 def encode_opus(asset: dict[str, object], wave_path: Path, opus_path: Path) -> None:
@@ -846,7 +1007,7 @@ def encode_opus(asset: dict[str, object], wave_path: Path, opus_path: Path) -> N
         "opusenc",
         "--quiet",
         "--bitrate", str(encode["bitrate_kbps"]),
-        "--vbr",
+        f"--{encode['mode']}",
         "--comp", str(encode["complexity"]),
         "--serial", str(serial),
         "--discard-comments",
@@ -888,15 +1049,17 @@ def convert_asset(
         assert isinstance(probe_command, list)
         replacements = {
             "{input}": str(generated),
-            "{expected_frames}": str(round(float(decoded["duration_seconds"]) * 48000)),
+            "{expected_frames}": str(round(float(decoded["duration_seconds"]) * int(quality_budget["sample_rate"]))),
             "{behaviors}": ",".join(behaviors) or "none",
+            "{expected_channels}": str(asset["render"]["channels"]),  # type: ignore[index]
         }
         command = [str(part) for part in probe_command]
         for placeholder, value in replacements.items():
             command = [part.replace(placeholder, value) for part in command]
         run(command)
     intended_channels = int(asset["render"]["channels"])  # type: ignore[index]
-    if rendered["sample_rate"] != 48000 or decoded["sample_rate"] != 48000:
+    expected_rate = int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
+    if rendered["sample_rate"] != expected_rate or decoded["sample_rate"] != expected_rate:
         raise ReleaseError(f"unexpected output sample rate for {asset['logical_path']}")
     if rendered["channels"] != intended_channels or decoded["channels"] != intended_channels:
         raise ReleaseError(f"unexpected output channel count for {asset['logical_path']}")
@@ -909,9 +1072,13 @@ def convert_asset(
             f"duration outside {tolerance}s tolerance for {asset['logical_path']}: "
             f"source={source_duration}, decoded={decoded['duration_seconds']}"
         )
+    output_sha256 = sha256(generated)
+    quality_review = asset.get("quality_review")
+    if isinstance(quality_review, dict) and quality_review.get("status") == "passed" and quality_review.get("output_sha256") != output_sha256:
+        raise ReleaseError(f"Vorbis quality review output hash mismatch: {asset['logical_path']}")
     result = dict(asset)
     result["output"] = {
-        "sha256": sha256(generated),
+        "sha256": output_sha256,
         "size_bytes": generated.stat().st_size,
         "codec": "opus",
         "container": "ogg",
@@ -1017,6 +1184,7 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
             for asset in selected
         ]
         runtime_manifest = {
+            "$schema": "schemas/runtime-manifest-v1.schema.json",
             "schema_version": 1,
             "release_tag": tag,
             "source_commit": source_commit,
@@ -1029,7 +1197,11 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
             "toolchain_sha256": sha256(TOOLCHAIN),
             "assets": converted,
         }
+        validate_runtime_manifest(runtime_manifest)
         (staging / "manifest.json").write_bytes(canonical_json(runtime_manifest))
+        schema_root = staging / "schemas"
+        schema_root.mkdir()
+        shutil.copyfile(SCHEMA_ROOT / "runtime-manifest-v1.schema.json", schema_root / "runtime-manifest-v1.schema.json")
         for notice_path in ("background/LICENSE", "effects/LICENSE"):
             destination = staging / notice_path
             destination.parent.mkdir(exist_ok=True)

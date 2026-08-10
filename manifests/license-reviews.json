@@ -1,0 +1,7 @@
+{
+  "$schema": "../schemas/license-reviews-v1.schema.json",
+  "schema_version": 1,
+  "reviewed_asset_count": 142,
+  "reviewed_asset_set_sha256": "dd1901c3a4dc2cc30631b550f96f7b78296312ecaee24d58c89882dd549b589e",
+  "review_basis": "Aggregate binds every allowed logical path, source SHA-256, exact notice SHA-256, and SPDX expression. Any changed membership or bytes require a new provenance review."
+}

@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://atrinik.org/schemas/sound/audio-toolchain-v1.schema.json","title":"Atrinik sound audio toolchain v1","type":"object","required":["$schema","schema_version","build_image","duration_tolerance_seconds","quality_budget","instrument_bank","license_texts","runtime_libraries","tools"],"additionalProperties":false}

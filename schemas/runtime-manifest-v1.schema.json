@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrinik.org/schemas/sound/runtime-manifest-v1.schema.json",
+  "title": "Atrinik sound runtime manifest v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["$schema", "schema_version", "release_tag", "source_commit", "source_tree", "fixture_only", "source_size_bytes", "runtime_size_bytes", "quality_budget", "tool_versions", "toolchain_sha256", "assets"],
+  "properties": {
+    "$schema": {"const": "schemas/runtime-manifest-v1.schema.json"}, "schema_version": {"const": 1},
+    "release_tag": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "source_tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "fixture_only": {"type": "boolean"}, "source_size_bytes": {"type": "integer", "minimum": 1}, "runtime_size_bytes": {"type": "integer", "minimum": 1},
+    "quality_budget": {"type": "object"}, "tool_versions": {"type": "object", "additionalProperties": {"type": "string"}},
+    "toolchain_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "assets": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "logical_path", "source_path", "generated_path", "source", "render", "encode", "transformation_notes", "license", "quality_review", "output"], "properties": {"id":{"type":"string"},"logical_path":{"type":"string"},"source_path":{"type":"string"},"generated_path":{"type":"string"},"source":{"type":"object"},"render":{"type":"object"},"encode":{"type":"object"},"transformation_notes":{"type":"string"},"license":{"type":"object"},"quality_review":{"type":"object"},"output": {"type": "object", "additionalProperties": false, "required": ["sha256", "size_bytes", "codec", "container", "channels", "sample_rate", "duration_seconds", "peak", "rms_dbfs", "clipping", "rendered_pcm"], "properties": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "size_bytes": {"type": "integer", "minimum": 1}, "codec": {"const": "opus"}, "container": {"const": "ogg"}, "channels": {"type": "integer", "enum": [1, 2]}, "sample_rate": {"type": "integer", "minimum": 1}, "duration_seconds": {"type": "number", "exclusiveMinimum": 0}, "peak": {"type": "number", "minimum": 0, "maximum": 1}, "rms_dbfs": {"type": "number"}, "clipping": {"const": false}, "rendered_pcm": {"type": "object"}}}}}}
+  }
+}

@@ -35,6 +35,11 @@ any unresolved finding publishes an explicit
 `atrinik-sound-runtime-VERSION-BLOCKED.json` report and no partial runtime
 archive.
 
+Approvals are immutable-input contracts: license reviews bind source, notice,
+and SPDX hashes, while Vorbis quality reviews additionally bind the exact
+toolchain, evidence artifact, and generated output. Versioned JSON Schemas in
+[`schemas/`](schemas/) define the checked and packaged manifest interfaces.
+
 Consumers pin source and runtime products independently by all four immutable
 coordinates:
 

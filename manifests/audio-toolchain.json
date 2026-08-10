@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$schema": "../schemas/audio-toolchain-v1.schema.json",
   "schema_version": 1,
   "build_image": {
     "image": "ghcr.io/atrinik/linux-build@sha256:1231b39d40161c1199fd3e45e99e3d826dde02dade79729c030cc0ce3710898f",
@@ -155,13 +155,13 @@
     "sdl3_mixer_probe": {
       "purpose": "device-free SDL3_mixer Opus backend full decode",
       "source_path": "tools/audio/sdl3-mixer-runtime-probe.c",
-      "source_sha256": "1d0263629ff0043ec5ac90173aedee399b7a45ec4c179a4bf68205a2afae20f4",
+      "source_sha256": "6a68c6535e9865e4198501348689b89cd63f7c36f29ee70182f3bcc65eea9dba",
       "decoder_library_source_repository": "atrinik/devcontainer",
       "decoder_library_source_commit": "66b8508434044ca50822558172c5cef47a888762",
       "decoded_pcm_safety_bound_bytes": 268435456,
       "version_command": ["atrinik-sound-sdl3-mixer-probe", "--version"],
       "version_pattern": "^atrinik-sound-sdl3-mixer-probe 2$",
-      "decode_command": ["atrinik-sound-sdl3-mixer-probe", "{input}", "{expected_frames}", "{behaviors}"]
+      "decode_command": ["atrinik-sound-sdl3-mixer-probe", "{input}", "{expected_frames}", "{behaviors}", "{expected_channels}"]
     }
   }
 }

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import copy
 import importlib.util
 import io
 import json
@@ -10,6 +11,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+from unittest import mock
 import wave
 
 
@@ -90,6 +92,19 @@ class SourceManifestTests(unittest.TestCase):
             self.assertEqual(sound_release.sha256(path), asset["source"]["sha256"])
         self.assertEqual(size, self.manifest["source_size_bytes"])
 
+    def test_recursive_discovery_closes_over_nested_audio_candidates(self) -> None:
+        directory = ROOT / "effects" / "_nested-discovery-test"
+        path = directory / "probe.ogg"
+        directory.mkdir()
+        try:
+            path.write_bytes(b"not parsed by discovery")
+            self.assertIn(path, sound_release.discover_sources())
+            with self.assertRaisesRegex(sound_release.ReleaseError, "not Git-tracked"):
+                sound_release.ensure_sources_tracked(sound_release.discover_sources())
+        finally:
+            path.unlink(missing_ok=True)
+            directory.rmdir()
+
     def test_duration_drift_is_reconciled(self) -> None:
         restful = self.assets["background/restful_town.mid"]["source"]
         self.assertGreater(restful["duration_seconds"], 0)
@@ -136,6 +151,47 @@ class SourceManifestTests(unittest.TestCase):
         self.assertEqual(196, len(vorbis))
         self.assertTrue(all(asset["quality_review"]["status"] == "blocked" for asset in vorbis))
         self.assertTrue(all(asset["quality_review"]["source_sha256"] == asset["source"]["sha256"] for asset in vorbis))
+
+    def test_quality_review_rejects_malformed_or_mutable_evidence(self) -> None:
+        entry = {
+            "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
+            "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN), "output_sha256": "b" * 64,
+            "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
+            "evidence": {"method": "critical-listening", "artifact_sha256": "c" * 64, "notes": "ABX comparison"},
+        }
+        document = {"$schema": "../schemas/vorbis-quality-reviews-v1.schema.json", "schema_version": 1, "reviews": [entry]}
+        original_read_json = sound_release.read_json
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: document if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+            self.assertIn("effects/example.ogg", sound_release.checked_quality_reviews())
+        broken = copy.deepcopy(document)
+        broken["reviews"][0]["reviewed_at"] = "yesterday"
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: broken if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "timestamp"):
+                sound_release.checked_quality_reviews()
+
+    def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
+        contracts = sound_release.license_review_contract(list(self.assets.values()))
+        reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
+        self.assertEqual(reviewed["reviewed_asset_set_sha256"], hashlib.sha256(sound_release.canonical_json(contracts)).hexdigest())
+        changed = copy.deepcopy(contracts)
+        changed[0]["source_sha256"] = "0" * 64
+        self.assertNotEqual(reviewed["reviewed_asset_set_sha256"], hashlib.sha256(sound_release.canonical_json(changed)).hexdigest())
+        drifted = copy.deepcopy(self.manifest)
+        drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
+        with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
+            sound_release.validate_manifest(drifted)
+
+    def test_project_schemas_are_versioned_and_unknown_fields_fail(self) -> None:
+        for name in (
+            "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
+            "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
+            "vorbis-quality-reviews-v1.schema.json", "license-reviews-v1.schema.json",
+        ):
+            self.assertEqual(f"https://atrinik.org/schemas/sound/{name}", sound_release.checked_schema(name)["$id"])
+        drifted = copy.deepcopy(self.manifest)
+        drifted["unexpected"] = True
+        with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
+            sound_release.validate_manifest(drifted, compare_generated=False)
 
     def test_vorbis_and_midi_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")

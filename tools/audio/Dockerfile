@@ -67,6 +67,6 @@ RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \
     && atrinik-sound-sdl3-mixer-probe --version \
         | grep -F 'atrinik-sound-sdl3-mixer-probe 2' \
     && atrinik-sound-sdl3-mixer-probe \
-        /usr/local/share/atrinik/audio/opus-probe.opus 12000 none
+        /usr/local/share/atrinik/audio/opus-probe.opus 12000 none 2
 
 WORKDIR /workspaces/sound

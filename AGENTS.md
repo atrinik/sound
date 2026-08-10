@@ -14,7 +14,8 @@
 - Keep mixed-format files as canonical authored sources. Runtime Opus is
   generated only under `build/`; never commit it or replace sources in place.
 - Keep `manifests/source-assets.json`, `manifests/audio-toolchain.json`, the
-  Vorbis quality-review ledger, fixture plan, runtime builder, release workflow,
+  license and Vorbis quality-review ledgers, versioned schemas, fixture plan,
+  runtime builder, release workflow,
   and docs synchronized. Any
   ambiguous license, transformation permission, provenance, source hash,
   notice, or output closure must block the complete runtime archive; never ship
