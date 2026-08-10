@@ -14,20 +14,29 @@ transformation note, and exact notice reference. Runtime generation adds the
 output hash, size, codec/container, sample rate, channels, duration, peak,
 loudness, clipping result, and rendered-PCM measurements.
 
-The current inventory intentionally records fail-closed findings for ambiguous
-`Permission to use`, `Freeware`, noncommercial, incomplete, and missing notices.
-Those sources are not silently omitted: while any finding remains, releases
+The current inventory intentionally records 197 fail-closed license/provenance
+findings for ambiguous `Permission to use`, `Freeware`, Sampling Plus,
+noncommercial, incomplete, and missing notices. Notice approval is an exact
+reviewed allowlist, never a default-allow keyword filter. All 196 preserved
+Vorbis inputs also have source-hash-bound quality reviews pending. Those 393
+release findings are not silently omitted: while any finding remains, releases
 publish the complete blocker report and no runtime archive. Source archives
-continue unchanged. Remediation requires documentary provenance and permission;
-editing a status without changing its underlying notice is rejected when the
-manifest is regenerated.
+continue unchanged.
+
+`manifests/vorbis-quality-reviews.json` is the independent review ledger. A
+passed entry must bind the source hash and record reviewer, timestamp, and
+evidence; stale, missing, or failed evidence blocks publication. This manifest
+and the stable sound IDs are shared groundwork for `atrinik/sound#13`, not a
+parallel Classic-only contract.
 
 ## Toolchain and encoding profile
 
 `manifests/audio-toolchain.json` pins the Linux build image by digest and source
 commit, direct package versions, upstream archive checksums, renderer settings,
-FreePats instrument bank and exception, Opus encoder, independent decoder, and
-the SDL3_mixer full-decode probe delivered by `atrinik/devcontainer#21`.
+FreePats instrument bank and exception, Opus encoder, independent decoder, key
+runtime-library and executable hashes, exact asset license texts, and the
+repository-owned SDL3_mixer full-decode/playback probe compiled against the
+libraries delivered by `atrinik/devcontainer#21`.
 `tools/audio/Dockerfile` creates the exact runnable environment.
 
 The release recipe renders signed 16-bit PCM at 48 kHz, explicitly disables
@@ -41,9 +50,11 @@ quality gate; converting them to FLAC would not restore lost information.
 No input is truncated: each renderer runs to decoder EOF. Background entries
 are loopable and effects are one-shot. A generated output must pass `opusinfo`,
 fully decode through FFmpeg and the pinned SDL3_mixer Opus backend, contain
-nonzero PCM, remain within the documented 2.5-second duration tolerance, and
-report no clipping. The runtime manifest reports source/runtime totals so
-bitrate or size changes are reviewable.
+nonzero PCM, match the expected decoded length, remain within the documented
+2.5-second duration tolerance, and report no clipping. Fixture tracks also
+execute device-free seek, stop, and loop transitions through SDL3_mixer. The
+runtime manifest reports source/runtime totals so bitrate or size changes are
+reviewable.
 
 If a renderer reaches full scale, the pipeline deterministically attenuates
 that PCM to a -2 dBFS peak before encoding and records the original peak,
@@ -64,16 +75,24 @@ Build the pinned conversion environment and the six-format fixture archive:
 ```sh
 docker build --file tools/audio/Dockerfile --tag atrinik-sound-audio .
 mkdir -p build/fixture-a build/fixture-b
+export ATRINIK_SOURCE_COMMIT="$(git rev-parse HEAD)"
+export ATRINIK_SOURCE_TREE="$(git rev-parse 'HEAD^{tree}')"
 docker run --rm \
+  --user "$(id -u):$(id -g)" \
   --volume "$PWD:/workspaces/sound:ro" \
   --volume "$PWD/build/fixture-a:/output" \
   --env SOURCE_DATE_EPOCH=1700000000 \
+  --env ATRINIK_SOURCE_COMMIT \
+  --env ATRINIK_SOURCE_TREE \
   atrinik-sound-audio \
   python3 tools/sound_release.py build-runtime v0.0.0 /output --fixtures
 docker run --rm \
+  --user "$(id -u):$(id -g)" \
   --volume "$PWD:/workspaces/sound:ro" \
   --volume "$PWD/build/fixture-b:/output" \
   --env SOURCE_DATE_EPOCH=1700000000 \
+  --env ATRINIK_SOURCE_COMMIT \
+  --env ATRINIK_SOURCE_TREE \
   atrinik-sound-audio \
   python3 tools/sound_release.py build-runtime v0.0.0 /output --fixtures
 cmp build/fixture-a/atrinik-sound-fixture-0.0.0.tar.gz \
@@ -82,9 +101,10 @@ cmp build/fixture-a/atrinik-sound-fixture-0.0.0.tar.gz \
 
 The fixture plan covers MIDI, MOD, S3M, XM, Vorbis music, an effect,
 mono/stereo, loop, seek, stop, and short-effect cases. The asset pipeline proves
-decode and media invariants. `atrinik/classic#44` owns matching interactive
-SDL3_mixer playback assertions for loop, seek, and stop; the exact generated
-paths in `manifests/fixture-plan.json` are the boundary between the repositories.
+decode, media, and device-free SDL3_mixer control invariants.
+`atrinik/classic#44` owns matching interactive client playback assertions; the
+exact generated paths in `manifests/fixture-plan.json` are the boundary between
+the repositories.
 
 After all blockers have documentary remediation, a full build is:
 
@@ -112,12 +132,19 @@ For version `X.Y.Z`, the archive root is
 audio/background/<legacy-name-and-extension>.opus
 audio/effects/<legacy-name-and-extension>.opus
 licenses/audio-toolchain.json
-licenses/background-LICENSE
-licenses/effects-LICENSE
+licenses/CC-BY-3.0.txt
+licenses/CC-BY-SA-3.0.txt
+licenses/CC0-1.0.txt
+licenses/GPL-2.0.txt
+licenses/GPL-3.0.txt
+background/LICENSE
+effects/LICENSE
 manifest.json
+SHA256SUMS
 ```
 
-Consumers verify the release asset against `SHA256SUMS`, then verify every
+Consumers verify the release asset against the release-level `SHA256SUMS`, then
+verify every unpacked file against the archive's own `SHA256SUMS` and every
 payload against `manifest.json`. Requests use `logical_path` as the lookup key
 and load `generated_path`; raw MIDI or tracker files are never staged into a
 runtime bundle. Tags or URLs alone are insufficient pins.

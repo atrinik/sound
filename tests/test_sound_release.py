@@ -5,11 +5,11 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import struct
 import sys
 import tarfile
 import tempfile
 import unittest
-import struct
 import wave
 
 
@@ -34,7 +34,14 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(194, len(blockers))
+        self.assertEqual(393, len(blockers))
+        self.assertEqual(
+            {"license/provenance": 197, "quality-review": 196},
+            {
+                category: sum(finding["category"] == category for finding in blockers)
+                for category in {finding["category"] for finding in blockers}
+            },
+        )
         self.assertEqual(
             {path.relative_to(ROOT).as_posix() for path in sound_release.discover_sources()},
             set(self.assets),
@@ -102,6 +109,33 @@ class SourceManifestTests(unittest.TestCase):
             contract = self.assets[logical]["license"]
             self.assertEqual("blocked", contract["status"])
             self.assertTrue(contract["blocking_finding"])
+        unknown = {"description": "Proprietary; no derivatives", "reference": "test:1"}
+        self.assertEqual("blocked", sound_release.notice_status(unknown)[0])
+        sampling = {
+            "description": "example - CC Sampling Plus 1.0",
+            "reference": "test:1",
+        }
+        self.assertEqual("blocked", sound_release.notice_status(sampling)[0])
+
+    def test_allowed_notices_resolve_to_exact_lines_and_license_texts(self) -> None:
+        toolchain = sound_release.checked_toolchain()
+        for logical, asset in self.assets.items():
+            contract = asset["license"]
+            if contract["status"] != "allowed":
+                continue
+            notice_path, line_text = contract["notice_reference"].rsplit(":", 1)
+            line = (ROOT / notice_path).read_text(encoding="utf-8").splitlines()[int(line_text) - 1]
+            self.assertIn(Path(logical).name, line)
+            self.assertEqual(
+                contract["license_text_path"],
+                toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
+            )
+
+    def test_vorbis_quality_review_is_an_immutable_release_gate(self) -> None:
+        vorbis = [asset for asset in self.assets.values() if asset["source"]["codec"] == "vorbis"]
+        self.assertEqual(196, len(vorbis))
+        self.assertTrue(all(asset["quality_review"]["status"] == "blocked" for asset in vorbis))
+        self.assertTrue(all(asset["quality_review"]["source_sha256"] == asset["source"]["sha256"] for asset in vorbis))
 
     def test_vorbis_and_midi_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
@@ -122,14 +156,29 @@ class SourceManifestTests(unittest.TestCase):
         )
         for contract in toolchain["tools"].values():
             self.assertTrue(contract["version_pattern"])
+        for name, contract in toolchain["tools"].items():
+            if name != "sdl3_mixer_probe":
+                self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "194 license/provenance findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "393 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
 
 class DeterministicArchiveTests(unittest.TestCase):
+    def test_tree_checksums_are_sorted_and_cover_every_existing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "nested").mkdir()
+            (root / "z.txt").write_bytes(b"z")
+            (root / "nested" / "a.txt").write_bytes(b"a")
+            sound_release.write_tree_checksums(root)
+            self.assertEqual(
+                ["nested/a.txt", "z.txt"],
+                [line.split("  ", 1)[1] for line in (root / "SHA256SUMS").read_text().splitlines()],
+            )
+
     def test_full_scale_pcm_is_deterministically_attenuated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "clipped.wav"
@@ -140,7 +189,6 @@ class DeterministicArchiveTests(unittest.TestCase):
             self.assertTrue(result["input_clipping"])
             self.assertFalse(result["clipping"])
             self.assertLess(result["applied_gain_db"], 0)
-
     def test_archive_bytes_and_metadata_are_reproducible(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary) / "input"

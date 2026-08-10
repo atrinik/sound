@@ -26,7 +26,8 @@ path. For example, `background/fireside.mid` maps to
 `audio/background/fireside.mid.opus`; consumers resolve the mapping instead of
 renaming authored content.
 
-When every source has exact conversion and redistribution permission, the same
+When every source has exact conversion and redistribution permission and every
+second-generation conversion has source-hash-bound quality approval, the same
 release also publishes `atrinik-sound-runtime-VERSION.tar.gz`. The runtime
 archive contains only generated `.opus` audio, its complete measured manifest,
 the applicable notices, and the pinned transformation contract. A release with

@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_MANIFEST = ROOT / "manifests" / "source-assets.json"
 TOOLCHAIN = ROOT / "manifests" / "audio-toolchain.json"
 FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
+QUALITY_REVIEWS = ROOT / "manifests" / "vorbis-quality-reviews.json"
 AUDIO_SUFFIXES = {".mid", ".mod", ".s3m", ".xm", ".ogg"}
 TRACKER_SUFFIXES = {".mod", ".s3m", ".xm"}
 FIXTURE_PATHS = (
@@ -37,6 +38,32 @@ FIXTURE_PATHS = (
     "background/crystal_falls.ogg",
     "effects/campfire.ogg",
 )
+REVIEWED_NOTICE_LICENSES = {
+    'KQ - http://sourceforge.net/projects/kqlives/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'Meritous - http://www.asceai.net/meritous/ - GPLv3': ("GPL-3.0-only", "licenses/GPL-3.0.txt"),
+    'http://piano-midi.de/ - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'Edwin "Mamoru" Miltenburg - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'Allacrost - http://allacrost.org/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'Ecrivain - http://opengameart.org/users/Ecrivain - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
+    'Brandon Morris - http://opengameart.org/users/brandon-morris - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+    'Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+    'Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'GNU FreeDink - http://www.freedink.org/ - GPLv3': ("GPL-3.0-only", "licenses/GPL-3.0.txt"),
+    'Daniel "Lippy" Liptrot - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'ZhayTee - http://www.zhaymusic.com/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'Jute - http://alturl.com/quao - GNU GPL 2.0': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'Ulrich Metzner - http://commons.wikimedia.org/wiki/User:Metzner - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'n3b - http://opengameart.org/users/n3b - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+    'AuraVoice / Nocturnal_Vanguard - https://opengameart.org/content/female-hurt-grunts-groans - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
+    'http://opengameart.org/content/4-atmospheric-ghostly-loops - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
+    'free-loops.com - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
+    'Mumu - http://opengameart.org/users/mumu - CC0 (Public Domain)': ("CC0-1.0", "licenses/CC0-1.0.txt"),
+    'Ogrebane - http://opengameart.org/users/ogrebane - CC0 (Public Domain)': ("CC0-1.0", "licenses/CC0-1.0.txt"),
+    'Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
+    'kurt - http://opengameart.org/users/kurt - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+}
 
 
 class ReleaseError(RuntimeError):
@@ -58,6 +85,13 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def installed_tree_sha256(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted((candidate for candidate in root.rglob("*") if candidate.is_file())):
+        digest.update(f"{sha256(path)}  {path}\n".encode("utf-8"))
+    return digest.hexdigest()
+
+
 def read_json(path: Path) -> object:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -69,13 +103,45 @@ def canonical_json(value: object) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
 
+def atomic_write(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as stream:
+            os.fchmod(stream.fileno(), 0o644)
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary.replace(path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def discover_sources() -> list[Path]:
     sources: list[Path] = []
     for directory in (ROOT / "background", ROOT / "effects"):
         for path in directory.iterdir():
-            if path.is_file() and not path.is_symlink() and path.suffix.lower() in AUDIO_SUFFIXES:
-                sources.append(path)
+            if path.suffix.lower() not in AUDIO_SUFFIXES:
+                continue
+            if path.is_symlink() or not path.is_file():
+                raise ReleaseError(
+                    f"audio source must be a regular non-symlink file: {path.relative_to(ROOT)}"
+                )
+            sources.append(path)
     return sorted(sources, key=lambda path: path.relative_to(ROOT).as_posix())
+
+
+def ensure_sources_tracked(sources: list[Path]) -> None:
+    completed = run(["git", "ls-files", "-z", "--", "background", "effects"], capture=True)
+    tracked = set(completed.stdout.rstrip("\0").split("\0"))
+    missing = [
+        path.relative_to(ROOT).as_posix()
+        for path in sources
+        if path.relative_to(ROOT).as_posix() not in tracked
+    ]
+    if missing:
+        raise ReleaseError(f"audio sources are not Git-tracked: {', '.join(missing)}")
 
 
 def _read_vlq(data: bytes, offset: int) -> tuple[int, int]:
@@ -280,28 +346,45 @@ def notice_catalog(directory: Path) -> dict[str, dict[str, str]]:
     return notices
 
 
-def notice_status(notice: dict[str, str] | None) -> tuple[str, str | None]:
+def notice_status(
+    notice: dict[str, str] | None,
+) -> tuple[str, str | None, str | None, str | None]:
     if notice is None:
-        return "blocked", "missing exact asset notice"
-    description = notice["description"].lower()
-    blocked = (
-        "permission to use",
-        "freeware",
-        "non-commercial",
-        "noncommercial",
-        "cc-by-nc",
-        "cc by-nc",
-        "touhou",
-    )
-    if any(term in description for term in blocked):
-        return "blocked", "ambiguous or noncommercial transformation terms"
-    if re.search(r"(?:^|\s)gpl(?:\s|:|$)", description) and not re.search(
-        r"gpl(?:v|\s*)[23](?:\.0)?", description
-    ):
-        return "blocked", "GPL version or exact terms are incomplete"
-    if re.search(r"cc-?by(?:\s|:|$)", description) and not re.search(r"cc-?by(?:-sa)?\s+[0-9]", description):
-        return "blocked", "Creative Commons version is incomplete"
-    return "allowed", None
+        return "blocked", "missing exact asset notice", None, None
+    reviewed = REVIEWED_NOTICE_LICENSES.get(notice["description"])
+    if reviewed is None:
+        return (
+            "blocked",
+            "notice has no reviewed full-work conversion and redistribution grant",
+            None,
+            None,
+        )
+    expression, license_text_path = reviewed
+    return "allowed", None, expression, license_text_path
+
+
+def checked_quality_reviews() -> dict[str, dict[str, object]]:
+    value = read_json(QUALITY_REVIEWS)
+    if not isinstance(value, dict) or value.get("schema_version") != 1:
+        raise ReleaseError("Vorbis quality-review root must use schema version 1")
+    entries = value.get("reviews")
+    if not isinstance(entries, list):
+        raise ReleaseError("Vorbis quality reviews must be an array")
+    reviews: dict[str, dict[str, object]] = {}
+    for entry in entries:
+        if not isinstance(entry, dict) or not isinstance(entry.get("logical_path"), str):
+            raise ReleaseError("invalid Vorbis quality-review entry")
+        logical_path = str(entry["logical_path"])
+        if logical_path in reviews:
+            raise ReleaseError(f"duplicate Vorbis quality review: {logical_path}")
+        if entry.get("status") != "passed":
+            raise ReleaseError(f"quality review is not passed: {logical_path}")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("source_sha256", ""))):
+            raise ReleaseError(f"quality review lacks a source hash: {logical_path}")
+        if not entry.get("reviewed_by") or not entry.get("reviewed_at") or not entry.get("evidence"):
+            raise ReleaseError(f"quality review lacks immutable evidence: {logical_path}")
+        reviews[logical_path] = entry
+    return reviews
 
 
 def codec_contract(suffix: str) -> tuple[str, str, str]:
@@ -320,13 +403,14 @@ def build_source_manifest() -> dict[str, object]:
         "effects": notice_catalog(ROOT / "effects"),
     }
     assets: list[dict[str, object]] = []
+    quality_reviews = checked_quality_reviews()
     for path in discover_sources():
         relative = path.relative_to(ROOT).as_posix()
         logical = PurePosixPath(relative)
         metadata = source_metadata(path)
         codec, container, renderer = codec_contract(path.suffix.lower())
         notice = catalogs[logical.parts[0]].get(logical.name)
-        status, finding = notice_status(notice)
+        status, finding, expression, license_text_path = notice_status(notice)
         generated = f"audio/{logical.parent}/{logical.name}.opus"
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = 80 if channels == 1 else 160
@@ -374,25 +458,54 @@ def build_source_manifest() -> dict[str, object]:
             "license": {
                 "status": status,
                 "notice": notice["description"] if notice else None,
+                "notice_sha256": (
+                    hashlib.sha256(notice["description"].encode("utf-8")).hexdigest()
+                    if notice
+                    else None
+                ),
                 "notice_reference": notice["reference"] if notice else None,
                 "blocking_finding": finding,
+                "spdx_expression": expression,
+                "license_text_path": license_text_path,
             },
         }
+        if path.suffix.lower() == ".ogg":
+            quality_review = quality_reviews.get(relative)
+            if quality_review is not None and quality_review.get("source_sha256") != asset["source"]["sha256"]:  # type: ignore[index]
+                raise ReleaseError(f"stale Vorbis quality review: {relative}")
+            asset["quality_review"] = quality_review or {
+                "status": "blocked",
+                "blocking_finding": "second-generation Vorbis-to-Opus review evidence is missing",
+                "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
+            }
+        else:
+            asset["quality_review"] = {"status": "not-required"}
         assets.append(asset)
+    unused_reviews = set(quality_reviews) - {str(asset["logical_path"]) for asset in assets}
+    if unused_reviews:
+        raise ReleaseError(f"quality reviews reference unknown sources: {', '.join(sorted(unused_reviews))}")
+    corpus_contract = [
+        {"source_path": asset["source_path"], "sha256": asset["source"]["sha256"]}  # type: ignore[index]
+        for asset in assets
+    ]
     return {
         "schema_version": 1,
-        "source_revision": "generated-from-git-tree",
+        "source_corpus_sha256": hashlib.sha256(canonical_json(corpus_contract)).hexdigest(),
         "audio_source_count": len(assets),
         "source_size_bytes": sum((ROOT / str(asset["source_path"])).stat().st_size for asset in assets),
         "assets": assets,
     }
 
 
-def validate_manifest(manifest: dict[str, object], *, compare_generated: bool = True) -> list[dict[str, object]]:
+def validate_manifest(
+    manifest: dict[str, object], *, compare_generated: bool = True, verify_tracked: bool = False
+) -> list[dict[str, object]]:
     assets = manifest.get("assets")
     if not isinstance(assets, list):
         raise ReleaseError("source manifest assets must be an array")
     discovered = discover_sources()
+    if verify_tracked:
+        ensure_sources_tracked(discovered)
     if len(assets) != len(discovered):
         raise ReleaseError(f"source manifest has {len(assets)} assets; discovered {len(discovered)}")
     logical: set[str] = set()
@@ -407,6 +520,10 @@ def validate_manifest(manifest: dict[str, object], *, compare_generated: bool = 
             raise ReleaseError(f"duplicate or invalid logical path: {logical_path!r}")
         if not isinstance(generated_path, str) or generated_path in generated:
             raise ReleaseError(f"duplicate or invalid generated path: {generated_path!r}")
+        for label, candidate in (("logical", logical_path), ("generated", generated_path)):
+            pure = PurePosixPath(candidate)
+            if pure.is_absolute() or ".." in pure.parts or pure.as_posix() != candidate:
+                raise ReleaseError(f"unsafe {label} path: {candidate!r}")
         logical.add(logical_path)
         generated.add(generated_path)
         path = ROOT / logical_path
@@ -417,6 +534,7 @@ def validate_manifest(manifest: dict[str, object], *, compare_generated: bool = 
             raise ReleaseError(f"missing license contract: {logical_path}")
         if license_contract.get("status") == "blocked":
             blockers.append({
+                "category": "license/provenance",
                 "logical_path": logical_path,
                 "generated_path": generated_path,
                 "source_sha256": (
@@ -430,6 +548,30 @@ def validate_manifest(manifest: dict[str, object], *, compare_generated: bool = 
             })
         elif license_contract.get("status") != "allowed":
             raise ReleaseError(f"invalid license status: {logical_path}")
+        elif not license_contract.get("spdx_expression") or not license_contract.get("license_text_path"):
+            raise ReleaseError(f"allowed notice lacks exact license material: {logical_path}")
+        notice_reference = license_contract.get("notice_reference")
+        if notice_reference is not None:
+            match = re.fullmatch(r"(background/LICENSE|effects/LICENSE):([1-9][0-9]*)", str(notice_reference))
+            if match is None:
+                raise ReleaseError(f"invalid notice reference: {logical_path}")
+            notice_lines = (ROOT / match.group(1)).read_text(encoding="utf-8").splitlines()
+            line_number = int(match.group(2))
+            if line_number > len(notice_lines) or PurePosixPath(logical_path).name not in notice_lines[line_number - 1]:
+                raise ReleaseError(f"notice reference does not identify the asset: {logical_path}")
+        quality_review = asset.get("quality_review")
+        if not isinstance(quality_review, dict):
+            raise ReleaseError(f"missing quality-review contract: {logical_path}")
+        if quality_review.get("status") == "blocked":
+            blockers.append({
+                "category": "quality-review",
+                "logical_path": logical_path,
+                "generated_path": generated_path,
+                "source_sha256": quality_review.get("source_sha256"),
+                "finding": quality_review.get("blocking_finding"),
+            })
+        elif quality_review.get("status") not in {"passed", "not-required"}:
+            raise ReleaseError(f"invalid quality-review status: {logical_path}")
     if compare_generated:
         expected = canonical_json(build_source_manifest())
         actual = canonical_json(manifest)
@@ -456,6 +598,19 @@ def checked_toolchain() -> dict[str, object]:
     bank = value.get("instrument_bank")
     if not isinstance(bank, dict) or not bank.get("recording_distribution_permission"):
         raise ReleaseError("instrument bank must record permission to distribute rendered recordings")
+    license_texts = value.get("license_texts")
+    required_licenses = set(REVIEWED_NOTICE_LICENSES.values())
+    required_expressions = {expression for expression, _path in required_licenses}
+    if not isinstance(license_texts, dict) or set(license_texts) != required_expressions:
+        raise ReleaseError("toolchain license texts do not cover every reviewed notice license")
+    for expression, contract in license_texts.items():
+        if not isinstance(contract, dict):
+            raise ReleaseError(f"invalid license-text contract: {expression}")
+        expected_path = next(path for license, path in required_licenses if license == expression)
+        if contract.get("archive_path") != expected_path:
+            raise ReleaseError(f"license archive path drift: {expression}")
+        if not re.fullmatch(r"[0-9a-f]{64}", str(contract.get("sha256", ""))):
+            raise ReleaseError(f"license text lacks SHA-256: {expression}")
     probe = tools["sdl3_mixer_probe"]
     assert isinstance(probe, dict)
     probe_source = probe.get("source_path")
@@ -512,8 +667,16 @@ def run(command: list[str], *, capture: bool = False) -> subprocess.CompletedPro
 
 def source_revision(name: str, git_expression: str) -> str:
     value = os.environ.get(name)
+    try:
+        git_value = run(["git", "rev-parse", git_expression], capture=True).stdout.strip()
+    except ReleaseError:
+        git_value = None
     if value is None:
-        value = run(["git", "rev-parse", git_expression], capture=True).stdout.strip()
+        value = git_value
+    elif git_value is not None and value != git_value:
+        raise ReleaseError(f"{name} does not match {git_expression}")
+    if value is None:
+        raise ReleaseError(f"{name} is required when Git metadata is unavailable")
     if not re.fullmatch(r"[0-9a-f]{40}", value):
         raise ReleaseError(f"{name} must be a full lowercase Git object ID")
     return value
@@ -540,6 +703,38 @@ def verify_toolchain(toolchain: dict[str, object]) -> dict[str, str]:
         if not re.search(expected, output, re.MULTILINE):
             raise ReleaseError(f"unexpected {name} version; expected /{expected}/, got: {output}")
         versions[name] = output.splitlines()[0]
+        installed_path = contract.get("installed_path")
+        installed_sha256 = contract.get("installed_sha256")
+        if name != "sdl3_mixer_probe":
+            if not isinstance(installed_path, str) or not isinstance(installed_sha256, str):
+                raise ReleaseError(f"tool lacks an installed binary hash: {name}")
+            installed = Path(installed_path)
+            if not installed.is_file() or sha256(installed) != installed_sha256:
+                raise ReleaseError(f"installed tool hash mismatch: {name}")
+    libraries = toolchain.get("runtime_libraries")
+    if not isinstance(libraries, list):
+        raise ReleaseError("toolchain runtime libraries must be an array")
+    for contract in libraries:
+        if not isinstance(contract, dict):
+            raise ReleaseError("invalid runtime-library contract")
+        path = Path(str(contract.get("path", "")))
+        if not path.is_file() or sha256(path) != contract.get("sha256"):
+            raise ReleaseError(f"runtime library hash mismatch: {path}")
+    bank = toolchain["instrument_bank"]
+    assert isinstance(bank, dict)
+    config = Path(str(bank["installed_config"]))
+    tree = Path(str(bank["installed_tree"]))
+    if not config.is_file() or sha256(config) != bank.get("installed_config_sha256"):
+        raise ReleaseError("installed instrument-bank configuration hash mismatch")
+    if not tree.is_dir() or installed_tree_sha256(tree) != bank.get("installed_tree_sha256"):
+        raise ReleaseError("installed instrument-bank tree hash mismatch")
+    license_texts = toolchain["license_texts"]
+    assert isinstance(license_texts, dict)
+    for expression, contract in license_texts.items():
+        assert isinstance(contract, dict)
+        installed = Path(str(contract["installed_path"]))
+        if not installed.is_file() or sha256(installed) != contract["sha256"]:
+            raise ReleaseError(f"installed license text hash mismatch: {expression}")
     return versions
 
 
@@ -662,7 +857,12 @@ def encode_opus(asset: dict[str, object], wave_path: Path, opus_path: Path) -> N
     run(command)
 
 
-def convert_asset(asset: dict[str, object], output_root: Path, toolchain: dict[str, object]) -> dict[str, object]:
+def convert_asset(
+    asset: dict[str, object],
+    output_root: Path,
+    toolchain: dict[str, object],
+    behaviors: tuple[str, ...] = (),
+) -> dict[str, object]:
     generated = output_root / str(asset["generated_path"])
     generated.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="atrinik-sound-") as temporary:
@@ -686,7 +886,22 @@ def convert_asset(asset: dict[str, object], output_root: Path, toolchain: dict[s
         assert isinstance(probe, dict)
         probe_command = probe["decode_command"]
         assert isinstance(probe_command, list)
-        run([str(part).replace("{input}", str(generated)) for part in probe_command])
+        replacements = {
+            "{input}": str(generated),
+            "{expected_frames}": str(round(float(decoded["duration_seconds"]) * 48000)),
+            "{behaviors}": ",".join(behaviors) or "none",
+        }
+        command = [str(part) for part in probe_command]
+        for placeholder, value in replacements.items():
+            command = [part.replace(placeholder, value) for part in command]
+        run(command)
+    intended_channels = int(asset["render"]["channels"])  # type: ignore[index]
+    if rendered["sample_rate"] != 48000 or decoded["sample_rate"] != 48000:
+        raise ReleaseError(f"unexpected output sample rate for {asset['logical_path']}")
+    if rendered["channels"] != intended_channels or decoded["channels"] != intended_channels:
+        raise ReleaseError(f"unexpected output channel count for {asset['logical_path']}")
+    if abs(float(decoded["duration_seconds"]) - float(rendered["duration_seconds"])) > 0.1:
+        raise ReleaseError(f"Opus output has a truncated or extended tail for {asset['logical_path']}")
     source_duration = float(asset["source"]["duration_seconds"])  # type: ignore[index]
     tolerance = float(toolchain["duration_tolerance_seconds"])
     if abs(float(decoded["duration_seconds"]) - source_duration) > tolerance:
@@ -708,42 +923,64 @@ def convert_asset(asset: dict[str, object], output_root: Path, toolchain: dict[s
 
 def deterministic_archive(root: Path, output: Path, prefix: str, epoch: int) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
-    with output.open("wb") as raw:
-        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=epoch, compresslevel=9) as compressed:
-            with tarfile.open(fileobj=compressed, mode="w", format=tarfile.USTAR_FORMAT) as archive:
-                for path in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()):
-                    if not path.is_file() or path.is_symlink():
-                        continue
-                    relative = path.relative_to(root).as_posix()
-                    payload = path.read_bytes()
-                    info = tarfile.TarInfo(f"{prefix}/{relative}")
-                    info.size = len(payload)
-                    info.mtime = epoch
-                    info.mode = 0o644
-                    info.uid = 0
-                    info.gid = 0
-                    info.uname = "root"
-                    info.gname = "root"
-                    archive.addfile(info, io.BytesIO(payload))
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{output.name}.", dir=output.parent)
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        temporary.chmod(0o644)
+        raw = temporary.open("wb")
+        with raw:
+            with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=epoch, compresslevel=9) as compressed:
+                with tarfile.open(fileobj=compressed, mode="w", format=tarfile.USTAR_FORMAT) as archive:
+                    for path in sorted(root.rglob("*"), key=lambda item: item.relative_to(root).as_posix()):
+                        if not path.is_file() or path.is_symlink():
+                            continue
+                        relative = path.relative_to(root).as_posix()
+                        payload = path.read_bytes()
+                        info = tarfile.TarInfo(f"{prefix}/{relative}")
+                        info.size = len(payload)
+                        info.mtime = epoch
+                        info.mode = 0o644
+                        info.uid = 0
+                        info.gid = 0
+                        info.uname = "root"
+                        info.gname = "root"
+                        archive.addfile(info, io.BytesIO(payload))
+        temporary.replace(output)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def write_tree_checksums(root: Path) -> None:
+    files = sorted(
+        (path for path in root.rglob("*") if path.is_file() and not path.is_symlink()),
+        key=lambda path: path.relative_to(root).as_posix(),
+    )
+    payload = "".join(
+        f"{sha256(path)}  {path.relative_to(root).as_posix()}\n"
+        for path in files
+    ).encode("ascii")
+    atomic_write(root / "SHA256SUMS", payload)
 
 
 def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
         raise ReleaseError(f"invalid release tag: {tag}")
     manifest = checked_manifest()
-    blockers = validate_manifest(manifest)
+    blockers = validate_manifest(manifest, verify_tracked=not fixtures)
     assets = manifest["assets"]
     assert isinstance(assets, list)
     if fixtures:
-        checked_fixture_plan(manifest)
+        fixture_plan = checked_fixture_plan(manifest)
         selected = [asset for asset in assets if asset["logical_path"] in FIXTURE_PATHS]
         missing = set(FIXTURE_PATHS) - {str(asset["logical_path"]) for asset in selected}
         if missing:
             raise ReleaseError(f"fixture sources are missing: {', '.join(sorted(missing))}")
     else:
+        fixture_plan = {"fixtures": []}
         if blockers:
             raise ReleaseError(
-                f"runtime release blocked by {len(blockers)} license/provenance findings; "
+                f"runtime release blocked by {len(blockers)} release findings; "
                 "see manifests/source-assets.json"
             )
         selected = assets
@@ -753,18 +990,37 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
     if epoch_text is None or not epoch_text.isdigit():
         raise ReleaseError("SOURCE_DATE_EPOCH must be a non-negative integer")
     epoch = int(epoch_text)
+    source_commit = source_revision("ATRINIK_SOURCE_COMMIT", "HEAD")
+    source_tree = source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}")
+    if not fixtures:
+        tag_commit = run(["git", "rev-parse", f"{tag}^{{commit}}"], capture=True).stdout.strip()
+        tag_tree = run(["git", "rev-parse", f"{tag}^{{tree}}"], capture=True).stdout.strip()
+        if (source_commit, source_tree) != (tag_commit, tag_tree):
+            raise ReleaseError("runtime source commit/tree do not match the release tag")
     version = tag[1:]
     suffix = "fixture" if fixtures else "runtime"
     package = f"atrinik-sound-{suffix}-{version}"
     with tempfile.TemporaryDirectory(prefix="atrinik-sound-runtime-") as temporary:
         staging = Path(temporary) / package
         staging.mkdir(parents=True)
-        converted = [convert_asset(asset, staging, toolchain) for asset in selected]
+        planned_behaviors = {
+            str(fixture["logical_path"]): tuple(str(item) for item in fixture["behaviors"])
+            for fixture in fixture_plan["fixtures"]  # type: ignore[index]
+        }
+        converted = [
+            convert_asset(
+                asset,
+                staging,
+                toolchain,
+                planned_behaviors.get(str(asset["logical_path"]), ()),
+            )
+            for asset in selected
+        ]
         runtime_manifest = {
             "schema_version": 1,
             "release_tag": tag,
-            "source_commit": source_revision("ATRINIK_SOURCE_COMMIT", "HEAD"),
-            "source_tree": source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}"),
+            "source_commit": source_commit,
+            "source_tree": source_tree,
             "fixture_only": fixtures,
             "source_size_bytes": sum((ROOT / str(asset["source_path"])).stat().st_size for asset in selected),
             "runtime_size_bytes": sum((staging / str(asset["generated_path"])).stat().st_size for asset in converted),
@@ -774,11 +1030,21 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
             "assets": converted,
         }
         (staging / "manifest.json").write_bytes(canonical_json(runtime_manifest))
+        for notice_path in ("background/LICENSE", "effects/LICENSE"):
+            destination = staging / notice_path
+            destination.parent.mkdir(exist_ok=True)
+            shutil.copyfile(ROOT / notice_path, destination)
         license_root = staging / "licenses"
         license_root.mkdir()
-        shutil.copyfile(ROOT / "background" / "LICENSE", license_root / "background-LICENSE")
-        shutil.copyfile(ROOT / "effects" / "LICENSE", license_root / "effects-LICENSE")
+        license_texts = toolchain["license_texts"]
+        assert isinstance(license_texts, dict)
+        for contract in license_texts.values():
+            assert isinstance(contract, dict)
+            destination = staging / str(contract["archive_path"])
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(Path(str(contract["installed_path"])), destination)
         shutil.copyfile(TOOLCHAIN, license_root / "audio-toolchain.json")
+        write_tree_checksums(staging)
         output = output_directory / f"{package}.tar.gz"
         deterministic_archive(staging, output, package, epoch)
     return output
@@ -796,19 +1062,19 @@ def write_checksums(output_directory: Path) -> None:
     if not assets:
         raise ReleaseError(f"no archives found in {output_directory}")
     payload = "".join(f"{sha256(path)}  {path.name}\n" for path in assets)
-    (output_directory / "SHA256SUMS").write_text(payload, encoding="ascii")
+    atomic_write(output_directory / "SHA256SUMS", payload.encode("ascii"))
 
 
 def command_refresh(_arguments: argparse.Namespace) -> None:
+    ensure_sources_tracked(discover_sources())
     manifest = build_source_manifest()
-    SOURCE_MANIFEST.parent.mkdir(parents=True, exist_ok=True)
-    SOURCE_MANIFEST.write_bytes(canonical_json(manifest))
+    atomic_write(SOURCE_MANIFEST, canonical_json(manifest))
     print(f"wrote {SOURCE_MANIFEST.relative_to(ROOT)} with {manifest['audio_source_count']} assets")
 
 
 def command_validate(_arguments: argparse.Namespace) -> None:
     manifest = checked_manifest()
-    blockers = validate_manifest(manifest)
+    blockers = validate_manifest(manifest, verify_tracked=True)
     checked_toolchain()
     checked_fixture_plan(manifest)
     print(

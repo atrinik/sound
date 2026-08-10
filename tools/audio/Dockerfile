@@ -12,6 +12,12 @@ ARG OPUS_TOOLS_PACKAGE=0.2-1build5
 ARG FREEPATS_URL=https://deb.debian.org/debian/pool/main/f/freepats/freepats_20060219.orig.tar.gz
 ARG FREEPATS_SHA256=70bf8ca084df3903d6c9de43fe20539fc0a553d95cfba4d525da3fe66fda5f10
 ARG FREEPATS_UPSTREAM_SHA256=0261ea1057b232183fa472432d5cedb0dca33698a5319328cdf193d4b2193c8a
+ARG CC_BY_URL=https://creativecommons.org/licenses/by/3.0/legalcode.txt
+ARG CC_BY_SHA256=e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76
+ARG CC_BY_SA_URL=https://creativecommons.org/licenses/by-sa/3.0/legalcode.txt
+ARG CC_BY_SA_SHA256=3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f
+ARG CC0_URL=https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt
+ARG CC0_SHA256=a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
@@ -33,6 +39,19 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && printf 'dir /opt/freepats\nsource /opt/freepats/freepats.cfg\n' \
         >/opt/atrinik-freepats.cfg \
     && ln -sf /opt/atrinik-freepats.cfg /etc/timidity/fluidr3_gm.cfg \
+    && mkdir -p /opt/atrinik-sound-license-texts \
+    && curl --fail --location --silent --show-error "${CC_BY_URL}" \
+        --output /opt/atrinik-sound-license-texts/CC-BY-3.0.txt \
+    && curl --fail --location --silent --show-error "${CC_BY_SA_URL}" \
+        --output /opt/atrinik-sound-license-texts/CC-BY-SA-3.0.txt \
+    && curl --fail --location --silent --show-error "${CC0_URL}" \
+        --output /opt/atrinik-sound-license-texts/CC0-1.0.txt \
+    && echo "${CC_BY_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-3.0.txt" \
+        | sha256sum -c - \
+    && echo "${CC_BY_SA_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-SA-3.0.txt" \
+        | sha256sum -c - \
+    && echo "${CC0_SHA256}  /opt/atrinik-sound-license-texts/CC0-1.0.txt" \
+        | sha256sum -c - \
     && cc -std=c17 -O2 -Wall -Wextra -Werror \
         /tmp/sdl3-mixer-runtime-probe.c \
         -o /usr/local/bin/atrinik-sound-sdl3-mixer-probe \
@@ -46,8 +65,8 @@ RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \
     && test "$(dpkg-query -W -f='${Version}' opus-tools)" = '0.2-1build5' \
     && atrinik-sdl3-mixer-probe /usr/local/share/atrinik/audio/opus-probe.opus \
     && atrinik-sound-sdl3-mixer-probe --version \
-        | grep -F 'atrinik-sound-sdl3-mixer-probe 1' \
+        | grep -F 'atrinik-sound-sdl3-mixer-probe 2' \
     && atrinik-sound-sdl3-mixer-probe \
-        /usr/local/share/atrinik/audio/opus-probe.opus
+        /usr/local/share/atrinik/audio/opus-probe.opus 12000 none
 
 WORKDIR /workspaces/sound
