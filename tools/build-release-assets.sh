@@ -20,6 +20,13 @@ if [[ -n $(git status --porcelain --untracked-files=all) ]]; then
   exit 1
 fi
 mkdir -p "${output_directory}"
+shopt -s nullglob dotglob
+existing_outputs=("${output_directory}"/*)
+shopt -u nullglob dotglob
+if (( ${#existing_outputs[@]} != 0 )); then
+  echo "release output directory must be empty: ${output_directory}" >&2
+  exit 1
+fi
 
 tools/package-release.sh "${tag}" "${output_directory}"
 python3 tools/sound_release.py validate
