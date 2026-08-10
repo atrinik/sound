@@ -39,9 +39,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(511, len(blockers))
+        self.assertEqual(532, len(blockers))
         self.assertEqual(
-            {"license/provenance": 315, "quality-review": 196},
+            {"license/provenance": 336, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -166,8 +166,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(108, candidates)
-        self.assertEqual(24, allowed)
+        self.assertEqual(129, candidates)
+        self.assertEqual(3, allowed)
 
     def test_meritous_project_notice_does_not_approve_music(self) -> None:
         notice = {
@@ -183,27 +183,40 @@ class SourceManifestTests(unittest.TestCase):
         self.assertIsNone(expression)
         self.assertIsNone(license_path)
 
-    def test_piano_runtime_notices_preserve_supplied_attribution(self) -> None:
-        reviews = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())["reviews"]
-        reviewed_paths = {
-            entry["logical_path"]
-            for entry in reviews
-            if entry["evidence"]["locator"] == "evidence/piano-midi-de-backgrounds.md"
-        }
-        self.assertEqual(21, len(reviewed_paths))
+    def test_piano_notices_preserve_attribution_but_remain_blocked(self) -> None:
         catalog = sound_release.notice_catalog(ROOT / "background")
-        for logical_path in reviewed_paths:
-            filename = Path(logical_path).name
+        attributed = {
+            filename for filename, notice in catalog.items()
+            if "supplied title:" in notice["text"]
+        }
+        self.assertEqual(21, len(attributed))
+        for filename in attributed:
+            logical_path = f"background/{filename}"
             notice = catalog[filename]
             with self.subTest(logical_path=logical_path):
                 self.assertIn("supplied title:", notice["text"])
                 self.assertIn("Copyright", notice["text"])
                 self.assertIn("source: https://www.piano-midi.de/", notice["text"])
                 self.assertIn("Atrinik modification: MIDI rendered to Opus", notice["text"])
-                self.assertEqual(
-                    hashlib.sha256(notice["text"].encode()).hexdigest(),
-                    self.assets[logical_path]["license"]["notice_sha256"],
-                )
+                self.assertEqual("blocked", self.assets[logical_path]["license"]["status"])
+
+    def test_notice_hash_preserves_exact_packaged_whitespace(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary) / "background"
+            directory.mkdir()
+            license_path = directory / "LICENSE"
+            license_path.write_text("Example - CC0:\n    example.ogg (notice)\n", encoding="utf-8")
+            original = sound_release.notice_catalog(directory)["example.ogg"]["text"]
+            license_path.write_text("Example - CC0:\n    example.ogg (notice)  \n", encoding="utf-8")
+            drifted = sound_release.notice_catalog(directory)["example.ogg"]["text"]
+            self.assertNotEqual(original, drifted)
+            self.assertNotEqual(
+                hashlib.sha256(original.encode()).digest(),
+                hashlib.sha256(drifted.encode()).digest(),
+            )
+            license_path.write_bytes(b"Example - CC0:\r\n    example.ogg (notice)\r\n")
+            crlf = sound_release.notice_catalog(directory)["example.ogg"]["text"]
+            self.assertNotEqual(original, crlf)
 
     def test_exact_stendhal_tracks_preserve_storyteller_but_remain_blocked(self) -> None:
         reviewed_paths = {
@@ -251,7 +264,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(24, len(reviewed["reviews"]))
+        self.assertEqual(3, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -415,7 +428,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "511 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "532 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:

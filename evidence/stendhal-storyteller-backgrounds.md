@@ -44,9 +44,9 @@ the SHA-256 values bind the same bytes in the Atrinik source manifest.
 
 For each exact track, `background/LICENSE` preserves Storyteller's supplied
 author identity, the immutable repository source coordinate, and an indication
-that Atrinik converts the preserved Vorbis input to Opus. Each license review
-binds the complete heading-and-asset-line notice hash, so attribution or
-modification-notice drift invalidates the generated manifest.
+that Atrinik converts the preserved Vorbis input to Opus. The generated source
+manifest binds the complete heading-and-asset-line notice hash, so attribution
+or modification-notice drift makes the manifest stale.
 
 ## Decision
 

@@ -456,12 +456,15 @@ def source_metadata(path: Path) -> SourceMetadata:
 
 def notice_catalog(directory: Path) -> dict[str, dict[str, str]]:
     license_path = directory / "LICENSE"
-    lines = license_path.read_text(encoding="utf-8").splitlines()
+    lines = license_path.read_bytes().decode("utf-8").splitlines(keepends=True)
     current = ""
+    current_raw = ""
     notices: dict[str, dict[str, str]] = {}
-    for line_number, line in enumerate(lines, 1):
+    for line_number, raw_line in enumerate(lines, 1):
+        line = raw_line.rstrip("\r\n")
         if line and not line[0].isspace() and line.endswith(":"):
             current = line[:-1]
+            current_raw = raw_line
             continue
         match = re.match(r"^\s{4}([A-Za-z0-9_.-]+\.(?:mid|mod|s3m|xm|ogg))\b", line)
         if match and current:
@@ -471,7 +474,7 @@ def notice_catalog(directory: Path) -> dict[str, dict[str, str]]:
             notices[filename] = {
                 "description": current,
                 "reference": f"{directory.name}/LICENSE:{line_number}",
-                "text": f"{current}\n{line.strip()}",
+                "text": current_raw + raw_line,
             }
     return notices
 

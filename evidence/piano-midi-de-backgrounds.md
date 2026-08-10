@@ -1,4 +1,4 @@
-# piano-midi.de background provenance and license review
+# piano-midi.de background provenance research
 
 Reviewed 2026-08-10 for the 25 `background/*.mid` files attributed to
 piano-midi.de in `background/LICENSE`.
@@ -24,8 +24,8 @@ commit `5bf6d9610255540bfbee6890765a616042bf1e11`, blob
 ## Exact asset identity
 
 Each local file embeds Bernd Krueger's copyright identity and the work title.
-Twenty-one are byte-identical to the current first-party download and are the
-only files approved by this review. Four differing files (`elise.mid`,
+Twenty-one were byte-identical to the first-party download when retrieved for
+this research. Four differing files (`elise.mid`,
 `fountain.mid`, `pearls.mid`, and `thunderstorm.mid`) are recorded below for
 research only: embedded metadata does not prove that their complete historical
 bytes are an unmodified first-party revision, so they remain blocked.
@@ -60,12 +60,16 @@ bytes are an unmodified first-party revision, so they remain blocked.
 
 ## Decision
 
-The 21 byte-identical source hashes have full-work conversion and redistribution
-permission under `CC-BY-SA-3.0-DE`. The four differing historical hashes remain
-blocked until an authoritative exact revision is found or explicit permission
-is obtained. Runtime attribution for approved files must retain Bernd Krueger's
-name, <http://www.piano-midi.de>, the supplied work title and copyright, the
-same-license condition, and an indication that Atrinik rendered the MIDI to
-Opus. Each approved asset line in `background/LICENSE` now preserves those
-fields; the per-asset review binds that complete heading-and-line notice hash,
-and the runtime archive packages `background/LICENSE` unchanged.
+All 25 files remain blocked. The first-party grant page and downloads are
+mutable HTTP resources, and this repository did not preserve authoritative
+response captures when the byte comparisons were made. The immutable Tonejs
+blob is a third-party copy of the statement and cannot establish first-party
+authority by itself. Hash-verifiable authoritative captures, immutable
+first-party coordinates, or explicit permission are required before approval.
+
+The 21 exact-at-retrieval asset lines in `background/LICENSE` preserve Bernd
+Krueger's name, source URL, supplied work title and copyright, same-license
+condition, and an indication that Atrinik would render the MIDI to Opus. The
+generated source manifest binds the exact packaged heading-and-line bytes, but
+that attribution preservation does not resolve the missing immutable grant
+evidence.
