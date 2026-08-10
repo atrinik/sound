@@ -375,20 +375,48 @@ def ogg_vorbis_metadata(path: Path) -> SourceMetadata:
     return SourceMetadata(round(last_granule / sample_rate, 6), sample_rate, channels)
 
 
-def tracker_metadata(path: Path) -> SourceMetadata:
+def checked_tracker_durations() -> dict[str, dict[str, object]]:
     schema = checked_schema("tracker-durations-v1.schema.json")
     value = read_json(TRACKER_DURATIONS)
     if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "toolchain_sha256", "entries"} or value.get("schema_version") != 1 or value.get("toolchain_sha256") != sha256(TOOLCHAIN) or not isinstance(value.get("entries"), list):
         raise ReleaseError("tracker-duration ledger is invalid or stale")
     validate_schema_instance(value, schema)
+    entries: dict[str, dict[str, object]] = {}
+    for entry in value["entries"]:
+        assert isinstance(entry, dict)
+        logical = str(entry["logical_path"])
+        if logical in entries:
+            raise ReleaseError(f"duplicate tracker-duration entry: {logical}")
+        entries[logical] = entry
+    expected = {
+        path.relative_to(ROOT).as_posix()
+        for path in discover_sources()
+        if path.suffix.lower() in TRACKER_SUFFIXES
+    }
+    if set(entries) != expected:
+        missing = expected - set(entries)
+        stale = set(entries) - expected
+        detail = ", ".join([*(f"missing {path}" for path in sorted(missing)), *(f"stale {path}" for path in sorted(stale))])
+        raise ReleaseError(f"tracker-duration ledger does not close over tracker sources: {detail}")
+    for logical, entry in entries.items():
+        if entry.get("source_sha256") != sha256(ROOT / logical):
+            raise ReleaseError(f"tracker-duration source hash is stale: {logical}")
+    return entries
+
+
+def tracker_metadata(path: Path) -> SourceMetadata:
+    entries = checked_tracker_durations()
     relative = path.relative_to(ROOT).as_posix()
-    matches = [entry for entry in value["entries"] if isinstance(entry, dict) and entry.get("logical_path") == relative]
-    if len(matches) != 1 or matches[0].get("source_sha256") != sha256(path) or not isinstance(matches[0].get("duration_seconds"), (int, float)):
-        raise ReleaseError(f"tracker metadata changed for {relative}; refresh it with the pinned openmpt123 tool")
-    duration = float(matches[0]["duration_seconds"])
+    entry = entries[relative]
+    duration = float(entry["duration_seconds"])
     if not math.isfinite(duration) or duration <= 0:
         raise ReleaseError(f"non-positive tracker duration for {path.relative_to(ROOT)}")
     return SourceMetadata(duration, None, None)
+
+
+def ensure_clean_release_input() -> None:
+    if run(["git", "status", "--porcelain", "--untracked-files=all"], capture=True).stdout:
+        raise ReleaseError("full runtime release input worktree is not clean")
 
 
 def measured_tracker_duration(path: Path) -> float:
@@ -537,7 +565,8 @@ def checked_license_reviews() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"duplicate license review: {logical}")
         reviewed_at = str(review["reviewed_at"])
         try:
-            datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ")
+            if datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%dT%H:%M:%SZ") != reviewed_at:
+                raise ValueError
         except ValueError as exc:
             raise ReleaseError(f"license review has a non-canonical UTC timestamp: {logical}") from exc
         evidence = review["evidence"]
@@ -1261,6 +1290,7 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
                 f"runtime release blocked by {len(blockers)} release findings; "
                 "see manifests/source-assets.json"
             )
+        ensure_clean_release_input()
         selected = assets
     toolchain = checked_toolchain()
     versions = verify_toolchain(toolchain)

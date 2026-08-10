@@ -141,6 +141,9 @@ the repositories.
 
 After all blockers have documentary remediation, a full build is:
 
+The non-fixture builder rejects any tracked or untracked worktree change before
+encoding, so the archive's commit and tree claims always describe its inputs.
+
 ```sh
 export SOURCE_DATE_EPOCH="$(git show -s --format=%ct 'vX.Y.Z^{commit}')"
 docker run --rm \

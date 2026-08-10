@@ -207,6 +207,11 @@ class SourceManifestTests(unittest.TestCase):
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: missing if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "missing"):
                 sound_release.checked_license_reviews()
+        noncanonical = copy.deepcopy(document)
+        noncanonical["reviews"][0]["reviewed_at"] = "2026-8-1T0:0:0Z"
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: noncanonical if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "non-canonical"):
+                sound_release.checked_license_reviews()
 
     def test_tracker_durations_are_bound_to_pinned_measurements(self) -> None:
         ledger = json.loads(sound_release.TRACKER_DURATIONS.read_text())
@@ -216,6 +221,24 @@ class SourceManifestTests(unittest.TestCase):
         for logical, entry in trackers.items():
             self.assertEqual(sound_release.sha256(ROOT / logical), entry["source_sha256"])
             self.assertEqual(entry["duration_seconds"], self.assets[logical]["source"]["duration_seconds"])
+
+    def test_tracker_duration_ledger_rejects_duplicate_and_stale_entries(self) -> None:
+        ledger = json.loads(sound_release.TRACKER_DURATIONS.read_text())
+        original_read_json = sound_release.read_json
+        duplicate = copy.deepcopy(ledger)
+        duplicate["entries"].append(copy.deepcopy(duplicate["entries"][0]))
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: duplicate if path == sound_release.TRACKER_DURATIONS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "duplicate"):
+                sound_release.checked_tracker_durations()
+        stale = copy.deepcopy(ledger)
+        stale["entries"].append({
+            "logical_path": "background/removed-stale.mod",
+            "source_sha256": "0" * 64,
+            "duration_seconds": 1.0,
+        })
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: stale if path == sound_release.TRACKER_DURATIONS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "stale background/removed-stale.mod"):
+                sound_release.checked_tracker_durations()
 
     def test_project_schemas_are_versioned_and_unknown_fields_fail(self) -> None:
         for name in (
@@ -258,6 +281,12 @@ class SourceManifestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             with self.assertRaisesRegex(sound_release.ReleaseError, "535 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
+
+    def test_full_runtime_build_rejects_dirty_release_input(self) -> None:
+        completed = type("Completed", (), {"stdout": " M background/fireside.mid\n"})()
+        with mock.patch.object(sound_release, "run", return_value=completed):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
+                sound_release.ensure_clean_release_input()
 
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
