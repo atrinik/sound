@@ -370,6 +370,11 @@ class SourceManifestTests(unittest.TestCase):
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: broken if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "timestamp"):
                 sound_release.checked_quality_reviews()
+        invalid_reviewer = copy.deepcopy(document)
+        invalid_reviewer["reviews"][0]["reviewed_by"] = "a--b"
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: invalid_reviewer if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+            with self.assertRaises(sound_release.ReleaseError):
+                sound_release.checked_quality_reviews()
         wrong_hash = copy.deepcopy(document)
         wrong_hash["reviews"][0]["evidence"]["artifact_sha256"] = "0" * 64
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: wrong_hash if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
@@ -674,7 +679,8 @@ class SourceManifestTests(unittest.TestCase):
             self.assertIn("Candidate gain:", index)
             self.assertIn("Source playback is level-matched", index)
             self.assertIn("Use a valid GitHub username without a leading @.", index)
-            self.assertIn("^[A-Za-z0-9]", index)
+            self.assertIn("^(?!.*--)[A-Za-z0-9]", index)
+            self.assertIn("let playingAudio=null", index)
             for asset in bundle["assets"]:
                 source = output / asset["source_path"]
                 candidate = output / asset["candidate_path"]

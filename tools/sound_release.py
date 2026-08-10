@@ -551,7 +551,7 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"quality review has a stale toolchain hash: {logical_path}")
         if not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("output_sha256", ""))):
             raise ReleaseError(f"quality review lacks an output hash: {logical_path}")
-        if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", str(entry.get("reviewed_by", ""))):
+        if not re.fullmatch(r"(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", str(entry.get("reviewed_by", ""))):
             raise ReleaseError(f"quality review lacks a GitHub reviewer identity: {logical_path}")
         reviewed_at = entry.get("reviewed_at")
         try:
@@ -1514,9 +1514,9 @@ code{{overflow-wrap:anywhere}} .hash,.gain{{font-size:.82rem}}
 </style></head><body>
 <h1>Atrinik critical-listening review</h1>
 <div class="notice"><p>This is a non-publishing review aid. Use headphones and representative speakers. Listen to each complete source and candidate at normal and revealing levels, then compare loop boundaries. Do not pass a track with audible codec artifacts, tonal or transient changes, noise-floor modulation, truncation, tail loss, or a loop discontinuity.</p>
-<label>GitHub reviewer identity <input id="reviewer" autocomplete="username" placeholder="username" pattern="[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?"></label></div>
+<label>GitHub reviewer identity <input id="reviewer" autocomplete="username" placeholder="username" pattern="(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?"></label></div>
 <main id="assets"></main><button id="export">Export completed review JSON</button>
-<script>const assets={assets_json};const root=document.querySelector('#assets');
+<script>const assets={assets_json};const root=document.querySelector('#assets');let playingAudio=null;
 for(const a of assets){{const s=document.createElement('section');s.className='asset';s.dataset.logical=a.logical_path;
 const h=document.createElement('h2');h.textContent=a.logical_path;s.append(h);
 const hashes=document.createElement('p');hashes.className='hash';hashes.innerHTML='<code>'+a.source_sha256+'</code> → <code>'+a.output_sha256+'</code>';s.append(hashes);
@@ -1534,10 +1534,10 @@ let active=source;const other=()=>active===source?candidate:source;const sync=()
 const switchTo=next=>{{if(next===active)return;const wasPlaying=!active.paused;const at=active.currentTime;active.pause();active=next;active.currentTime=Math.min(at,Number.isFinite(active.duration)?active.duration:at);sourceButton.setAttribute('aria-pressed',String(active===source));candidateButton.setAttribute('aria-pressed',String(active===candidate));if(wasPlaying)active.play()}};
 play.onclick=()=>{{if(active.paused)active.play();else active.pause()}};sourceButton.onclick=()=>switchTo(source);candidateButton.onclick=()=>switchTo(candidate);
 seek.oninput=()=>{{if(Number.isFinite(active.duration))active.currentTime=active.duration*Number(seek.value)/1000}};loop.onchange=()=>{{source.loop=loop.checked;candidate.loop=loop.checked}};
-for(const audio of [source,candidate]){{audio.ontimeupdate=sync;audio.onplay=()=>{{other().pause();play.textContent='Pause'}};audio.onpause=()=>{{if(other().paused)play.textContent='Play'}};audio.onended=()=>{{play.textContent='Play';sync()}}}}
+for(const audio of [source,candidate]){{audio.ontimeupdate=sync;audio.onplay=()=>{{if(playingAudio&&playingAudio!==audio)playingAudio.pause();playingAudio=audio;other().pause();play.textContent='Pause'}};audio.onpause=()=>{{if(playingAudio===audio)playingAudio=null;if(other().paused)play.textContent='Play'}};audio.onended=()=>{{if(playingAudio===audio)playingAudio=null;play.textContent='Play';sync()}}}}
 for(const [name,label] of [['artifacts','Codec artifacts / tonal / transient changes'],['noise_floor','Noise floor and low-level content'],['duration_tail','Complete duration, tail, and truncation'],['loop_boundary','Loop-boundary comparison']]){{const l=document.createElement('label');l.textContent=label;const t=document.createElement('textarea');t.dataset.field=name;l.append(t);s.append(l)}}
 const v=document.createElement('label');v.textContent='Verdict';const select=document.createElement('select');select.dataset.field='verdict';select.innerHTML='<option value="">Select…</option><option value="passed">Passed</option><option value="failed">Failed</option>';v.append(select);s.append(v);root.append(s)}}
-document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;const reviewerValid=/^[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?$/.test(reviewer);
+document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;const reviewerValid=/^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?$/.test(reviewer);
 for(const section of document.querySelectorAll('.asset')){{const meta=assets.find(a=>a.logical_path===section.dataset.logical);const values={{logical_path:section.dataset.logical,source_sha256:meta.source_sha256,output_sha256:meta.output_sha256,review_evidence_path:meta.review_evidence_path}};for(const field of section.querySelectorAll('[data-field]')){{values[field.dataset.field]=field.value.trim();if(!values[field.dataset.field])missing=true}}reviews.push(values)}}
 if(missing){{alert('Complete the reviewer identity, every note field, and every verdict before export.');return}}
 if(!reviewerValid){{alert('Use a valid GitHub username without a leading @.');return}}
