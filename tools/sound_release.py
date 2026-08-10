@@ -44,8 +44,7 @@ FIXTURE_PATHS = (
 )
 REVIEWED_NOTICE_LICENSES = {
     'KQ - http://sourceforge.net/projects/kqlives/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
-    'Meritous - http://www.asceai.net/meritous/ - GPLv3': ("GPL-3.0-only", "licenses/GPL-3.0.txt"),
-    'http://piano-midi.de/ - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany': ("CC-BY-SA-3.0-DE", "licenses/CC-BY-SA-3.0-DE.txt"),
     'Edwin "Mamoru" Miltenburg - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'Allacrost - http://allacrost.org/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),

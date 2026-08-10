@@ -17,6 +17,8 @@ ARG CC_BY_URL=https://creativecommons.org/licenses/by/3.0/legalcode.txt
 ARG CC_BY_SHA256=e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76
 ARG CC_BY_SA_URL=https://creativecommons.org/licenses/by-sa/3.0/legalcode.txt
 ARG CC_BY_SA_SHA256=3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f
+ARG CC_BY_SA_DE_URL=https://raw.githubusercontent.com/spdx/license-list-data/5bf6d9610255540bfbee6890765a616042bf1e11/text/CC-BY-SA-3.0-DE.txt
+ARG CC_BY_SA_DE_SHA256=dfac6ca9c9b3082919f8e417e522e561e11c8402eab83e1099650b8e4347412d
 ARG CC0_URL=https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt
 ARG CC0_SHA256=a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499
 
@@ -49,11 +51,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         --output /opt/atrinik-sound-license-texts/CC-BY-3.0.txt \
     && curl --fail --location --silent --show-error "${CC_BY_SA_URL}" \
         --output /opt/atrinik-sound-license-texts/CC-BY-SA-3.0.txt \
+    && curl --fail --location --silent --show-error "${CC_BY_SA_DE_URL}" \
+        --output /opt/atrinik-sound-license-texts/CC-BY-SA-3.0-DE.txt \
     && curl --fail --location --silent --show-error "${CC0_URL}" \
         --output /opt/atrinik-sound-license-texts/CC0-1.0.txt \
     && echo "${CC_BY_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-3.0.txt" \
         | sha256sum -c - \
     && echo "${CC_BY_SA_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-SA-3.0.txt" \
+        | sha256sum -c - \
+    && echo "${CC_BY_SA_DE_SHA256}  /opt/atrinik-sound-license-texts/CC-BY-SA-3.0-DE.txt" \
         | sha256sum -c - \
     && echo "${CC0_SHA256}  /opt/atrinik-sound-license-texts/CC0-1.0.txt" \
         | sha256sum -c - \

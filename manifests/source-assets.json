@@ -255,12 +255,12 @@
       "generated_path": "audio/background/amblight.xm.opus",
       "id": "sound:background/amblight.xm",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:65",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/amblight.xm",
@@ -316,13 +316,13 @@
       "generated_path": "audio/background/autumn.mid.opus",
       "id": "sound:background/autumn.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:109",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/autumn.mid",
       "quality_review": {
@@ -426,13 +426,13 @@
       "generated_path": "audio/background/barcarolle.mid.opus",
       "id": "sound:background/barcarolle.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:110",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/barcarolle.mid",
       "quality_review": {
@@ -763,13 +763,13 @@
       "generated_path": "audio/background/carnival.mid.opus",
       "id": "sound:background/carnival.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:111",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/carnival.mid",
       "quality_review": {
@@ -818,12 +818,12 @@
       "generated_path": "audio/background/cave.xm.opus",
       "id": "sound:background/cave.xm",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:70",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/cave.xm",
@@ -941,12 +941,12 @@
       "generated_path": "audio/background/cavern.xm.opus",
       "id": "sound:background/cavern.xm",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:69",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/cavern.xm",
@@ -1002,12 +1002,12 @@
       "generated_path": "audio/background/cavern_boss.mod.opus",
       "id": "sound:background/cavern_boss.mod",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:66",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/cavern_boss.mod",
@@ -1118,13 +1118,13 @@
       "generated_path": "audio/background/christmas1.mid.opus",
       "id": "sound:background/christmas1.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:112",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/christmas1.mid",
       "quality_review": {
@@ -1173,13 +1173,13 @@
       "generated_path": "audio/background/christmas2.mid.opus",
       "id": "sound:background/christmas2.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:113",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/christmas2.mid",
       "quality_review": {
@@ -1228,13 +1228,13 @@
       "generated_path": "audio/background/christmas3.mid.opus",
       "id": "sound:background/christmas3.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:114",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/christmas3.mid",
       "quality_review": {
@@ -1283,13 +1283,13 @@
       "generated_path": "audio/background/christmas4.mid.opus",
       "id": "sound:background/christmas4.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:115",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/christmas4.mid",
       "quality_review": {
@@ -1338,13 +1338,13 @@
       "generated_path": "audio/background/christmas5.mid.opus",
       "id": "sound:background/christmas5.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:116",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/christmas5.mid",
       "quality_review": {
@@ -1393,13 +1393,13 @@
       "generated_path": "audio/background/christmas6.mid.opus",
       "id": "sound:background/christmas6.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:117",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/christmas6.mid",
       "quality_review": {
@@ -2713,13 +2713,13 @@
       "generated_path": "audio/background/elise.mid.opus",
       "id": "sound:background/elise.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:118",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/elise.mid",
       "quality_review": {
@@ -3172,13 +3172,13 @@
       "generated_path": "audio/background/fireside.mid.opus",
       "id": "sound:background/fireside.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:119",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/fireside.mid",
       "quality_review": {
@@ -3227,13 +3227,13 @@
       "generated_path": "audio/background/fountain.mid.opus",
       "id": "sound:background/fountain.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:120",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/fountain.mid",
       "quality_review": {
@@ -3729,13 +3729,13 @@
       "generated_path": "audio/background/harvest.mid.opus",
       "id": "sound:background/harvest.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:121",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/harvest.mid",
       "quality_review": {
@@ -3963,12 +3963,12 @@
       "generated_path": "audio/background/ice_frontier.s3m.opus",
       "id": "sound:background/ice_frontier.s3m",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:67",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/ice_frontier.s3m",
@@ -4539,13 +4539,13 @@
       "generated_path": "audio/background/lark.mid.opus",
       "id": "sound:background/lark.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:122",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/lark.mid",
       "quality_review": {
@@ -5351,13 +5351,13 @@
       "generated_path": "audio/background/pearls.mid.opus",
       "id": "sound:background/pearls.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:123",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/pearls.mid",
       "quality_review": {
@@ -5516,13 +5516,13 @@
       "generated_path": "audio/background/prelude1.mid.opus",
       "id": "sound:background/prelude1.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:124",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/prelude1.mid",
       "quality_review": {
@@ -5571,13 +5571,13 @@
       "generated_path": "audio/background/prelude2.mid.opus",
       "id": "sound:background/prelude2.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:125",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/prelude2.mid",
       "quality_review": {
@@ -5626,13 +5626,13 @@
       "generated_path": "audio/background/prelude3.mid.opus",
       "id": "sound:background/prelude3.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:126",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/prelude3.mid",
       "quality_review": {
@@ -5804,13 +5804,13 @@
       "generated_path": "audio/background/reaper.mid.opus",
       "id": "sound:background/reaper.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:127",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/reaper.mid",
       "quality_review": {
@@ -5975,13 +5975,13 @@
       "generated_path": "audio/background/ride.mid.opus",
       "id": "sound:background/ride.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:128",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/ride.mid",
       "quality_review": {
@@ -6085,12 +6085,12 @@
       "generated_path": "audio/background/rpg_battle.xm.opus",
       "id": "sound:background/rpg_battle.xm",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:68",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/rpg_battle.xm",
@@ -6724,13 +6724,13 @@
       "generated_path": "audio/background/snowdrop.mid.opus",
       "id": "sound:background/snowdrop.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:129",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/snowdrop.mid",
       "quality_review": {
@@ -6834,13 +6834,13 @@
       "generated_path": "audio/background/starlight.mid.opus",
       "id": "sound:background/starlight.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:130",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/starlight.mid",
       "quality_review": {
@@ -6944,13 +6944,13 @@
       "generated_path": "audio/background/tango.mid.opus",
       "id": "sound:background/tango.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:131",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/tango.mid",
       "quality_review": {
@@ -9096,13 +9096,13 @@
       "generated_path": "audio/background/the_hunt.mid.opus",
       "id": "sound:background/the_hunt.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:132",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/the_hunt.mid",
       "quality_review": {
@@ -9392,13 +9392,13 @@
       "generated_path": "audio/background/thunderstorm.mid.opus",
       "id": "sound:background/thunderstorm.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/CC-BY-SA-3.0.txt",
-        "notice": "http://piano-midi.de/ - CC BY-SA 3.0",
+        "blocking_finding": null,
+        "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
+        "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:133",
-        "notice_sha256": "d2a34f1373106a2e2c9e4e88120c91785375bba3e02aa2fdeb6c56d650c8f402",
-        "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "notice_sha256": "f806c572a64708f14fa01aae5fc5322f1737c8413be55f4e6aa7fc3b7314f26c",
+        "spdx_expression": "CC-BY-SA-3.0-DE",
+        "status": "allowed"
       },
       "logical_path": "background/thunderstorm.mid",
       "quality_review": {
@@ -10339,12 +10339,12 @@
       "generated_path": "audio/background/wood.s3m.opus",
       "id": "sound:background/wood.s3m",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
-        "license_text_path": "licenses/GPL-3.0.txt",
+        "blocking_finding": "notice has no reviewed full-work conversion and redistribution grant",
+        "license_text_path": null,
         "notice": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
         "notice_reference": "background/LICENSE:71",
         "notice_sha256": "3cac81f8b6e1c81abab6a8e0c611fcfe39977a9b2a029c6599a1c042c1cdb3cc",
-        "spdx_expression": "GPL-3.0-only",
+        "spdx_expression": null,
         "status": "blocked"
       },
       "logical_path": "background/wood.s3m",

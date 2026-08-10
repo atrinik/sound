@@ -14,7 +14,7 @@ transformation note, and exact notice reference. Runtime generation adds the
 output hash, size, codec/container, sample rate, channels, duration, peak,
 loudness, clipping result, and rendered-PCM measurements.
 
-The current inventory records 318 fail-closed license/provenance
+The current inventory records 293 fail-closed license/provenance
 findings. This includes terse GPL/CC headings until a per-asset review binds
 the source and notice hashes, SPDX interpretation, reviewer, timestamp, and a
 Git-tracked, non-symlink, content-hash-verified evidence document under
@@ -22,7 +22,7 @@ Git-tracked, non-symlink, content-hash-verified evidence document under
 `Freeware`, Sampling Plus, noncommercial, incomplete, and missing notices have
 no candidate interpretation. Approval is never a default-allow keyword filter.
 All 196 preserved Vorbis inputs also have source-hash-bound quality reviews
-pending, producing 514 total gates. They are not silently omitted: while any
+pending, producing 489 total gates. They are not silently omitted: while any
 finding remains, releases
 publish the complete blocker report and no runtime archive. Source archives
 continue unchanged.
@@ -165,6 +165,7 @@ audio/effects/<legacy-name-and-extension>.opus
 licenses/audio-toolchain.json
 licenses/CC-BY-3.0.txt
 licenses/CC-BY-SA-3.0.txt
+licenses/CC-BY-SA-3.0-DE.txt
 licenses/CC0-1.0.txt
 licenses/GPL-2.0.txt
 licenses/GPL-3.0.txt

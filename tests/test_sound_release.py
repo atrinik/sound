@@ -38,9 +38,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(514, len(blockers))
+        self.assertEqual(489, len(blockers))
         self.assertEqual(
-            {"license/provenance": 318, "quality-review": 196},
+            {"license/provenance": 293, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -116,8 +116,8 @@ class SourceManifestTests(unittest.TestCase):
         self.assertFalse((ROOT / "background" / "durations").exists())
 
     def test_license_findings_fail_closed(self) -> None:
-        self.assertEqual("blocked", self.assets["background/fireside.mid"]["license"]["status"])
-        self.assertIn("per-asset license review", self.assets["background/fireside.mid"]["license"]["blocking_finding"])
+        self.assertEqual("blocked", self.assets["background/banrril.mid"]["license"]["status"])
+        self.assertIn("per-asset license review", self.assets["background/banrril.mid"]["license"]["blocking_finding"])
         for logical in (
             "background/campfire_tales.mid",
             "background/thonkdonk.ogg",
@@ -154,8 +154,22 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(121, candidates)
-        self.assertEqual(21, allowed)
+        self.assertEqual(89, candidates)
+        self.assertEqual(46, allowed)
+
+    def test_meritous_project_notice_does_not_approve_music(self) -> None:
+        notice = {
+            "description": "Meritous - http://www.asceai.net/meritous/ - GPLv3",
+            "reference": "background/LICENSE:64",
+        }
+        status, finding, expression, license_path = sound_release.notice_status(notice)
+        self.assertEqual("blocked", status)
+        self.assertEqual(
+            "notice has no reviewed full-work conversion and redistribution grant",
+            finding,
+        )
+        self.assertIsNone(expression)
+        self.assertIsNone(license_path)
 
     def test_vorbis_quality_review_is_an_immutable_release_gate(self) -> None:
         vorbis = [asset for asset in self.assets.values() if asset["source"]["codec"] == "vorbis"]
@@ -187,7 +201,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(21, len(reviewed["reviews"]))
+        self.assertEqual(46, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -286,7 +300,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "514 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "489 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:
@@ -366,7 +380,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            arguments = type("Arguments", (), {"logical_path": "background/fireside.mid", "output_directory": temporary})()
+            arguments = type("Arguments", (), {"logical_path": "background/banrril.mid", "output_directory": temporary})()
             with self.assertRaisesRegex(sound_release.ReleaseError, "passed per-asset license review"):
                 sound_release.command_build_review_candidate(arguments)
 

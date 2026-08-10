@@ -65,6 +65,12 @@
       "source_url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode.txt",
       "sha256": "3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f"
     },
+    "CC-BY-SA-3.0-DE": {
+      "installed_path": "/opt/atrinik-sound-license-texts/CC-BY-SA-3.0-DE.txt",
+      "archive_path": "licenses/CC-BY-SA-3.0-DE.txt",
+      "source_url": "https://raw.githubusercontent.com/spdx/license-list-data/5bf6d9610255540bfbee6890765a616042bf1e11/text/CC-BY-SA-3.0-DE.txt",
+      "sha256": "dfac6ca9c9b3082919f8e417e522e561e11c8402eab83e1099650b8e4347412d"
+    },
     "CC0-1.0": {
       "installed_path": "/opt/atrinik-sound-license-texts/CC0-1.0.txt",
       "archive_path": "licenses/CC0-1.0.txt",
