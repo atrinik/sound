@@ -372,7 +372,9 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_validation_dispatches_live_attestations_with_ci_permission(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
+        publisher = (ROOT / "tools" / "build-release-assets.sh").read_text(encoding="utf-8")
         self.assertRegex(workflow, r"(?m)^  issues: read$")
+        self.assertIn("--env GH_TOKEN", publisher)
         reviews = {"background/example.ogg": {"evidence": {
             "artifact_locator": "evidence/review.json",
             "artifact_sha256": "a" * 64,

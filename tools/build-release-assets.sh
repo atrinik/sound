@@ -65,6 +65,7 @@ if [[ ${blocker_count} -eq 0 ]]; then
       --env ATRINIK_SOURCE_COMMIT="${source_commit}" \
       --env ATRINIK_SOURCE_TREE="${source_tree}" \
       --env ATRINIK_RELEASE_INPUT_ATTESTED \
+      --env GH_TOKEN \
       atrinik-sound-audio \
       python3 tools/sound_release.py build-runtime "${tag}" /output
   }
