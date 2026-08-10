@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import dataclasses
+import filecmp
 import gzip
 import hashlib
 import io
@@ -21,7 +22,8 @@ import sys
 import tarfile
 import tempfile
 import wave
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Iterator
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,16 +46,15 @@ FIXTURE_PATHS = (
 )
 REVIEWED_NOTICE_LICENSES = {
     'KQ - http://sourceforge.net/projects/kqlives/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
-    'Meritous - http://www.asceai.net/meritous/ - GPLv3': ("GPL-3.0-only", "licenses/GPL-3.0.txt"),
-    'http://piano-midi.de/ - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
+    'Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany': ("CC-BY-SA-3.0-DE", "licenses/CC-BY-SA-3.0-DE.txt"),
     'Edwin "Mamoru" Miltenburg - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'Allacrost - http://allacrost.org/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'Ecrivain - http://opengameart.org/users/Ecrivain - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
-    'Brandon Morris - http://opengameart.org/users/brandon-morris - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+    'Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
     'Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
     'Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
-    'GNU FreeDink - http://www.freedink.org/ - GPLv3': ("GPL-3.0-only", "licenses/GPL-3.0.txt"),
+    'Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+': ("GPL-3.0-or-later", "licenses/GPL-3.0.txt"),
     'Daniel "Lippy" Liptrot - CC-BY-SA 3.0': ("CC-BY-SA-3.0", "licenses/CC-BY-SA-3.0.txt"),
     'OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'ZhayTee - http://www.zhaymusic.com/ - GPLv2': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
@@ -457,12 +458,15 @@ def source_metadata(path: Path) -> SourceMetadata:
 
 def notice_catalog(directory: Path) -> dict[str, dict[str, str]]:
     license_path = directory / "LICENSE"
-    lines = license_path.read_text(encoding="utf-8").splitlines()
+    lines = license_path.read_bytes().decode("utf-8").splitlines(keepends=True)
     current = ""
+    current_raw = ""
     notices: dict[str, dict[str, str]] = {}
-    for line_number, line in enumerate(lines, 1):
+    for line_number, raw_line in enumerate(lines, 1):
+        line = raw_line.rstrip("\r\n")
         if line and not line[0].isspace() and line.endswith(":"):
             current = line[:-1]
+            current_raw = raw_line
             continue
         match = re.match(r"^\s{4}([A-Za-z0-9_.-]+\.(?:mid|mod|s3m|xm|ogg))\b", line)
         if match and current:
@@ -472,6 +476,7 @@ def notice_catalog(directory: Path) -> dict[str, dict[str, str]]:
             notices[filename] = {
                 "description": current,
                 "reference": f"{directory.name}/LICENSE:{line_number}",
+                "text": current_raw + raw_line,
             }
     return notices
 
@@ -493,8 +498,8 @@ def notice_status(
     return "candidate", "per-asset license review evidence is missing", expression, license_text_path
 
 
-def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> None:
-    locator = evidence.get("artifact_locator", evidence.get("locator"))
+def verify_review_artifact(artifact: dict[str, object], logical_path: str) -> None:
+    locator = artifact.get("artifact_locator", artifact.get("locator"))
     pure = PurePosixPath(str(locator))
     if not isinstance(locator, str) or not locator.startswith("evidence/") or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != locator:
         raise ReleaseError(f"review evidence locator is unsafe or not repository-owned: {logical_path}")
@@ -506,15 +511,299 @@ def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> No
     except ReleaseError as exc:
         if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1" or git_metadata_available():
             raise ReleaseError(f"review evidence is not Git-tracked: {logical_path}") from exc
-    if sha256(path) != evidence.get("artifact_sha256", evidence.get("sha256")):
+    if sha256(path) != artifact.get("artifact_sha256", artifact.get("sha256")):
         raise ReleaseError(f"review evidence hash mismatch: {logical_path}")
 
 
+def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> None:
+    verify_review_artifact(evidence, logical_path)
+    artifacts = evidence.get("artifacts", [])
+    if not isinstance(artifacts, list):
+        raise ReleaseError(f"review supporting artifacts are invalid: {logical_path}")
+    for artifact in artifacts:
+        if not isinstance(artifact, dict):
+            raise ReleaseError(f"review supporting artifact is invalid: {logical_path}")
+        verify_review_artifact(artifact, logical_path)
+
+
+def checked_critical_listening_result(path: Path) -> dict[str, object]:
+    value = read_json(path)
+    validate_schema_instance(value, checked_schema("critical-listening-review-v1.schema.json"))
+    assert isinstance(value, dict)
+    try:
+        reviewed_at = datetime.strptime(str(value["reviewed_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except ValueError as exc:
+        raise ReleaseError("critical-listening result has a non-canonical review timestamp") from exc
+    if reviewed_at > datetime.now(UTC):
+        raise ReleaseError("critical-listening result has a future review timestamp")
+    reviews = value["reviews"]
+    assert isinstance(reviews, list)
+    for review in reviews:
+        assert isinstance(review, dict)
+        for field in ("artifacts", "noise_floor", "duration_tail", "loop_boundary"):
+            if len(str(review[field]).strip()) < 8:
+                raise ReleaseError(f"critical-listening result lacks substantive {field} notes: {review['logical_path']}")
+    return value
+
+
+def quality_review_input_sha256(assets: list[dict[str, object]]) -> str:
+    inputs = [
+        {key: value for key, value in asset.items() if key != "quality_review"}
+        for asset in sorted(assets, key=lambda item: str(item["logical_path"]))
+    ]
+    return hashlib.sha256(canonical_json(inputs)).hexdigest()
+
+
+@contextlib.contextmanager
+def archived_repository_tree(source_tree: str) -> Iterator[Path]:
+    try:
+        archive = subprocess.run(
+            ["git", "archive", "--format=tar", source_tree],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        detail = getattr(exc, "stderr", b"")
+        rendered = detail.decode("utf-8", errors="replace").strip() if isinstance(detail, bytes) else str(detail)
+        raise ReleaseError(f"cannot archive critical-listening source tree: {rendered}") from exc
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as stream:
+            members = stream.getmembers()
+            for member in members:
+                pure = PurePosixPath(member.name)
+                if pure.is_absolute() or ".." in pure.parts or not (member.isdir() or member.isfile()):
+                    raise ReleaseError("critical-listening source tree contains an unsafe archive member")
+            stream.extractall(root, members=members)
+        toolchain = read_json(root / "manifests" / "audio-toolchain.json")
+        tools = toolchain.get("tools") if isinstance(toolchain, dict) else None
+        probe = tools.get("sdl3_mixer_probe") if isinstance(tools, dict) else None
+        probe_source = probe.get("source_path") if isinstance(probe, dict) else None
+        required_export_ignored = ["tools/audio/Dockerfile", probe_source]
+        for relative in required_export_ignored:
+            pure = PurePosixPath(str(relative))
+            if not isinstance(relative, str) or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != relative:
+                raise ReleaseError("critical-listening source tree has an unsafe toolchain path")
+            destination = root / relative
+            try:
+                payload = subprocess.run(
+                    ["git", "show", f"{source_tree}:{relative}"],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                ).stdout
+            except (OSError, subprocess.CalledProcessError) as exc:
+                raise ReleaseError(f"critical-listening source tree lacks required toolchain input: {relative}") from exc
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(payload)
+        yield root
+
+
+@contextlib.contextmanager
+def repository_root(root: Path) -> Iterator[None]:
+    global ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS
+    global LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT
+    previous = (
+        ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS,
+        LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT,
+    )
+    ROOT = root
+    SOURCE_MANIFEST = root / "manifests" / "source-assets.json"
+    TOOLCHAIN = root / "manifests" / "audio-toolchain.json"
+    FIXTURE_PLAN = root / "manifests" / "fixture-plan.json"
+    QUALITY_REVIEWS = root / "manifests" / "vorbis-quality-reviews.json"
+    LICENSE_REVIEWS = root / "manifests" / "license-reviews.json"
+    TRACKER_DURATIONS = root / "manifests" / "tracker-durations.json"
+    SCHEMA_ROOT = root / "schemas"
+    try:
+        yield
+    finally:
+        (
+            ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS,
+            LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT,
+        ) = previous
+
+
+def review_snapshot_manifest(result: dict[str, object]) -> tuple[dict[str, object], bool]:
+    source_tree = str(result.get("source_tree", ""))
+    if not re.fullmatch(r"[0-9a-f]{40}", source_tree):
+        raise ReleaseError("critical-listening result lacks an immutable source tree")
+    if git_metadata_available():
+        completed = run([
+            "git", "show", f"{source_tree}:manifests/source-assets.json",
+        ], capture=True)
+        try:
+            snapshot = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            raise ReleaseError("critical-listening source tree has an invalid source manifest") from exc
+        if not isinstance(snapshot, dict):
+            raise ReleaseError("critical-listening source tree has an invalid source manifest")
+        with archived_repository_tree(source_tree) as snapshot_root, repository_root(snapshot_root):
+            expected = build_source_manifest()
+        if canonical_json(snapshot) != canonical_json(expected):
+            raise ReleaseError("critical-listening source tree has a non-canonical source manifest")
+        return snapshot, True
+    if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1":
+        raise ReleaseError("critical-listening source tree requires Git metadata")
+    return checked_manifest(), False
+
+
+def quality_review_bundle_contract(
+    result: dict[str, object],
+) -> dict[str, object]:
+    current_manifest = checked_manifest()
+    assets = current_manifest.get("assets")
+    assert isinstance(assets, list)
+    current_by_path = {
+        str(asset["logical_path"]): asset for asset in assets if isinstance(asset, dict)
+    }
+    reviews = result.get("reviews")
+    assert isinstance(reviews, list)
+    bundle_assets: list[dict[str, object]] = []
+    seen_paths: set[str] = set()
+    for review in reviews:
+        assert isinstance(review, dict)
+        logical_path = str(review["logical_path"])
+        if logical_path in seen_paths:
+            raise ReleaseError(f"duplicate critical-listening result: {logical_path}")
+        seen_paths.add(logical_path)
+        current = current_by_path.get(logical_path)
+        candidate_evidence = review.get("candidate_evidence")
+        if current is None or not isinstance(candidate_evidence, dict):
+            raise ReleaseError(f"critical-listening result references an unknown asset: {logical_path}")
+        source = current.get("source")
+        license_contract = current.get("license")
+        measurements = candidate_evidence.get("measurements")
+        rendered_pcm = measurements.get("rendered_pcm") if isinstance(measurements, dict) else None
+        candidate_gain = rendered_pcm.get("applied_gain_db") if isinstance(rendered_pcm, dict) else None
+        invalid = (
+            not isinstance(source, dict),
+            not isinstance(license_contract, dict),
+            not isinstance(rendered_pcm, dict),
+            source.get("sha256") != review.get("source_sha256") if isinstance(source, dict) else True,
+            license_contract.get("status") != "allowed" if isinstance(license_contract, dict) else True,
+            candidate_evidence.get("logical_path") != logical_path,
+            candidate_evidence.get("source_sha256") != review.get("source_sha256"),
+            candidate_evidence.get("output_sha256") != review.get("output_sha256"),
+            candidate_evidence.get("toolchain_sha256") != result.get("toolchain_sha256"),
+            candidate_evidence.get("generated_path") != current.get("generated_path"),
+            not isinstance(candidate_gain, (int, float)) or isinstance(candidate_gain, bool),
+        )
+        if any(invalid):
+            raise ReleaseError(f"critical-listening result does not match the current asset: {logical_path}")
+        candidate_root = PurePosixPath("candidates") / PurePosixPath(logical_path)
+        expected_evidence_path = (candidate_root / "review-evidence.json").as_posix()
+        if review.get("review_evidence_path") != expected_evidence_path:
+            raise ReleaseError(f"critical-listening result has a stale evidence path: {logical_path}")
+        bundle_assets.append({
+            "logical_path": logical_path,
+            "source_path": (PurePosixPath("sources") / PurePosixPath(logical_path)).as_posix(),
+            "source_sha256": review["source_sha256"],
+            "candidate_path": (candidate_root / str(current["generated_path"])).as_posix(),
+            "output_sha256": review["output_sha256"],
+            "candidate_gain_db": candidate_gain,
+            "review_evidence_path": expected_evidence_path,
+            "candidate_evidence": candidate_evidence,
+        })
+    asset_classes = {str(asset["logical_path"]).partition("/")[0] for asset in bundle_assets}
+    if len(asset_classes) != 1 or not asset_classes <= {"background", "effects"}:
+        raise ReleaseError("critical-listening result must contain exactly one asset class")
+    asset_class = next(iter(asset_classes))
+    snapshot_manifest, snapshot_verified = review_snapshot_manifest(result)
+    expected_assets = eligible_vorbis_review_assets(snapshot_manifest, asset_class)
+    if not snapshot_verified:
+        expected_assets = [
+            current_by_path[str(asset["logical_path"])]
+            for asset in bundle_assets
+        ]
+    expected_paths = {str(asset["logical_path"]) for asset in expected_assets}
+    if {str(asset["logical_path"]) for asset in bundle_assets} != expected_paths:
+        raise ReleaseError("critical-listening result does not cover the exact eligible asset set")
+    review_input_sha256 = quality_review_input_sha256(expected_assets)
+    if result.get("review_input_sha256") != review_input_sha256:
+        raise ReleaseError("critical-listening result has a stale review-input contract")
+    bundle: dict[str, object] = {
+        "schema_version": 1,
+        "non_publishing": True,
+        "source_tree": result["source_tree"],
+        "review_input_sha256": review_input_sha256,
+        "toolchain_sha256": result["toolchain_sha256"],
+        "assets": sorted(bundle_assets, key=lambda item: str(item["logical_path"])),
+    }
+    canonical_core = json.loads(canonical_json(bundle))
+    assert isinstance(canonical_core, dict)
+    bundle = canonical_core
+    bundle["contract_sha256"] = hashlib.sha256(canonical_json(bundle)).hexdigest()
+    bundle["worksheet_contract_sha256"] = worksheet_contract_sha256(bundle)
+    bundle["worksheet_sha256"] = hashlib.sha256(review_bundle_html(bundle)).hexdigest()
+    if bundle["contract_sha256"] != result.get("review_bundle_sha256"):
+        raise ReleaseError("critical-listening result does not bind its canonical review bundle")
+    if bundle["worksheet_contract_sha256"] != result.get("worksheet_contract_sha256"):
+        raise ReleaseError("critical-listening result does not bind its canonical worksheet")
+    return bundle
+
+
+def verify_quality_review_source_tree(result: dict[str, object], artifact_locator: str) -> None:
+    if not git_metadata_available():
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") == "1":
+            return
+        raise ReleaseError("quality-review source-tree binding requires Git metadata")
+    introductions = run([
+        "git", "log", "--follow", "--diff-filter=A", "--format=%H", "--", artifact_locator,
+    ], capture=True).stdout.splitlines()
+    if len(introductions) != 1:
+        raise ReleaseError("quality-review evidence lacks one Git introduction commit")
+    parents = run([
+        "git", "show", "-s", "--format=%P", introductions[0],
+    ], capture=True).stdout.split()
+    if len(parents) != 1:
+        raise ReleaseError("quality-review evidence introduction must have one parent")
+    parent_tree = run([
+        "git", "rev-parse", f"{parents[0]}^{{tree}}",
+    ], capture=True).stdout.strip()
+    if parent_tree != result.get("source_tree"):
+        raise ReleaseError("quality-review evidence was not introduced over its source tree")
+
+
+def verify_quality_review_result(
+    entry: dict[str, object],
+    evidence: dict[str, object],
+    logical_path: str,
+    verified_result: dict[str, object] | None = None,
+) -> None:
+    result = verified_result
+    if result is None:
+        result = checked_critical_listening_result(ROOT / str(evidence["artifact_locator"]))
+        quality_review_bundle_contract(result)
+        verify_quality_review_source_tree(result, str(evidence["artifact_locator"]))
+    reviews = result["reviews"]
+    assert isinstance(reviews, list)
+    matches = [review for review in reviews if isinstance(review, dict) and review.get("logical_path") == logical_path]
+    if len(matches) != 1:
+        raise ReleaseError(f"quality-review artifact lacks one exact result: {logical_path}")
+    review = matches[0]
+    candidate_evidence = review.get("candidate_evidence")
+    if not isinstance(candidate_evidence, dict) or any((
+        review.get("verdict") != "passed",
+        result.get("reviewed_by") != entry.get("reviewed_by"),
+        result.get("reviewed_at") != entry.get("reviewed_at"),
+        result.get("toolchain_sha256") != entry.get("toolchain_sha256"),
+        review.get("source_sha256") != entry.get("source_sha256"),
+        review.get("output_sha256") != entry.get("output_sha256"),
+        candidate_evidence.get("logical_path") != logical_path,
+        candidate_evidence.get("source_sha256") != entry.get("source_sha256"),
+        candidate_evidence.get("output_sha256") != entry.get("output_sha256"),
+        candidate_evidence.get("toolchain_sha256") != entry.get("toolchain_sha256"),
+    )):
+        raise ReleaseError(f"quality-review ledger does not match passed artifact: {logical_path}")
+
+
 def checked_quality_reviews() -> dict[str, dict[str, object]]:
-    schema = checked_schema("vorbis-quality-reviews-v1.schema.json")
+    schema = checked_schema("vorbis-quality-reviews-v2.schema.json")
     value = read_json(QUALITY_REVIEWS)
-    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/vorbis-quality-reviews-v1.schema.json" or value.get("schema_version") != 1:
-        raise ReleaseError("Vorbis quality-review root must use schema version 1")
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/vorbis-quality-reviews-v2.schema.json" or value.get("schema_version") != 2:
+        raise ReleaseError("Vorbis quality-review root must use schema version 2")
     entries = value.get("reviews")
     if not isinstance(entries, list):
         raise ReleaseError("Vorbis quality reviews must be an array")
@@ -537,7 +826,7 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"quality review has a stale toolchain hash: {logical_path}")
         if not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("output_sha256", ""))):
             raise ReleaseError(f"quality review lacks an output hash: {logical_path}")
-        if not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", str(entry.get("reviewed_by", ""))):
+        if not re.fullmatch(r"(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?", str(entry.get("reviewed_by", ""))):
             raise ReleaseError(f"quality review lacks a GitHub reviewer identity: {logical_path}")
         reviewed_at = entry.get("reviewed_at")
         try:
@@ -546,12 +835,24 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
         except ValueError as exc:
             raise ReleaseError(f"quality review has a non-canonical UTC timestamp: {logical_path}") from exc
         evidence = entry.get("evidence")
-        if not isinstance(evidence, dict) or set(evidence) != {"method", "artifact_locator", "artifact_sha256", "notes"}:
+        if not isinstance(evidence, dict) or set(evidence) != {"method", "artifact_locator", "artifact_sha256", "github_attestation_url", "notes"}:
             raise ReleaseError(f"quality review lacks immutable evidence: {logical_path}")
-        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"evidence/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)*", str(evidence.get("artifact_locator", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
+        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"evidence/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)*", str(evidence.get("artifact_locator", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not re.fullmatch(r"https://github\.com/atrinik/sound/issues/(21|22)#issuecomment-[1-9][0-9]*", str(evidence.get("github_attestation_url", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
             raise ReleaseError(f"quality review has invalid evidence: {logical_path}")
         verify_review_evidence(evidence, logical_path)
         reviews[logical_path] = entry
+    verified_results: dict[tuple[str, str], dict[str, object]] = {}
+    for logical_path, entry in reviews.items():
+        evidence = entry["evidence"]
+        assert isinstance(evidence, dict)
+        key = (str(evidence["artifact_locator"]), str(evidence["artifact_sha256"]))
+        result = verified_results.get(key)
+        if result is None:
+            result = checked_critical_listening_result(ROOT / key[0])
+            quality_review_bundle_contract(result)
+            verify_quality_review_source_tree(result, key[0])
+            verified_results[key] = result
+        verify_quality_review_result(entry, evidence, logical_path, result)
     return reviews
 
 
@@ -566,11 +867,11 @@ def codec_contract(suffix: str) -> tuple[str, str, str]:
 
 
 def checked_license_reviews() -> dict[str, dict[str, object]]:
-    checked_schema("license-reviews-v1.schema.json")
+    checked_schema("license-reviews-v2.schema.json")
     value = read_json(LICENSE_REVIEWS)
-    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/license-reviews-v1.schema.json" or value.get("schema_version") != 1 or not isinstance(value.get("reviews"), list):
-        raise ReleaseError("license-review ledger must use the complete version 1 contract")
-    validate_schema_instance(value, checked_schema("license-reviews-v1.schema.json"))
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "reviews"} or value.get("$schema") != "../schemas/license-reviews-v2.schema.json" or value.get("schema_version") != 2 or not isinstance(value.get("reviews"), list):
+        raise ReleaseError("license-review ledger must use the complete version 2 contract")
+    validate_schema_instance(value, checked_schema("license-reviews-v2.schema.json"))
     reviews: dict[str, dict[str, object]] = {}
     for review in value["reviews"]:
         assert isinstance(review, dict)
@@ -579,15 +880,37 @@ def checked_license_reviews() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"duplicate license review: {logical}")
         reviewed_at = str(review["reviewed_at"])
         try:
-            if datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%dT%H:%M:%SZ") != reviewed_at:
+            parsed_reviewed_at = datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+            if parsed_reviewed_at.strftime("%Y-%m-%dT%H:%M:%SZ") != reviewed_at:
                 raise ValueError
         except ValueError as exc:
             raise ReleaseError(f"license review has a non-canonical UTC timestamp: {logical}") from exc
+        if parsed_reviewed_at > datetime.now(UTC):
+            raise ReleaseError(f"license review has a future timestamp: {logical}")
         evidence = review["evidence"]
         assert isinstance(evidence, dict)
         verify_review_evidence(evidence, logical)
         reviews[logical] = review
     return reviews
+
+
+def published_quality_review(review: dict[str, object]) -> dict[str, object]:
+    evidence = review.get("evidence")
+    if not isinstance(evidence, dict):
+        raise ReleaseError("passed quality review lacks evidence")
+    attestation_url = evidence.get("github_attestation_url")
+    if not isinstance(attestation_url, str):
+        raise ReleaseError("passed quality review lacks a GitHub attestation")
+    published_evidence = {
+        key: value for key, value in evidence.items()
+        if key != "github_attestation_url"
+    }
+    published_evidence["notes"] = (
+        f"{str(evidence.get('notes', '')).strip()} "
+        f"Quality-review record SHA-256: {hashlib.sha256(canonical_json(review)).hexdigest()}; "
+        f"GitHub attestation: {attestation_url}"
+    )
+    return {**review, "evidence": published_evidence}
 
 
 def build_source_manifest() -> dict[str, object]:
@@ -610,7 +933,7 @@ def build_source_manifest() -> dict[str, object]:
         notice = catalogs[logical.parts[0]].get(logical.name)
         status, finding, expression, license_text_path = notice_status(notice)
         source_hash = sha256(path)
-        notice_hash = hashlib.sha256(notice["description"].encode("utf-8")).hexdigest() if notice else None
+        notice_hash = hashlib.sha256(notice["text"].encode("utf-8")).hexdigest() if notice else None
         review = license_reviews.get(relative)
         if status == "candidate" and review is not None:
             expected = (source_hash, notice_hash, expression)
@@ -620,6 +943,9 @@ def build_source_manifest() -> dict[str, object]:
             status, finding = "allowed", None
         elif status == "candidate":
             status = "blocked"
+        elif review is not None:
+            raise ReleaseError(f"license review does not apply to a reviewed notice: {relative}")
+        review_hash = hashlib.sha256(canonical_json(review)).hexdigest() if status == "allowed" else None
         generated = f"audio/{logical.parent}/{logical.name}.opus"
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
@@ -663,7 +989,7 @@ def build_source_manifest() -> dict[str, object]:
                 "second lossy generation from the only preserved Vorbis source; quality review required"
                 if path.suffix.lower() == ".ogg"
                 else "rendered from the preserved authored source at release time"
-            ),
+            ) + (f"; license review SHA-256: {review_hash}" if review_hash is not None else ""),
             "license": {
                 "status": status,
                 "notice": notice["description"] if notice else None,
@@ -678,7 +1004,7 @@ def build_source_manifest() -> dict[str, object]:
             quality_review = quality_reviews.get(relative)
             if quality_review is not None and quality_review.get("source_sha256") != asset["source"]["sha256"]:  # type: ignore[index]
                 raise ReleaseError(f"stale Vorbis quality review: {relative}")
-            asset["quality_review"] = quality_review or {
+            asset["quality_review"] = published_quality_review(quality_review) if quality_review is not None else {
                 "status": "blocked",
                 "blocking_finding": "second-generation Vorbis-to-Opus review evidence is missing",
                 "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
@@ -834,7 +1160,7 @@ def checked_toolchain() -> dict[str, object]:
         "encoder_complexity": 10,
         "clipping_allowed": False,
         "clipped_render_peak_target_dbfs": -2.0,
-        "clipped_render_policy": "deterministically attenuate only full-scale rendered PCM before encoding",
+        "clipped_render_policy": "deterministically attenuate rendered PCM above the peak target before encoding",
         "nonzero_pcm_required": True,
         "vorbis_generation": "second lossy generation; each output requires quality review",
     }
@@ -1118,10 +1444,10 @@ def inspect_wave(path: Path) -> dict[str, object]:
 
 def attenuate_clipped_wave(path: Path, target_dbfs: float) -> dict[str, object]:
     before = inspect_wave(path)
-    if not before["clipping"]:
+    target_peak = int(32767 * (10 ** (target_dbfs / 20))) / 32768
+    if float(before["peak"]) <= target_peak:
         return {**before, "input_peak": before["peak"], "input_clipping": False, "applied_gain_db": 0.0}
-    target_peak = int(32767 * (10 ** (target_dbfs / 20)))
-    gain = target_peak / 32768
+    gain = target_peak / float(before["peak"])
     replacement = path.with_suffix(".attenuated.wav")
     with contextlib.closing(wave.open(str(path), "rb")) as source:
         parameters = source.getparams()
@@ -1141,7 +1467,7 @@ def attenuate_clipped_wave(path: Path, target_dbfs: float) -> dict[str, object]:
     return {
         **after,
         "input_peak": before["peak"],
-        "input_clipping": True,
+        "input_clipping": before["clipping"],
         "applied_gain_db": round(20 * math.log10(gain), 4),
     }
 
@@ -1308,6 +1634,8 @@ def build_runtime(tag: str, output_directory: Path, *, fixtures: bool) -> Path:
         raise ReleaseError(f"invalid release tag: {tag}")
     manifest = checked_manifest()
     blockers = validate_manifest(manifest, verify_tracked=not fixtures)
+    if not fixtures and (os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1" or git_metadata_available()):
+        verify_quality_review_attestations(checked_quality_reviews())
     assets = manifest["assets"]
     assert isinstance(assets, list)
     if fixtures:
@@ -1437,24 +1765,15 @@ def command_measure_trackers(_arguments: argparse.Namespace) -> None:
     print(canonical_json(document).decode("utf-8"), end="")
 
 
-def command_build_review_candidate(arguments: argparse.Namespace) -> None:
-    manifest = checked_manifest()
-    validate_manifest(manifest)
-    assets = manifest["assets"]
-    assert isinstance(assets, list)
-    selected = [asset for asset in assets if isinstance(asset, dict) and asset.get("logical_path") == arguments.logical_path]
-    if len(selected) != 1:
-        raise ReleaseError(f"unknown review-candidate source: {arguments.logical_path}")
-    asset = selected[0]
-    license_contract = asset.get("license")
-    if not isinstance(license_contract, dict) or license_contract.get("status") != "allowed":
-        raise ReleaseError("review candidate requires a passed per-asset license review")
-    output_directory = Path(arguments.output_directory)
+def write_review_candidate(
+    asset: dict[str, object],
+    output_directory: Path,
+    toolchain: dict[str, object],
+    versions: dict[str, str],
+) -> dict[str, object]:
     output_directory.mkdir(parents=True, exist_ok=True)
     if any(output_directory.iterdir()):
         raise ReleaseError(f"review-candidate output directory must be empty: {output_directory}")
-    toolchain = checked_toolchain()
-    versions = verify_toolchain(toolchain)
     converted = convert_asset(asset, output_directory, toolchain)
     output = converted["output"]
     assert isinstance(output, dict)
@@ -1470,12 +1789,535 @@ def command_build_review_candidate(arguments: argparse.Namespace) -> None:
         "non_publishing": True,
     }
     atomic_write(output_directory / "review-evidence.json", canonical_json(evidence))
+    return evidence
+
+
+def eligible_vorbis_review_assets(
+    manifest: dict[str, object],
+    asset_class: str | None = None,
+) -> list[dict[str, object]]:
+    assets = manifest["assets"]
+    assert isinstance(assets, list)
+    return sorted([
+        asset for asset in assets
+        if isinstance(asset, dict)
+        and isinstance(asset.get("source"), dict)
+        and asset["source"].get("codec") == "vorbis"  # type: ignore[union-attr]
+        and isinstance(asset.get("license"), dict)
+        and asset["license"].get("status") == "allowed"  # type: ignore[union-attr]
+        and isinstance(asset.get("quality_review"), dict)
+        and asset["quality_review"].get("status") == "blocked"  # type: ignore[union-attr]
+        and (asset_class is None or str(asset["logical_path"]).startswith(f"{asset_class}/"))
+    ], key=lambda item: str(item["logical_path"]))
+
+
+def command_build_review_candidate(arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    validate_manifest(manifest)
+    assets = manifest["assets"]
+    assert isinstance(assets, list)
+    selected = [asset for asset in assets if isinstance(asset, dict) and asset.get("logical_path") == arguments.logical_path]
+    if len(selected) != 1:
+        raise ReleaseError(f"unknown review-candidate source: {arguments.logical_path}")
+    asset = selected[0]
+    license_contract = asset.get("license")
+    if not isinstance(license_contract, dict) or license_contract.get("status") != "allowed":
+        raise ReleaseError("review candidate requires a passed per-asset license review")
+    output_directory = Path(arguments.output_directory)
+    toolchain = checked_toolchain()
+    evidence = write_review_candidate(asset, output_directory, toolchain, verify_toolchain(toolchain))
     print(output_directory / str(asset["generated_path"]))
+
+
+WORKSHEET_CONTRACT_PLACEHOLDER = "ATRINIK_WORKSHEET_CONTRACT_SHA256_PLACEHOLDER"
+
+
+def review_bundle_html_template(bundle: dict[str, object]) -> bytes:
+    assets_json = json.dumps(bundle["assets"], ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    document = f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atrinik critical-listening review</title>
+<style>
+body{{font:16px/1.45 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#18202a;background:#f5f7fa}}
+h1,h2{{line-height:1.2}} .notice,.asset{{background:white;border:1px solid #ccd4df;border-radius:8px;padding:1rem;margin:1rem 0}}
+.transport{{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin:.75rem 0}} .transport button[aria-pressed="true"]{{outline:3px solid #2764c4}}
+.transport input[type="range"]{{flex:1;min-width:12rem}} .transport input[type="checkbox"],.procedure input{{width:auto}} audio{{display:none}} label{{display:block;font-weight:650;margin-top:.75rem}}
+textarea,input,select{{box-sizing:border-box;width:100%;font:inherit;padding:.5rem}} textarea{{min-height:4.5rem}} button{{font:inherit;padding:.65rem 1rem}}
+code{{overflow-wrap:anywhere}} .hash,.gain{{font-size:.82rem}}
+</style></head><body>
+<h1>Atrinik critical-listening review</h1>
+<div class="notice"><p>This is a non-publishing review aid. Use headphones and representative speakers. Listen to each complete source and candidate at normal and revealing levels, then compare loop boundaries. Do not pass a track with audible codec artifacts, tonal or transient changes, noise-floor modulation, truncation, tail loss, or a loop discontinuity.</p>
+<label>GitHub reviewer identity <input id="reviewer" autocomplete="username" placeholder="username" pattern="(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?"></label>
+<fieldset class="procedure"><legend>Required procedure attestations</legend>
+<label><input type="checkbox" id="headphones"> I reviewed every pair on headphones.</label>
+<label><input type="checkbox" id="speakers"> I reviewed every pair on representative speakers.</label>
+<label><input type="checkbox" id="loops"> I compared every loop boundary.</label></fieldset></div>
+<main id="assets"></main><button id="export">Export completed review JSON</button>
+<script>const assets={assets_json};const root=document.querySelector('#assets');let playingAudio=null;
+for(const a of assets){{const s=document.createElement('section');s.className='asset';s.dataset.logical=a.logical_path;s.dataset.sourceComplete='false';s.dataset.candidateComplete='false';
+const h=document.createElement('h2');h.textContent=a.logical_path;s.append(h);
+const hashes=document.createElement('p');hashes.className='hash';hashes.innerHTML='<code>'+a.source_sha256+'</code> → <code>'+a.output_sha256+'</code>';s.append(hashes);
+const gain=document.createElement('p');gain.className='gain';gain.textContent='Candidate gain: '+a.candidate_gain_db.toFixed(4)+' dB. Source playback is level-matched by the same amount for unbiased A/B comparison.';s.append(gain);
+const source=document.createElement('audio');source.preload='auto';source.src=a.source_path;source.volume=Math.pow(10,a.candidate_gain_db/20);
+const candidate=document.createElement('audio');candidate.preload='auto';candidate.src=a.candidate_path;
+const transport=document.createElement('div');transport.className='transport';
+const play=document.createElement('button');play.type='button';play.textContent='Play';
+const sourceButton=document.createElement('button');sourceButton.type='button';sourceButton.textContent='A: source';sourceButton.setAttribute('aria-pressed','true');
+const candidateButton=document.createElement('button');candidateButton.type='button';candidateButton.textContent='B: candidate';candidateButton.setAttribute('aria-pressed','false');
+const seek=document.createElement('input');seek.type='range';seek.min='0';seek.max='1000';seek.value='0';seek.setAttribute('aria-label','Playback position');
+const loopLabel=document.createElement('label');loopLabel.textContent=' Loop';loopLabel.style.margin='0';const loop=document.createElement('input');loop.type='checkbox';loopLabel.prepend(loop);
+const time=document.createElement('span');time.textContent='0:00';transport.append(play,sourceButton,candidateButton,seek,loopLabel,time);s.append(source,candidate,transport);const playback=document.createElement('p');playback.textContent='Complete playback: source pending; candidate pending';s.append(playback);
+let active=source;const other=()=>active===source?candidate:source;const sync=()=>{{if(Number.isFinite(active.duration)&&active.duration>0){{seek.value=String(Math.round(1000*active.currentTime/active.duration));time.textContent=Math.floor(active.currentTime/60)+':'+String(Math.floor(active.currentTime%60)).padStart(2,'0')}}}};
+const switchTo=next=>{{if(next===active)return;const wasPlaying=!active.paused;const at=active.currentTime;active.pause();active=next;active.currentTime=Math.min(at,Number.isFinite(active.duration)?active.duration:at);sourceButton.setAttribute('aria-pressed',String(active===source));candidateButton.setAttribute('aria-pressed',String(active===candidate));if(wasPlaying)active.play()}};
+const completePlayback=audio=>{{if(!Number.isFinite(audio.duration)||audio.duration<=0)return false;let coveredUntil=0;for(let i=0;i<audio.played.length;i++){{const start=audio.played.start(i),end=audio.played.end(i);if(start>coveredUntil+0.25)return false;coveredUntil=Math.max(coveredUntil,end)}}return coveredUntil>=audio.duration-0.25}};
+play.onclick=()=>{{if(active.paused)active.play();else active.pause()}};sourceButton.onclick=()=>switchTo(source);candidateButton.onclick=()=>switchTo(candidate);
+seek.oninput=()=>{{if(Number.isFinite(active.duration))active.currentTime=active.duration*Number(seek.value)/1000}};loop.onchange=()=>{{source.loop=loop.checked;candidate.loop=loop.checked}};
+for(const audio of [source,candidate]){{audio.ontimeupdate=sync;audio.onplay=()=>{{if(playingAudio&&playingAudio!==audio)playingAudio.pause();playingAudio=audio;other().pause();play.textContent='Pause'}};audio.onpause=()=>{{if(playingAudio===audio)playingAudio=null;if(other().paused)play.textContent='Play'}};audio.onended=()=>{{if(playingAudio===audio)playingAudio=null;const complete=completePlayback(audio);if(audio===source)s.dataset.sourceComplete=String(complete);else s.dataset.candidateComplete=String(complete);playback.textContent='Complete playback: source '+(s.dataset.sourceComplete==='true'?'done':'pending')+'; candidate '+(s.dataset.candidateComplete==='true'?'done':'pending')+(complete?'':' — seeking cannot replace full playback');play.textContent='Play';sync()}}}}
+for(const [name,label] of [['artifacts','Codec artifacts / tonal / transient changes'],['noise_floor','Noise floor and low-level content'],['duration_tail','Complete duration, tail, and truncation'],['loop_boundary','Loop-boundary comparison']]){{const l=document.createElement('label');l.textContent=label;const t=document.createElement('textarea');t.dataset.field=name;l.append(t);s.append(l)}}
+const v=document.createElement('label');v.textContent='Verdict';const select=document.createElement('select');select.dataset.field='verdict';select.innerHTML='<option value="">Select…</option><option value="passed">Passed</option><option value="failed">Failed</option>';v.append(select);s.append(v);root.append(s)}}
+document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;const reviewerValid=/^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{{0,37}}[A-Za-z0-9])?$/.test(reviewer);const procedure={{headphones_checked:document.querySelector('#headphones').checked,representative_speakers_checked:document.querySelector('#speakers').checked,loop_boundaries_checked:document.querySelector('#loops').checked}};if(!Object.values(procedure).every(Boolean))missing=true;
+const reviewFieldComplete=(name,value)=>name==='verdict'?['passed','failed'].includes(value):value.length>=8;
+for(const section of document.querySelectorAll('.asset')){{const meta=assets.find(a=>a.logical_path===section.dataset.logical);const values={{logical_path:section.dataset.logical,source_sha256:meta.source_sha256,output_sha256:meta.output_sha256,review_evidence_path:meta.review_evidence_path,candidate_evidence:meta.candidate_evidence,source_playback_completed:section.dataset.sourceComplete==='true',candidate_playback_completed:section.dataset.candidateComplete==='true'}};if(!values.source_playback_completed||!values.candidate_playback_completed)missing=true;for(const field of section.querySelectorAll('[data-field]')){{const name=field.dataset.field;values[name]=field.value.trim();if(!reviewFieldComplete(name,values[name]))missing=true}}reviews.push(values)}}
+if(missing){{alert('Complete both full playbacks, all procedure attestations, substantive notes, reviewer identity, and every verdict before export.');return}}
+if(!reviewerValid){{alert('Use a valid GitHub username without a leading @.');return}}
+const payload={{$schema:'https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json',schema_version:1,non_publishing:true,reviewed_by:reviewer,reviewed_at:new Date().toISOString().replace(/\\.\\d{{3}}Z$/,'Z'),source_tree:'{bundle["source_tree"]}',review_input_sha256:'{bundle["review_input_sha256"]}',toolchain_sha256:'{bundle["toolchain_sha256"]}',review_bundle_sha256:'{bundle["contract_sha256"]}',worksheet_contract_sha256:'{WORKSHEET_CONTRACT_PLACEHOLDER}',procedure,reviews}};
+const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)+'\\n'],{{type:'application/json'}}));const link=document.createElement('a');link.href=url;link.download='atrinik-critical-listening-review.json';link.click();URL.revokeObjectURL(url)}};</script>
+</body></html>"""
+    return document.encode("utf-8")
+
+
+def review_bundle_html(bundle: dict[str, object]) -> bytes:
+    template = review_bundle_html_template(bundle)
+    contract_hash = hashlib.sha256(template).hexdigest().encode("ascii")
+    placeholder = WORKSHEET_CONTRACT_PLACEHOLDER.encode("ascii")
+    if template.count(placeholder) != 1:
+        raise ReleaseError("critical-listening worksheet contract placeholder is invalid")
+    return template.replace(placeholder, contract_hash)
+
+
+def worksheet_contract_sha256(bundle: dict[str, object]) -> str:
+    return hashlib.sha256(review_bundle_html_template(bundle)).hexdigest()
+
+
+def command_build_review_bundle(arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    validate_manifest(manifest)
+    asset_class = getattr(arguments, "asset_class", None)
+    selected = eligible_vorbis_review_assets(manifest, asset_class)
+    if not selected:
+        raise ReleaseError("no license-approved Vorbis sources await quality review")
+    selected_classes = {str(asset["logical_path"]).partition("/")[0] for asset in selected}
+    if len(selected_classes) != 1:
+        raise ReleaseError("eligible reviews span asset classes; select --asset-class background or effects")
+    output_directory = Path(arguments.output_directory)
+    output_directory.mkdir(parents=True, exist_ok=True)
+    if any(output_directory.iterdir()):
+        raise ReleaseError(f"review-bundle output directory must be empty: {output_directory}")
+    toolchain = checked_toolchain()
+    versions = verify_toolchain(toolchain)
+    bundle_assets: list[dict[str, object]] = []
+    for asset in selected:
+        logical_path = str(asset["logical_path"])
+        source_relative = PurePosixPath("sources") / PurePosixPath(logical_path)
+        source_output = output_directory / source_relative
+        source_output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / logical_path, source_output)
+        candidate_root = output_directory / "candidates" / PurePosixPath(logical_path)
+        evidence = write_review_candidate(asset, candidate_root, toolchain, versions)
+        candidate_relative = candidate_root.relative_to(output_directory) / str(asset["generated_path"])
+        bundle_assets.append({
+            "logical_path": logical_path,
+            "source_path": source_relative.as_posix(),
+            "source_sha256": evidence["source_sha256"],
+            "candidate_path": candidate_relative.as_posix(),
+            "output_sha256": evidence["output_sha256"],
+            "candidate_gain_db": evidence["measurements"]["rendered_pcm"]["applied_gain_db"],  # type: ignore[index]
+            "review_evidence_path": (candidate_root.relative_to(output_directory) / "review-evidence.json").as_posix(),
+            "candidate_evidence": evidence,
+        })
+    bundle = {
+        "schema_version": 1,
+        "non_publishing": True,
+        "source_tree": source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}"),
+        "review_input_sha256": quality_review_input_sha256(selected),
+        "toolchain_sha256": sha256(TOOLCHAIN),
+        "assets": bundle_assets,
+    }
+    canonical_core = json.loads(canonical_json(bundle))
+    assert isinstance(canonical_core, dict)
+    bundle = canonical_core
+    bundle["contract_sha256"] = hashlib.sha256(canonical_json(bundle)).hexdigest()
+    bundle["worksheet_contract_sha256"] = worksheet_contract_sha256(bundle)
+    worksheet = review_bundle_html(bundle)
+    bundle["worksheet_sha256"] = hashlib.sha256(worksheet).hexdigest()
+    bundle_bytes = canonical_json(bundle)
+    atomic_write(output_directory / "review-bundle.json", bundle_bytes)
+    atomic_write(output_directory / "index.html", worksheet)
+    write_tree_checksums(output_directory)
+    print(output_directory / "index.html")
+
+
+def checked_bundle_file(root: Path, relative: object, label: str) -> Path:
+    pure = PurePosixPath(str(relative))
+    if not isinstance(relative, str) or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != relative:
+        raise ReleaseError(f"unsafe {label} path in review bundle: {relative}")
+    path = root / pure
+    current = root
+    for part in pure.parts:
+        current /= part
+        if current.is_symlink():
+            raise ReleaseError(f"symlink {label} path in review bundle: {relative}")
+    if not path.is_file():
+        raise ReleaseError(f"missing {label} file in review bundle: {relative}")
+    return path
+
+
+def verify_tree_checksums(root: Path) -> None:
+    if root.is_symlink() or not root.is_dir():
+        raise ReleaseError(f"review bundle must be a regular directory: {root}")
+    checksum_path = checked_bundle_file(root, "SHA256SUMS", "checksum")
+    recorded: dict[str, str] = {}
+    for line in checksum_path.read_text(encoding="ascii").splitlines():
+        parts = line.split("  ", 1)
+        if len(parts) != 2 or not re.fullmatch(r"[0-9a-f]{64}", parts[0]) or parts[1] == "SHA256SUMS":
+            raise ReleaseError("malformed review-bundle SHA256SUMS entry")
+        if parts[1] in recorded:
+            raise ReleaseError(f"duplicate review-bundle checksum entry: {parts[1]}")
+        recorded[parts[1]] = parts[0]
+    expected: set[str] = set()
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise ReleaseError(f"review bundle contains a symlink: {path.relative_to(root)}")
+        if path.is_file() and path != checksum_path:
+            expected.add(path.relative_to(root).as_posix())
+    if set(recorded) != expected:
+        raise ReleaseError("review-bundle SHA256SUMS does not cover the exact file tree")
+    for relative, expected_hash in recorded.items():
+        if sha256(checked_bundle_file(root, relative, "checksummed")) != expected_hash:
+            raise ReleaseError(f"review-bundle checksum mismatch: {relative}")
+
+
+def verify_review_bundle_candidates(
+    bundle_root: Path,
+    bundle_by_path: dict[str, dict[str, object]],
+    expected_by_path: dict[str, dict[str, object]],
+) -> None:
+    toolchain = checked_toolchain()
+    versions = verify_toolchain(toolchain)
+    with tempfile.TemporaryDirectory(prefix="atrinik-sound-review-verify-") as temporary:
+        verification_root = Path(temporary)
+        for logical_path, bundled in bundle_by_path.items():
+            candidate_root = verification_root / PurePosixPath(logical_path)
+            reproduced = write_review_candidate(
+                expected_by_path[logical_path], candidate_root, toolchain, versions,
+            )
+            reproduced_candidate = candidate_root / str(reproduced["generated_path"])
+            bundled_candidate = checked_bundle_file(
+                bundle_root, bundled["candidate_path"], "candidate",
+            )
+            if reproduced != bundled["candidate_evidence"] or not filecmp.cmp(
+                reproduced_candidate, bundled_candidate, shallow=False,
+            ):
+                raise ReleaseError(
+                    f"review-bundle candidate is not the deterministic current output: {logical_path}"
+                )
+
+
+def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict[str, object], list[dict[str, object]]]:
+    verify_tree_checksums(bundle_root)
+    bundle_value = read_json(bundle_root / "review-bundle.json")
+    if not isinstance(bundle_value, dict) or set(bundle_value) != {
+        "schema_version", "non_publishing", "review_input_sha256", "toolchain_sha256",
+        "source_tree", "contract_sha256", "worksheet_contract_sha256", "worksheet_sha256", "assets",
+    } or bundle_value.get("schema_version") != 1 or bundle_value.get("non_publishing") is not True:
+        raise ReleaseError("invalid review-bundle manifest")
+    if bundle_value.get("source_tree") != source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}") or bundle_value.get("toolchain_sha256") != sha256(TOOLCHAIN):
+        raise ReleaseError("review bundle is stale for the current source tree or toolchain manifest")
+    bundle_assets = bundle_value.get("assets")
+    if not isinstance(bundle_assets, list):
+        raise ReleaseError("review-bundle assets must be an array")
+    index_path = checked_bundle_file(bundle_root, "index.html", "listening worksheet")
+    canonical_worksheet = review_bundle_html(bundle_value)
+    if index_path.read_bytes() != canonical_worksheet or bundle_value.get("worksheet_contract_sha256") != worksheet_contract_sha256(bundle_value) or bundle_value.get("worksheet_sha256") != hashlib.sha256(canonical_worksheet).hexdigest():
+        raise ReleaseError("review-bundle listening worksheet is not canonical")
+    core_bundle = {key: value for key, value in bundle_value.items() if key not in {"contract_sha256", "worksheet_contract_sha256", "worksheet_sha256"}}
+    if bundle_value.get("contract_sha256") != hashlib.sha256(canonical_json(core_bundle)).hexdigest():
+        raise ReleaseError("review-bundle contract hash is not canonical")
+    asset_classes = {
+        str(asset.get("logical_path", "")).partition("/")[0]
+        for asset in bundle_assets if isinstance(asset, dict)
+    }
+    if len(asset_classes) != 1 or not asset_classes <= {"background", "effects"}:
+        raise ReleaseError("review bundle must contain exactly one asset class")
+    asset_class = next(iter(asset_classes))
+    current_manifest = checked_manifest()
+    validate_manifest(current_manifest)
+    expected_by_path = {
+        str(asset["logical_path"]): asset
+        for asset in eligible_vorbis_review_assets(current_manifest, asset_class)
+    }
+    if bundle_value.get("review_input_sha256") != quality_review_input_sha256(list(expected_by_path.values())):
+        raise ReleaseError("review bundle is stale for the current review inputs")
+    bundle_by_path: dict[str, dict[str, object]] = {}
+    for asset in bundle_assets:
+        if not isinstance(asset, dict) or set(asset) != {
+            "logical_path", "source_path", "source_sha256", "candidate_path", "output_sha256",
+            "candidate_gain_db", "review_evidence_path", "candidate_evidence",
+        }:
+            raise ReleaseError("invalid review-bundle asset entry")
+        logical_path = str(asset["logical_path"])
+        if logical_path in bundle_by_path:
+            raise ReleaseError(f"duplicate review-bundle asset: {logical_path}")
+        current_asset = expected_by_path.get(logical_path)
+        if current_asset is None:
+            raise ReleaseError(f"review-bundle asset is not currently eligible: {logical_path}")
+        current_source = current_asset.get("source")
+        assert isinstance(current_source, dict)
+        expected_source_path = (PurePosixPath("sources") / PurePosixPath(logical_path)).as_posix()
+        expected_evidence_path = (PurePosixPath("candidates") / PurePosixPath(logical_path) / "review-evidence.json").as_posix()
+        expected_candidate_path = (PurePosixPath("candidates") / PurePosixPath(logical_path) / str(current_asset["generated_path"])).as_posix()
+        if asset["source_path"] != expected_source_path or asset["source_sha256"] != current_source.get("sha256") or asset["review_evidence_path"] != expected_evidence_path or asset["candidate_path"] != expected_candidate_path:
+            raise ReleaseError(f"review-bundle asset does not match the current manifest: {logical_path}")
+        source = checked_bundle_file(bundle_root, asset["source_path"], "source")
+        candidate = checked_bundle_file(bundle_root, asset["candidate_path"], "candidate")
+        evidence_path = checked_bundle_file(bundle_root, asset["review_evidence_path"], "candidate evidence")
+        evidence = read_json(evidence_path)
+        if sha256(source) != asset["source_sha256"] or sha256(candidate) != asset["output_sha256"]:
+            raise ReleaseError(f"review-bundle asset hash mismatch: {logical_path}")
+        if not isinstance(evidence, dict) or evidence.get("logical_path") != logical_path or evidence.get("source_sha256") != asset["source_sha256"] or evidence.get("output_sha256") != asset["output_sha256"] or evidence.get("toolchain_sha256") != bundle_value["toolchain_sha256"] or evidence.get("non_publishing") is not True:
+            raise ReleaseError(f"review-bundle evidence mismatch: {logical_path}")
+        if evidence.get("generated_path") != current_asset["generated_path"]:
+            raise ReleaseError(f"review-bundle generated path mismatch: {logical_path}")
+        if asset["candidate_evidence"] != evidence:
+            raise ReleaseError(f"review-bundle embedded evidence mismatch: {logical_path}")
+        measurements = evidence.get("measurements")
+        if not isinstance(measurements, dict) or not isinstance(measurements.get("rendered_pcm"), dict) or measurements["rendered_pcm"].get("applied_gain_db") != asset["candidate_gain_db"]:  # type: ignore[union-attr]
+            raise ReleaseError(f"review-bundle gain evidence mismatch: {logical_path}")
+        expected_candidate = (PurePosixPath(str(asset["review_evidence_path"])).parent / str(evidence.get("generated_path"))).as_posix()
+        if expected_candidate != asset["candidate_path"]:
+            raise ReleaseError(f"review-bundle candidate path mismatch: {logical_path}")
+        bundle_by_path[logical_path] = asset
+    if set(bundle_by_path) != set(expected_by_path):
+        raise ReleaseError("review bundle does not contain the exact currently eligible asset set")
+
+    validate_schema_instance(result, checked_schema("critical-listening-review-v1.schema.json"))
+    assert isinstance(result, dict)
+    if result.get("source_tree") != bundle_value["source_tree"] or result.get("review_input_sha256") != bundle_value["review_input_sha256"] or result.get("toolchain_sha256") != bundle_value["toolchain_sha256"] or result.get("review_bundle_sha256") != bundle_value["contract_sha256"] or result.get("worksheet_contract_sha256") != bundle_value["worksheet_contract_sha256"]:
+        raise ReleaseError("critical-listening result is stale for the review bundle")
+    try:
+        reviewed_at = datetime.strptime(str(result["reviewed_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except ValueError as exc:
+        raise ReleaseError("critical-listening result has a non-canonical review timestamp") from exc
+    if reviewed_at > datetime.now(UTC):
+        raise ReleaseError("critical-listening result has a future review timestamp")
+    reviews = result["reviews"]
+    assert isinstance(reviews, list)
+    reviews_by_path: dict[str, dict[str, object]] = {}
+    for review in reviews:
+        assert isinstance(review, dict)
+        logical_path = str(review["logical_path"])
+        if logical_path in reviews_by_path:
+            raise ReleaseError(f"duplicate critical-listening result: {logical_path}")
+        asset = bundle_by_path.get(logical_path)
+        if asset is None or any(review[key] != asset[key] for key in (
+            "source_sha256", "output_sha256", "review_evidence_path", "candidate_evidence",
+        )):
+            raise ReleaseError(f"critical-listening result does not match bundle: {logical_path}")
+        reviews_by_path[logical_path] = review
+    if set(reviews_by_path) != set(expected_by_path):
+        raise ReleaseError("critical-listening result does not cover the exact review bundle")
+    verify_review_bundle_candidates(bundle_root, bundle_by_path, expected_by_path)
+    return bundle_value, [reviews_by_path[path] for path in sorted(reviews_by_path)]
+
+
+def github_attestation_body(result_sha256: str) -> str:
+    return f"Atrinik critical-listening attestation v1\nresult_sha256: {result_sha256}"
+
+
+def checked_github_attestation(url: str, result: dict[str, object], result_sha256: str) -> None:
+    match = re.fullmatch(r"https://github\.com/atrinik/sound/issues/(21|22)#issuecomment-([1-9][0-9]*)", url)
+    if match is None:
+        raise ReleaseError("critical-listening result lacks a valid GitHub attestation URL")
+    issue_number, comment_id = match.groups()
+    reviews = result.get("reviews")
+    if not isinstance(reviews, list):
+        raise ReleaseError("critical-listening result lacks review entries")
+    asset_classes = {
+        str(review.get("logical_path", "")).partition("/")[0]
+        for review in reviews if isinstance(review, dict)
+    }
+    expected_issue = "22" if asset_classes == {"effects"} else "21" if asset_classes == {"background"} else None
+    if issue_number != expected_issue:
+        raise ReleaseError("GitHub attestation issue does not match the reviewed asset class")
+    completed = run(["gh", "api", f"repos/atrinik/sound/issues/comments/{comment_id}"], capture=True)
+    try:
+        comment = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise ReleaseError("GitHub returned an invalid critical-listening attestation") from exc
+    expected_html_url = f"https://github.com/atrinik/sound/issues/{issue_number}#issuecomment-{comment_id}"
+    expected_issue_url = f"https://api.github.com/repos/atrinik/sound/issues/{issue_number}"
+    user = comment.get("user") if isinstance(comment, dict) else None
+    node_id = comment.get("node_id") if isinstance(comment, dict) else None
+    if not isinstance(comment, dict) or comment.get("html_url") != expected_html_url or comment.get("issue_url") != expected_issue_url or comment.get("author_association") not in {"OWNER", "MEMBER", "COLLABORATOR"} or not isinstance(user, dict) or user.get("login") != result.get("reviewed_by") or not isinstance(node_id, str) or not node_id or str(comment.get("body", "")).strip() != github_attestation_body(result_sha256):
+        raise ReleaseError("GitHub critical-listening attestation does not match the review result")
+    try:
+        comment_time = datetime.strptime(str(comment["created_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        updated_time = datetime.strptime(str(comment["updated_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+        review_time = datetime.strptime(str(result["reviewed_at"]), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    except (KeyError, ValueError) as exc:
+        raise ReleaseError("GitHub critical-listening attestation has an invalid timestamp") from exc
+    if updated_time != comment_time:
+        raise ReleaseError("GitHub critical-listening attestation comment was edited")
+    edit_completed = run([
+        "gh", "api", "graphql",
+        "-f", "query=query($id:ID!){node(id:$id){... on IssueComment{lastEditedAt}}}",
+        "-F", f"id={node_id}",
+    ], capture=True)
+    try:
+        edit_state = json.loads(edit_completed.stdout)
+        edit_node = edit_state["data"]["node"]
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        raise ReleaseError("GitHub returned invalid critical-listening edit metadata") from exc
+    if not isinstance(edit_node, dict) or "lastEditedAt" not in edit_node:
+        raise ReleaseError("GitHub returned invalid critical-listening edit metadata")
+    if edit_node["lastEditedAt"] is not None:
+        raise ReleaseError("GitHub critical-listening attestation comment was edited")
+    reviewer = str(result["reviewed_by"])
+    permission_completed = run([
+        "gh", "api", f"repos/atrinik/sound/collaborators/{reviewer}/permission",
+    ], capture=True)
+    try:
+        permission = json.loads(permission_completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise ReleaseError("GitHub returned an invalid reviewer permission") from exc
+    if not isinstance(permission, dict) or permission.get("permission") not in {"write", "admin"} or not isinstance(permission.get("role_name"), str):
+        raise ReleaseError("critical-listening reviewer lacks repository write permission")
+    age_seconds = (comment_time - review_time).total_seconds()
+    if age_seconds < 0 or age_seconds > 24 * 60 * 60:
+        raise ReleaseError("critical-listening result timestamp is not bound to its GitHub attestation")
+
+
+def verify_quality_review_attestations(reviews: dict[str, dict[str, object]]) -> None:
+    verified: set[tuple[str, str]] = set()
+    for entry in reviews.values():
+        evidence = entry["evidence"]
+        assert isinstance(evidence, dict)
+        locator = str(evidence["artifact_locator"])
+        result_hash = str(evidence["artifact_sha256"])
+        url = str(evidence["github_attestation_url"])
+        key = (url, result_hash)
+        if key in verified:
+            continue
+        result = checked_critical_listening_result(ROOT / locator)
+        checked_github_attestation(url, result, result_hash)
+        verified.add(key)
+
+
+def proposed_quality_review_ledger(
+    bundle: dict[str, object],
+    result: dict[str, object],
+    reviews: list[dict[str, object]],
+    artifact_locator: str,
+    artifact_sha256: str,
+    github_attestation_url: str,
+) -> dict[str, object]:
+    existing = checked_quality_reviews()
+    entries = list(existing.values())
+    for review in reviews:
+        if review["verdict"] != "passed":
+            continue
+        logical_path = str(review["logical_path"])
+        if logical_path in existing:
+            raise ReleaseError(f"quality review already exists: {logical_path}")
+        entries.append({
+            "logical_path": logical_path,
+            "status": "passed",
+            "source_sha256": review["source_sha256"],
+            "toolchain_sha256": bundle["toolchain_sha256"],
+            "output_sha256": review["output_sha256"],
+            "reviewed_by": result["reviewed_by"],
+            "reviewed_at": result["reviewed_at"],
+            "evidence": {
+                "method": "critical-listening",
+                "artifact_locator": artifact_locator,
+                "artifact_sha256": artifact_sha256,
+                "github_attestation_url": github_attestation_url,
+                "notes": "Complete per-category notes and verdict are preserved in the hash-bound review artifact.",
+            },
+        })
+    document = {
+        "$schema": "../schemas/vorbis-quality-reviews-v2.schema.json",
+        "schema_version": 2,
+        "reviews": sorted(entries, key=lambda entry: str(entry["logical_path"])),
+    }
+    validate_schema_instance(document, checked_schema("vorbis-quality-reviews-v2.schema.json"))
+    return document
+
+
+def command_prepare_quality_review(arguments: argparse.Namespace) -> None:
+    locator = str(arguments.evidence_locator)
+    pure = PurePosixPath(locator)
+    if not locator.startswith("evidence/") or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != locator:
+        raise ReleaseError("critical-listening result must use a repository-owned evidence locator")
+    evidence_path = ROOT / pure
+    result = read_json(evidence_path)
+    result_sha256 = sha256(evidence_path)
+    verify_review_artifact({"artifact_locator": locator, "artifact_sha256": result_sha256}, "critical-listening bundle")
+    bundle, reviews = verify_review_bundle_result(Path(arguments.bundle_directory), result)
+    assert isinstance(result, dict)
+    github_attestation_url = str(arguments.github_attestation_url)
+    checked_github_attestation(github_attestation_url, result, result_sha256)
+    print(canonical_json(proposed_quality_review_ledger(
+        bundle, result, reviews, locator, result_sha256, github_attestation_url,
+    )).decode("utf-8"), end="")
+
+
+def verify_quality_review_outputs(reviews: dict[str, dict[str, object]]) -> None:
+    if not reviews:
+        return
+    manifest = checked_manifest()
+    assets = manifest.get("assets")
+    assert isinstance(assets, list)
+    current_by_path = {
+        str(asset["logical_path"]): asset for asset in assets if isinstance(asset, dict)
+    }
+    toolchain = checked_toolchain()
+    versions = verify_toolchain(toolchain)
+    results: dict[str, dict[str, object]] = {}
+    with tempfile.TemporaryDirectory(prefix="atrinik-sound-quality-verify-") as temporary:
+        output_root = Path(temporary)
+        for logical_path, entry in reviews.items():
+            evidence = entry["evidence"]
+            assert isinstance(evidence, dict)
+            locator = str(evidence["artifact_locator"])
+            if locator not in results:
+                results[locator] = checked_critical_listening_result(ROOT / locator)
+            result = results[locator]
+            result_reviews = result["reviews"]
+            assert isinstance(result_reviews, list)
+            matches = [
+                review for review in result_reviews
+                if isinstance(review, dict) and review.get("logical_path") == logical_path
+            ]
+            current = current_by_path.get(logical_path)
+            if len(matches) != 1 or current is None:
+                raise ReleaseError(f"quality-review output lacks a current source: {logical_path}")
+            candidate_root = output_root / PurePosixPath(logical_path)
+            reproduced = write_review_candidate(current, candidate_root, toolchain, versions)
+            if reproduced != matches[0].get("candidate_evidence") or reproduced.get("output_sha256") != entry.get("output_sha256"):
+                raise ReleaseError(f"quality-review output is not the deterministic current candidate: {logical_path}")
+
+
+def command_validate_quality_outputs(_arguments: argparse.Namespace) -> None:
+    reviews = checked_quality_reviews()
+    verify_quality_review_outputs(reviews)
+    print(f"validated {len(reviews)} deterministic quality-review outputs")
 
 
 def command_validate(_arguments: argparse.Namespace) -> None:
     manifest = checked_manifest()
     blockers = validate_manifest(manifest, verify_tracked=True)
+    verify_quality_review_attestations(checked_quality_reviews())
     checked_toolchain()
     checked_fixture_plan(manifest)
     print(
@@ -1515,6 +2357,11 @@ def parser() -> argparse.ArgumentParser:
     trackers.set_defaults(function=command_measure_trackers)
     validate = commands.add_parser("validate", help="validate source, notice, and toolchain contracts")
     validate.set_defaults(function=command_validate)
+    quality_outputs = commands.add_parser(
+        "validate-quality-outputs",
+        help="reproduce every committed quality-review candidate in the pinned toolchain",
+    )
+    quality_outputs.set_defaults(function=command_validate_quality_outputs)
     blockers = commands.add_parser("blockers", help="print fail-closed runtime findings as JSON")
     blockers.set_defaults(function=command_blockers)
     build = commands.add_parser("build-runtime", help="build the full or fixture Opus archive")
@@ -1526,6 +2373,18 @@ def parser() -> argparse.ArgumentParser:
     candidate.add_argument("logical_path")
     candidate.add_argument("output_directory")
     candidate.set_defaults(function=command_build_review_candidate)
+    bundle = commands.add_parser("build-review-bundle", help="build all eligible non-publishing Vorbis candidates and a listening worksheet")
+    bundle.add_argument("output_directory")
+    bundle.add_argument(
+        "--asset-class", choices=("background", "effects"),
+        help="build one asset class when both backgrounds and effects are eligible",
+    )
+    bundle.set_defaults(function=command_build_review_bundle)
+    prepare_review = commands.add_parser("prepare-quality-review", help="verify a completed listening bundle and print the proposed quality-review ledger")
+    prepare_review.add_argument("bundle_directory")
+    prepare_review.add_argument("evidence_locator")
+    prepare_review.add_argument("github_attestation_url")
+    prepare_review.set_defaults(function=command_prepare_quality_review)
     checksums = commands.add_parser("checksums", help="write deterministic checksums for release archives")
     checksums.add_argument("output_directory")
     checksums.set_defaults(function=command_checksums)

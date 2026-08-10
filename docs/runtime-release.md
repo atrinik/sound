@@ -14,7 +14,7 @@ transformation note, and exact notice reference. Runtime generation adds the
 output hash, size, codec/container, sample rate, channels, duration, peak,
 loudness, clipping result, and rendered-PCM measurements.
 
-The current inventory intentionally records 339 fail-closed license/provenance
+The current inventory records 276 fail-closed license/provenance
 findings. This includes terse GPL/CC headings until a per-asset review binds
 the source and notice hashes, SPDX interpretation, reviewer, timestamp, and a
 Git-tracked, non-symlink, content-hash-verified evidence document under
@@ -22,7 +22,7 @@ Git-tracked, non-symlink, content-hash-verified evidence document under
 `Freeware`, Sampling Plus, noncommercial, incomplete, and missing notices have
 no candidate interpretation. Approval is never a default-allow keyword filter.
 All 196 preserved Vorbis inputs also have source-hash-bound quality reviews
-pending, producing 535 total gates. They are not silently omitted: while any
+pending, producing 472 total gates. They are not silently omitted: while any
 finding remains, releases
 publish the complete blocker report and no runtime archive. Source archives
 continue unchanged.
@@ -33,7 +33,9 @@ generated output hashes, plus a GitHub reviewer identity and canonical UTC
 timestamp. The referenced `evidence/` file must be tracked and match its hash;
 stale, malformed, missing, or failed evidence blocks publication.
 `manifests/license-reviews.json` records those evidence-backed per-asset
-decisions, so an asset replacement cannot inherit a notice-level approval.
+decisions, including the primary evidence hash and every supporting capture
+hash. Each artifact must remain Git-tracked, regular, and byte-exact, so an
+asset replacement or corrupted capture cannot inherit an approval.
 These manifests and the
 stable sound IDs are shared groundwork for `atrinik/sound#13`, not a parallel
 Classic-only contract.
@@ -71,19 +73,32 @@ natural-EOF transitions through SDL3_mixer. The
 runtime manifest reports source/runtime totals so bitrate or size changes are
 reviewable.
 
-If a renderer reaches full scale, the pipeline deterministically attenuates
-that PCM to a -2 dBFS peak before encoding and records the original peak,
-clipping flag, and applied gain. It rejects clipping after this transform and
-again after Opus decoding.
+If a renderer's peak exceeds -2 dBFS, the pipeline deterministically attenuates
+that PCM to the target before encoding and records the original peak, whether
+the input actually clipped, and the applied gain. It rejects clipping after
+this transform and again after Opus decoding.
 
 ## Local validation
 
-The metadata and packaging checks need only Python 3.11+, Bash, and Git:
+With an empty quality-review ledger, the metadata and packaging checks need
+Python 3.11+, Bash, Git, and Node.js for the embedded worksheet behavior test.
+Once a listening review is committed, full
+validation uses Docker and the prebuilt pinned audio image to regenerate every
+approved output. It also needs authenticated `gh` access and network
+connectivity to verify the reviewer's immutable issue-comment attestation and
+effective repository permission; CI grants only `contents: read`,
+`issues: read`, and `packages: read`.
 
 ```sh
 tools/validate.sh
 python3 tools/sound_release.py blockers
 ```
+
+For a nonempty quality ledger, build `atrinik-sound-audio` first.
+`tools/validate.sh` performs metadata, Git, and live GitHub checks on the host,
+then automatically runs deterministic output verification inside that pinned
+image. A missing image/tool fails closed instead of trusting self-asserted
+output evidence.
 
 Tracker duration refresh is performed inside the pinned image, never copied
 from the source manifest:
@@ -102,6 +117,85 @@ docker run --rm --volume "$PWD:/workspaces/sound:ro" \
   --volume "$PWD/build/review-candidate:/output" atrinik-sound-audio \
   python3 tools/sound_release.py build-review-candidate effects/example.ogg /output
 ```
+
+To hand off every currently license-approved Vorbis source that still needs a
+quality review, build a self-contained non-publishing listening bundle:
+
+```sh
+mkdir -p build/review-bundle
+docker run --rm --user "$(id -u):$(id -g)" \
+  --env ATRINIK_SOURCE_TREE="$(git rev-parse 'HEAD^{tree}')" \
+  --volume "$PWD:/workspaces/sound:ro" \
+  --volume "$PWD/build/review-bundle:/output" atrinik-sound-audio \
+  python3 tools/sound_release.py build-review-bundle /output \
+  --asset-class background
+```
+
+Open `build/review-bundle/index.html`, enter the identified GitHub reviewer,
+compare every complete source/candidate pair on headphones and representative
+speakers, and record substantive notes for every required listening category.
+The shared transport switches mutually exclusively between synchronized A/B
+players, level-matches the source to any deterministic candidate gain, leaves
+looping off for tail inspection, and provides an explicit loop toggle. Export
+is enabled only after the browser's played ranges cover both complete streams
+without seek gaps for every asset, all notes and verdicts are recorded, and the
+headphones, representative-speaker, and loop-boundary attestations are checked.
+The bundle includes copied
+source bytes, generated candidate bytes, per-candidate evidence, a bundle
+manifest, and `SHA256SUMS`.
+The exported JSON is review input, not an automatic approval: verify it before
+committing evidence and source/toolchain/output-bound quality-ledger records.
+Copy a completed export to a unique `evidence/` path. The identified reviewer
+must then post its exact SHA-256 from their GitHub account on #21 (or #22 for an
+effects-only review):
+
+```sh
+review_result=evidence/critical-listening-REVIEWER-DATE.json
+review_sha256=$(sha256sum "${review_result}" | cut -d' ' -f1)
+printf 'Atrinik critical-listening attestation v1\nresult_sha256: %s\n' \
+  "${review_sha256}" > /tmp/atrinik-listening-attestation.txt
+gh issue comment 21 --repo atrinik/sound \
+  --body-file /tmp/atrinik-listening-attestation.txt
+git add evidence/critical-listening-REVIEWER-DATE.json
+export GH_TOKEN="$(gh auth token)"
+docker run --rm --user "$(id -u):$(id -g)" \
+  --env ATRINIK_RELEASE_INPUT_ATTESTED=1 --env GH_TOKEN \
+  --volume "$PWD:/workspaces/sound:ro" atrinik-sound-audio \
+  python3 tools/sound_release.py prepare-quality-review \
+    build/review-bundle \
+    evidence/critical-listening-REVIEWER-DATE.json \
+    'https://github.com/atrinik/sound/issues/21#issuecomment-COMMENT_ID' \
+  > /tmp/proposed-vorbis-quality-reviews.json
+```
+
+Run this verification inside the pinned image so it independently regenerates
+every candidate and its measurements. The command also reconstructs the
+canonical listening worksheet byte-for-byte and rejects an incomplete, stale,
+future-dated, path-unsafe, untracked, checksum-drifted, forged-candidate,
+noncanonical-worksheet, or asset-mismatched review. Background-only results
+must be attested on #21 and effects-only results on #22; mixed-class bundles are
+rejected and must be built separately with `--asset-class`. It emits passed
+verdicts only, verifies the named reviewer and review time against the live
+unedited GitHub comment, and requires that reviewer to have effective write,
+or admin access to `atrinik/sound`, including through a custom role whose base
+permission is `write`. REST timestamps and GraphQL `lastEditedAt` must both show
+that the attestation was never edited. The command preserves existing reviews
+and never changes the repository. The exported result binds a stable hash of the exact
+source/license/encoding inputs, the complete eligible asset set at the review
+tree, the canonical bundle, and the canonical worksheet template. The evidence
+file must be introduced by a single-parent commit directly over that immutable
+tree. Normal validation reconstructs the exact source manifest from the bound
+Git tree rather than trusting reviewer-supplied timestamps; pinned-container
+validation also independently
+regenerates every committed passed candidate. A hand-authored subset,
+arbitrary manifest coordinate, or noncanonical worksheet therefore cannot
+bypass the preparation checks.
+Inspect the proposed ledger before replacing
+`manifests/vorbis-quality-reviews.json`, then run `refresh` and the complete
+validation suite. The generated source/runtime v1 manifests preserve the v2
+review and GitHub attestation identity inside their existing evidence notes,
+without mutating the published v1 schema contract. Failed verdicts
+intentionally remain blocked.
 
 Build the pinned conversion environment and the six-format fixture archive:
 
@@ -165,6 +259,7 @@ audio/effects/<legacy-name-and-extension>.opus
 licenses/audio-toolchain.json
 licenses/CC-BY-3.0.txt
 licenses/CC-BY-SA-3.0.txt
+licenses/CC-BY-SA-3.0-DE.txt
 licenses/CC0-1.0.txt
 licenses/GPL-2.0.txt
 licenses/GPL-3.0.txt
