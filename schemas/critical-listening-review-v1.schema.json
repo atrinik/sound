@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json",
+  "title": "Atrinik critical-listening bundle review v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["$schema", "schema_version", "non_publishing", "reviewed_by", "reviewed_at", "source_manifest_sha256", "toolchain_sha256", "reviews"],
+  "properties": {
+    "$schema": {"const": "https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json"},
+    "schema_version": {"const": 1}, "non_publishing": {"const": true},
+    "reviewed_by": {"type": "string", "pattern": "^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"},
+    "reviewed_at": {"type": "string", "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]Z$"},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"}, "toolchain_sha256": {"$ref": "#/$defs/sha256"},
+    "reviews": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "object", "additionalProperties": false,
+      "required": ["logical_path", "source_sha256", "output_sha256", "review_evidence_path", "candidate_evidence", "artifacts", "noise_floor", "duration_tail", "loop_boundary", "verdict"],
+      "properties": {
+        "logical_path": {"type": "string", "pattern": "^background/.+\\.ogg$"},
+        "source_sha256": {"$ref": "#/$defs/sha256"}, "output_sha256": {"$ref": "#/$defs/sha256"},
+        "review_evidence_path": {"type": "string", "pattern": "^candidates/[A-Za-z0-9_.-]+/review-evidence\\.json$"},
+        "candidate_evidence": {"type": "object", "required": ["schema_version", "logical_path", "source_sha256", "toolchain_sha256", "output_sha256", "generated_path", "tool_versions", "measurements", "non_publishing"]},
+        "artifacts": {"type": "string", "minLength": 1}, "noise_floor": {"type": "string", "minLength": 1},
+        "duration_tail": {"type": "string", "minLength": 1}, "loop_boundary": {"type": "string", "minLength": 1},
+        "verdict": {"enum": ["passed", "failed"]}
+      }
+    }}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

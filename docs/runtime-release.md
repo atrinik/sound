@@ -127,6 +127,23 @@ source bytes, generated candidate bytes, per-candidate evidence, a bundle
 manifest, and `SHA256SUMS`.
 The exported JSON is review input, not an automatic approval: verify it before
 committing evidence and source/toolchain/output-bound quality-ledger records.
+Copy a completed export to a unique `evidence/` path and stage that evidence
+file, then prepare a fail-closed proposed ledger:
+
+```sh
+git add evidence/critical-listening-REVIEWER-DATE.json
+python3 tools/sound_release.py prepare-quality-review \
+  build/review-bundle \
+  evidence/critical-listening-REVIEWER-DATE.json \
+  > /tmp/proposed-vorbis-quality-reviews.json
+```
+
+The command rejects an incomplete, stale, future-dated, path-unsafe,
+untracked, checksum-drifted, or asset-mismatched review. It emits passed
+verdicts only, preserves existing reviews, and never changes the repository.
+Inspect the proposed ledger before replacing
+`manifests/vorbis-quality-reviews.json`, then run `refresh` and the complete
+validation suite. Failed verdicts intentionally remain blocked.
 
 Build the pinned conversion environment and the six-format fixture archive:
 

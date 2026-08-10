@@ -480,7 +480,8 @@ class SourceManifestTests(unittest.TestCase):
         for name in (
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
             "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
-            "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json", "license-reviews-v1.schema.json",
+            "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json",
+            "critical-listening-review-v1.schema.json", "license-reviews-v1.schema.json",
             "license-reviews-v2.schema.json",
             "tracker-durations-v1.schema.json",
         ):
@@ -685,6 +686,7 @@ class SourceManifestTests(unittest.TestCase):
             self.assertIn("Use a valid GitHub username without a leading @.", index)
             self.assertIn("^(?!.*--)[A-Za-z0-9]", index)
             self.assertIn("let playingAudio=null", index)
+            self.assertIn("critical-listening-review-v1.schema.json", index)
             for asset in bundle["assets"]:
                 source = output / asset["source_path"]
                 candidate = output / asset["candidate_path"]
@@ -697,6 +699,57 @@ class SourceManifestTests(unittest.TestCase):
             checksums = (output / "SHA256SUMS").read_text().splitlines()
             self.assertEqual(sorted(checksums, key=lambda line: line.split("  ", 1)[1]), checksums)
             self.assertNotIn("SHA256SUMS", {line.split("  ", 1)[1] for line in checksums})
+            result = {
+                "$schema": "https://atrinik.org/schemas/sound/critical-listening-review-v1.schema.json",
+                "schema_version": 1,
+                "non_publishing": True,
+                "reviewed_by": "reviewer",
+                "reviewed_at": "2026-08-10T12:00:00Z",
+                "source_manifest_sha256": bundle["source_manifest_sha256"],
+                "toolchain_sha256": bundle["toolchain_sha256"],
+                "reviews": [{
+                    "logical_path": asset["logical_path"],
+                    "source_sha256": asset["source_sha256"],
+                    "output_sha256": asset["output_sha256"],
+                    "review_evidence_path": asset["review_evidence_path"],
+                    "candidate_evidence": asset["candidate_evidence"],
+                    "artifacts": "No audible codec, tonal, or transient regression.",
+                    "noise_floor": "No noise-floor modulation or low-level loss.",
+                    "duration_tail": "Complete duration and tail; no truncation.",
+                    "loop_boundary": "Loop transition matches the canonical source.",
+                    "verdict": "passed",
+                } for asset in bundle["assets"]],
+            }
+            verified_bundle, verified_reviews = sound_release.verify_review_bundle_result(output, result)
+            proposed = sound_release.proposed_quality_review_ledger(
+                verified_bundle, result, verified_reviews, "evidence/review.json", "c" * 64,
+            )
+            self.assertEqual(expected, {entry["logical_path"] for entry in proposed["reviews"]})
+            failed = copy.deepcopy(result)
+            failed["reviews"][0]["verdict"] = "failed"
+            failed_bundle, failed_reviews = sound_release.verify_review_bundle_result(output, failed)
+            failed_proposal = sound_release.proposed_quality_review_ledger(
+                failed_bundle, failed, failed_reviews, "evidence/review.json", "c" * 64,
+            )
+            self.assertEqual(len(expected) - 1, len(failed_proposal["reviews"]))
+            drifted = copy.deepcopy(result)
+            drifted["reviews"][0]["output_sha256"] = "0" * 64
+            with self.assertRaisesRegex(sound_release.ReleaseError, "does not match bundle"):
+                sound_release.verify_review_bundle_result(output, drifted)
+            future = copy.deepcopy(result)
+            future["reviewed_at"] = "2999-01-01T00:00:00Z"
+            with self.assertRaisesRegex(sound_release.ReleaseError, "future"):
+                sound_release.verify_review_bundle_result(output, future)
+            unsafe_arguments = type("Arguments", (), {
+                "bundle_directory": output,
+                "evidence_locator": "../review.json",
+            })()
+            with self.assertRaisesRegex(sound_release.ReleaseError, "repository-owned"):
+                sound_release.command_prepare_quality_review(unsafe_arguments)
+            first_candidate = output / bundle["assets"][0]["candidate_path"]
+            first_candidate.write_bytes(b"tampered")
+            with self.assertRaisesRegex(sound_release.ReleaseError, "checksum mismatch"):
+                sound_release.verify_review_bundle_result(output, result)
             with self.assertRaisesRegex(sound_release.ReleaseError, "must be empty"):
                 sound_release.command_build_review_bundle(arguments)
 
