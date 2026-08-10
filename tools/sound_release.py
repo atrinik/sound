@@ -23,6 +23,7 @@ import tarfile
 import tempfile
 import wave
 from datetime import UTC, datetime
+from typing import Iterator
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -553,6 +554,77 @@ def quality_review_input_sha256(assets: list[dict[str, object]]) -> str:
     return hashlib.sha256(canonical_json(inputs)).hexdigest()
 
 
+@contextlib.contextmanager
+def archived_repository_tree(source_tree: str) -> Iterator[Path]:
+    try:
+        archive = subprocess.run(
+            ["git", "archive", "--format=tar", source_tree],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        detail = getattr(exc, "stderr", b"")
+        rendered = detail.decode("utf-8", errors="replace").strip() if isinstance(detail, bytes) else str(detail)
+        raise ReleaseError(f"cannot archive critical-listening source tree: {rendered}") from exc
+    with tempfile.TemporaryDirectory() as temporary:
+        root = Path(temporary)
+        with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as stream:
+            members = stream.getmembers()
+            for member in members:
+                pure = PurePosixPath(member.name)
+                if pure.is_absolute() or ".." in pure.parts or not (member.isdir() or member.isfile()):
+                    raise ReleaseError("critical-listening source tree contains an unsafe archive member")
+            stream.extractall(root, members=members)
+        toolchain = read_json(root / "manifests" / "audio-toolchain.json")
+        tools = toolchain.get("tools") if isinstance(toolchain, dict) else None
+        probe = tools.get("sdl3_mixer_probe") if isinstance(tools, dict) else None
+        probe_source = probe.get("source_path") if isinstance(probe, dict) else None
+        required_export_ignored = ["tools/audio/Dockerfile", probe_source]
+        for relative in required_export_ignored:
+            pure = PurePosixPath(str(relative))
+            if not isinstance(relative, str) or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != relative:
+                raise ReleaseError("critical-listening source tree has an unsafe toolchain path")
+            destination = root / relative
+            try:
+                payload = subprocess.run(
+                    ["git", "show", f"{source_tree}:{relative}"],
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                ).stdout
+            except (OSError, subprocess.CalledProcessError) as exc:
+                raise ReleaseError(f"critical-listening source tree lacks required toolchain input: {relative}") from exc
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_bytes(payload)
+        yield root
+
+
+@contextlib.contextmanager
+def repository_root(root: Path) -> Iterator[None]:
+    global ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS
+    global LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT
+    previous = (
+        ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS,
+        LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT,
+    )
+    ROOT = root
+    SOURCE_MANIFEST = root / "manifests" / "source-assets.json"
+    TOOLCHAIN = root / "manifests" / "audio-toolchain.json"
+    FIXTURE_PLAN = root / "manifests" / "fixture-plan.json"
+    QUALITY_REVIEWS = root / "manifests" / "vorbis-quality-reviews.json"
+    LICENSE_REVIEWS = root / "manifests" / "license-reviews.json"
+    TRACKER_DURATIONS = root / "manifests" / "tracker-durations.json"
+    SCHEMA_ROOT = root / "schemas"
+    try:
+        yield
+    finally:
+        (
+            ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS,
+            LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT,
+        ) = previous
+
+
 def review_snapshot_manifest(result: dict[str, object]) -> tuple[dict[str, object], bool]:
     source_tree = str(result.get("source_tree", ""))
     if not re.fullmatch(r"[0-9a-f]{40}", source_tree):
@@ -567,6 +639,10 @@ def review_snapshot_manifest(result: dict[str, object]) -> tuple[dict[str, objec
             raise ReleaseError("critical-listening source tree has an invalid source manifest") from exc
         if not isinstance(snapshot, dict):
             raise ReleaseError("critical-listening source tree has an invalid source manifest")
+        with archived_repository_tree(source_tree) as snapshot_root, repository_root(snapshot_root):
+            expected = build_source_manifest()
+        if canonical_json(snapshot) != canonical_json(expected):
+            raise ReleaseError("critical-listening source tree has a non-canonical source manifest")
         return snapshot, True
     if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1":
         raise ReleaseError("critical-listening source tree requires Git metadata")
@@ -820,7 +896,7 @@ def published_quality_review(review: dict[str, object]) -> dict[str, object]:
     }
     published_evidence["notes"] = (
         f"{str(evidence.get('notes', '')).strip()} "
-        f"Quality-review ledger SHA-256: {hashlib.sha256(canonical_json(review)).hexdigest()}; "
+        f"Quality-review record SHA-256: {hashlib.sha256(canonical_json(review)).hexdigest()}; "
         f"GitHub attestation: {attestation_url}"
     )
     return {**review, "evidence": published_evidence}

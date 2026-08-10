@@ -374,6 +374,7 @@ class SourceManifestTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
         publisher = (ROOT / "tools" / "build-release-assets.sh").read_text(encoding="utf-8")
         self.assertRegex(workflow, r"(?m)^  issues: read$")
+        self.assertEqual(2, workflow.count("fetch-depth: 0"))
         self.assertIn("--env GH_TOKEN", publisher)
         reviews = {"background/example.ogg": {"evidence": {
             "artifact_locator": "evidence/review.json",
@@ -591,6 +592,7 @@ class SourceManifestTests(unittest.TestCase):
         }
         projected_review = sound_release.published_quality_review(review)
         self.assertNotIn("github_attestation_url", projected_review["evidence"])
+        self.assertIn("Quality-review record SHA-256:", projected_review["evidence"]["notes"])
         self.assertIn(review["evidence"]["github_attestation_url"], projected_review["evidence"]["notes"])
         source_manifest = copy.deepcopy(self.manifest)
         source_asset = next(
@@ -863,6 +865,18 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
             backdated_subset["reviews"] = backdated_subset["reviews"][:4]
             with self.assertRaisesRegex(sound_release.ReleaseError, "exact eligible asset set"):
                 sound_release.quality_review_bundle_contract(backdated_subset)
+            forged_snapshot = copy.deepcopy(self.manifest)
+            forged_snapshot["assets"] = forged_snapshot["assets"][:-1]
+            git_show = subprocess.CompletedProcess([], 0, json.dumps(forged_snapshot), "")
+            with tempfile.TemporaryDirectory() as snapshot_directory, \
+                    mock.patch.object(sound_release, "git_metadata_available", return_value=True), \
+                    mock.patch.object(sound_release, "run", return_value=git_show), \
+                    mock.patch.object(sound_release, "archived_repository_tree") as archived:
+                archived.return_value.__enter__.return_value = Path(snapshot_directory)
+                archived.return_value.__exit__.return_value = False
+                with mock.patch.object(sound_release, "build_source_manifest", return_value=self.manifest):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "non-canonical source manifest"):
+                        sound_release.review_snapshot_manifest(result)
             duplicate_result = copy.deepcopy(result)
             duplicate = copy.deepcopy(duplicate_result["reviews"][0])
             duplicate["artifacts"] = "Different substantive artifact notes."
