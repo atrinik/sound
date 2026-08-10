@@ -19,6 +19,7 @@ if [[ -n $(git status --porcelain --untracked-files=all) ]]; then
   echo "release input worktree is not clean" >&2
   exit 1
 fi
+export ATRINIK_CLEAN_INPUT=1
 mkdir -p "${output_directory}"
 shopt -s nullglob dotglob
 existing_outputs=("${output_directory}"/*)
@@ -52,6 +53,7 @@ if [[ ${blocker_count} -eq 0 ]]; then
       --env SOURCE_DATE_EPOCH \
       --env ATRINIK_SOURCE_COMMIT="${source_commit}" \
       --env ATRINIK_SOURCE_TREE="${source_tree}" \
+      --env ATRINIK_CLEAN_INPUT \
       atrinik-sound-audio \
       python3 tools/sound_release.py build-runtime "${tag}" /output
   }

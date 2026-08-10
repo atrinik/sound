@@ -288,6 +288,14 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
                 sound_release.ensure_clean_release_input()
 
+    def test_full_runtime_build_requires_host_attestation_without_git(self) -> None:
+        with mock.patch.object(sound_release, "run", side_effect=sound_release.ReleaseError("Git unavailable")):
+            with mock.patch.dict(sound_release.os.environ, {}, clear=True):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "ATRINIK_CLEAN_INPUT=1"):
+                    sound_release.ensure_clean_release_input()
+            with mock.patch.dict(sound_release.os.environ, {"ATRINIK_CLEAN_INPUT": "1"}, clear=True):
+                sound_release.ensure_clean_release_input()
+
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             arguments = type("Arguments", (), {"logical_path": "background/fireside.mid", "output_directory": temporary})()

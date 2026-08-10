@@ -415,7 +415,15 @@ def tracker_metadata(path: Path) -> SourceMetadata:
 
 
 def ensure_clean_release_input() -> None:
-    if run(["git", "status", "--porcelain", "--untracked-files=all"], capture=True).stdout:
+    try:
+        status = run(["git", "status", "--porcelain", "--untracked-files=all"], capture=True).stdout
+    except ReleaseError as exc:
+        if os.environ.get("ATRINIK_CLEAN_INPUT") != "1":
+            raise ReleaseError(
+                "full runtime release requires ATRINIK_CLEAN_INPUT=1 when Git metadata is unavailable"
+            ) from exc
+        return
+    if status:
         raise ReleaseError("full runtime release input worktree is not clean")
 
 
