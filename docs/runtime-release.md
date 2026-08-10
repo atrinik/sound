@@ -105,6 +105,25 @@ docker run --rm --volume "$PWD:/workspaces/sound:ro" \
   python3 tools/sound_release.py build-review-candidate effects/example.ogg /output
 ```
 
+To hand off every currently license-approved Vorbis source that still needs a
+quality review, build a self-contained non-publishing listening bundle:
+
+```sh
+mkdir -p build/review-bundle
+docker run --rm --user "$(id -u):$(id -g)" \
+  --volume "$PWD:/workspaces/sound:ro" \
+  --volume "$PWD/build/review-bundle:/output" atrinik-sound-audio \
+  python3 tools/sound_release.py build-review-bundle /output
+```
+
+Open `build/review-bundle/index.html`, enter the identified GitHub reviewer,
+compare every complete source/candidate pair on headphones and representative
+speakers, record substantive notes for every required listening category, and
+export the completed JSON. The bundle includes copied source bytes, generated
+candidate bytes, per-candidate evidence, a bundle manifest, and `SHA256SUMS`.
+The exported JSON is review input, not an automatic approval: verify it before
+committing evidence and source/toolchain/output-bound quality-ledger records.
+
 Build the pinned conversion environment and the six-format fixture archive:
 
 ```sh

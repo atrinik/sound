@@ -1454,24 +1454,15 @@ def command_measure_trackers(_arguments: argparse.Namespace) -> None:
     print(canonical_json(document).decode("utf-8"), end="")
 
 
-def command_build_review_candidate(arguments: argparse.Namespace) -> None:
-    manifest = checked_manifest()
-    validate_manifest(manifest)
-    assets = manifest["assets"]
-    assert isinstance(assets, list)
-    selected = [asset for asset in assets if isinstance(asset, dict) and asset.get("logical_path") == arguments.logical_path]
-    if len(selected) != 1:
-        raise ReleaseError(f"unknown review-candidate source: {arguments.logical_path}")
-    asset = selected[0]
-    license_contract = asset.get("license")
-    if not isinstance(license_contract, dict) or license_contract.get("status") != "allowed":
-        raise ReleaseError("review candidate requires a passed per-asset license review")
-    output_directory = Path(arguments.output_directory)
+def write_review_candidate(
+    asset: dict[str, object],
+    output_directory: Path,
+    toolchain: dict[str, object],
+    versions: dict[str, str],
+) -> dict[str, object]:
     output_directory.mkdir(parents=True, exist_ok=True)
     if any(output_directory.iterdir()):
         raise ReleaseError(f"review-candidate output directory must be empty: {output_directory}")
-    toolchain = checked_toolchain()
-    versions = verify_toolchain(toolchain)
     converted = convert_asset(asset, output_directory, toolchain)
     output = converted["output"]
     assert isinstance(output, dict)
@@ -1487,7 +1478,112 @@ def command_build_review_candidate(arguments: argparse.Namespace) -> None:
         "non_publishing": True,
     }
     atomic_write(output_directory / "review-evidence.json", canonical_json(evidence))
+    return evidence
+
+
+def command_build_review_candidate(arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    validate_manifest(manifest)
+    assets = manifest["assets"]
+    assert isinstance(assets, list)
+    selected = [asset for asset in assets if isinstance(asset, dict) and asset.get("logical_path") == arguments.logical_path]
+    if len(selected) != 1:
+        raise ReleaseError(f"unknown review-candidate source: {arguments.logical_path}")
+    asset = selected[0]
+    license_contract = asset.get("license")
+    if not isinstance(license_contract, dict) or license_contract.get("status") != "allowed":
+        raise ReleaseError("review candidate requires a passed per-asset license review")
+    output_directory = Path(arguments.output_directory)
+    toolchain = checked_toolchain()
+    evidence = write_review_candidate(asset, output_directory, toolchain, verify_toolchain(toolchain))
     print(output_directory / str(asset["generated_path"]))
+
+
+def review_bundle_html(bundle: dict[str, object]) -> bytes:
+    assets_json = json.dumps(bundle["assets"], ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    document = f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atrinik critical-listening review</title>
+<style>
+body{{font:16px/1.45 system-ui,sans-serif;max-width:1100px;margin:2rem auto;padding:0 1rem;color:#18202a;background:#f5f7fa}}
+h1,h2{{line-height:1.2}} .notice,.asset{{background:white;border:1px solid #ccd4df;border-radius:8px;padding:1rem;margin:1rem 0}}
+.players{{display:grid;grid-template-columns:1fr 1fr;gap:1rem}} audio{{width:100%}} label{{display:block;font-weight:650;margin-top:.75rem}}
+textarea,input,select{{box-sizing:border-box;width:100%;font:inherit;padding:.5rem}} textarea{{min-height:4.5rem}} button{{font:inherit;padding:.65rem 1rem}}
+code{{overflow-wrap:anywhere}} .hash{{font-size:.82rem}} @media(max-width:700px){{.players{{grid-template-columns:1fr}}}}
+</style></head><body>
+<h1>Atrinik critical-listening review</h1>
+<div class="notice"><p>This is a non-publishing review aid. Use headphones and representative speakers. Listen to each complete source and candidate at normal and revealing levels, then compare loop boundaries. Do not pass a track with audible codec artifacts, tonal or transient changes, noise-floor modulation, truncation, tail loss, or a loop discontinuity.</p>
+<label>GitHub reviewer identity <input id="reviewer" autocomplete="username" placeholder="username"></label></div>
+<main id="assets"></main><button id="export">Export completed review JSON</button>
+<script>const assets={assets_json};const root=document.querySelector('#assets');
+for(const a of assets){{const s=document.createElement('section');s.className='asset';s.dataset.logical=a.logical_path;
+const h=document.createElement('h2');h.textContent=a.logical_path;s.append(h);
+const hashes=document.createElement('p');hashes.className='hash';hashes.innerHTML='<code>'+a.source_sha256+'</code> → <code>'+a.output_sha256+'</code>';s.append(hashes);
+const players=document.createElement('div');players.className='players';
+for(const [label,path] of [['Canonical source',a.source_path],['Generated Opus candidate',a.candidate_path]]){{const box=document.createElement('div');const strong=document.createElement('strong');strong.textContent=label;const audio=document.createElement('audio');audio.controls=true;audio.loop=true;audio.preload='metadata';audio.src=path;box.append(strong,audio);players.append(box)}}s.append(players);
+for(const [name,label] of [['artifacts','Codec artifacts / tonal / transient changes'],['noise_floor','Noise floor and low-level content'],['duration_tail','Complete duration, tail, and truncation'],['loop_boundary','Loop-boundary comparison']]){{const l=document.createElement('label');l.textContent=label;const t=document.createElement('textarea');t.dataset.field=name;l.append(t);s.append(l)}}
+const v=document.createElement('label');v.textContent='Verdict';const select=document.createElement('select');select.dataset.field='verdict';select.innerHTML='<option value="">Select…</option><option value="passed">Passed</option><option value="failed">Failed</option>';v.append(select);s.append(v);root.append(s)}}
+document.querySelector('#export').onclick=()=>{{const reviewer=document.querySelector('#reviewer').value.trim();const reviews=[];let missing=!reviewer;
+for(const section of document.querySelectorAll('.asset')){{const meta=assets.find(a=>a.logical_path===section.dataset.logical);const values={{logical_path:section.dataset.logical,source_sha256:meta.source_sha256,output_sha256:meta.output_sha256,review_evidence_path:meta.review_evidence_path}};for(const field of section.querySelectorAll('[data-field]')){{values[field.dataset.field]=field.value.trim();if(!values[field.dataset.field])missing=true}}reviews.push(values)}}
+if(missing){{alert('Complete the reviewer identity, every note field, and every verdict before export.');return}}
+const payload={{schema_version:1,non_publishing:true,reviewed_by:reviewer,reviewed_at:new Date().toISOString().replace(/\\.\\d{{3}}Z$/,'Z'),source_manifest_sha256:'{bundle["source_manifest_sha256"]}',toolchain_sha256:'{bundle["toolchain_sha256"]}',reviews}};
+const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)+'\\n'],{{type:'application/json'}}));const link=document.createElement('a');link.href=url;link.download='atrinik-critical-listening-review.json';link.click();URL.revokeObjectURL(url)}};</script>
+</body></html>"""
+    return document.encode("utf-8")
+
+
+def command_build_review_bundle(arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    validate_manifest(manifest)
+    assets = manifest["assets"]
+    assert isinstance(assets, list)
+    selected = [
+        asset for asset in assets
+        if isinstance(asset, dict)
+        and isinstance(asset.get("source"), dict)
+        and asset["source"].get("codec") == "vorbis"  # type: ignore[union-attr]
+        and isinstance(asset.get("license"), dict)
+        and asset["license"].get("status") == "allowed"  # type: ignore[union-attr]
+        and isinstance(asset.get("quality_review"), dict)
+        and asset["quality_review"].get("status") == "blocked"  # type: ignore[union-attr]
+    ]
+    if not selected:
+        raise ReleaseError("no license-approved Vorbis sources await quality review")
+    output_directory = Path(arguments.output_directory)
+    output_directory.mkdir(parents=True, exist_ok=True)
+    if any(output_directory.iterdir()):
+        raise ReleaseError(f"review-bundle output directory must be empty: {output_directory}")
+    toolchain = checked_toolchain()
+    versions = verify_toolchain(toolchain)
+    bundle_assets: list[dict[str, object]] = []
+    for asset in sorted(selected, key=lambda item: str(item["logical_path"])):
+        logical_path = str(asset["logical_path"])
+        source_relative = PurePosixPath("sources") / PurePosixPath(logical_path)
+        source_output = output_directory / source_relative
+        source_output.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / logical_path, source_output)
+        candidate_root = output_directory / "candidates" / logical_path.replace("/", "__")
+        evidence = write_review_candidate(asset, candidate_root, toolchain, versions)
+        candidate_relative = candidate_root.relative_to(output_directory) / str(asset["generated_path"])
+        bundle_assets.append({
+            "logical_path": logical_path,
+            "source_path": source_relative.as_posix(),
+            "source_sha256": evidence["source_sha256"],
+            "candidate_path": candidate_relative.as_posix(),
+            "output_sha256": evidence["output_sha256"],
+            "review_evidence_path": (candidate_root.relative_to(output_directory) / "review-evidence.json").as_posix(),
+        })
+    bundle = {
+        "schema_version": 1,
+        "non_publishing": True,
+        "source_manifest_sha256": sha256(SOURCE_MANIFEST),
+        "toolchain_sha256": sha256(TOOLCHAIN),
+        "assets": bundle_assets,
+    }
+    atomic_write(output_directory / "review-bundle.json", canonical_json(bundle))
+    atomic_write(output_directory / "index.html", review_bundle_html(bundle))
+    write_tree_checksums(output_directory)
+    print(output_directory / "index.html")
 
 
 def command_validate(_arguments: argparse.Namespace) -> None:
@@ -1543,6 +1639,9 @@ def parser() -> argparse.ArgumentParser:
     candidate.add_argument("logical_path")
     candidate.add_argument("output_directory")
     candidate.set_defaults(function=command_build_review_candidate)
+    bundle = commands.add_parser("build-review-bundle", help="build all eligible non-publishing Vorbis candidates and a listening worksheet")
+    bundle.add_argument("output_directory")
+    bundle.set_defaults(function=command_build_review_bundle)
     checksums = commands.add_parser("checksums", help="write deterministic checksums for release archives")
     checksums.add_argument("output_directory")
     checksums.set_defaults(function=command_checksums)

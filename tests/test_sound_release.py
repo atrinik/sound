@@ -640,6 +640,45 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "passed per-asset license review"):
                 sound_release.command_build_review_candidate(arguments)
 
+    def test_review_bundle_is_self_contained_and_selects_only_eligible_vorbis(self) -> None:
+        expected = {
+            "background/crystal_falls.ogg", "background/evil_temple.ogg",
+            "background/frankie.ogg", "background/hull_et_belle.ogg",
+            "background/lost_in_meadows.ogg", "background/running.ogg",
+            "background/sewer_rats.ogg",
+        }
+
+        def fake_convert(asset: dict[str, object], output_directory: Path, _toolchain: dict[str, object]) -> dict[str, object]:
+            output_path = output_directory / str(asset["generated_path"])
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            payload = f"candidate:{asset['logical_path']}".encode()
+            output_path.write_bytes(payload)
+            return {"output": {"sha256": hashlib.sha256(payload).hexdigest(), "size_bytes": len(payload)}}
+
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "review"
+            arguments = type("Arguments", (), {"output_directory": output})()
+            with mock.patch.object(sound_release, "verify_toolchain", return_value={"opusenc": "fixture"}), mock.patch.object(sound_release, "convert_asset", side_effect=fake_convert):
+                sound_release.command_build_review_bundle(arguments)
+            bundle = json.loads((output / "review-bundle.json").read_text())
+            self.assertTrue(bundle["non_publishing"])
+            self.assertEqual(expected, {asset["logical_path"] for asset in bundle["assets"]})
+            self.assertEqual(sound_release.sha256(ROOT / "manifests" / "source-assets.json"), bundle["source_manifest_sha256"])
+            index = (output / "index.html").read_text()
+            for asset in bundle["assets"]:
+                source = output / asset["source_path"]
+                candidate = output / asset["candidate_path"]
+                evidence = output / asset["review_evidence_path"]
+                self.assertEqual(sound_release.sha256(ROOT / asset["logical_path"]), sound_release.sha256(source))
+                self.assertEqual(asset["output_sha256"], sound_release.sha256(candidate))
+                self.assertTrue(evidence.is_file())
+                self.assertIn(asset["logical_path"], index)
+            checksums = (output / "SHA256SUMS").read_text().splitlines()
+            self.assertEqual(sorted(checksums, key=lambda line: line.split("  ", 1)[1]), checksums)
+            self.assertNotIn("SHA256SUMS", {line.split("  ", 1)[1] for line in checksums})
+            with self.assertRaisesRegex(sound_release.ReleaseError, "must be empty"):
+                sound_release.command_build_review_bundle(arguments)
+
 
 class DeterministicArchiveTests(unittest.TestCase):
     def test_tree_checksums_are_sorted_and_cover_every_existing_file(self) -> None:
