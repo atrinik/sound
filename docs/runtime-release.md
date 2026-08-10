@@ -56,8 +56,8 @@ libraries delivered by `atrinik/devcontainer#21`.
 
 The checked quality budget authoritatively generates and validates the release
 recipe. It renders signed 16-bit PCM at 48 kHz, selects TiMidity's deterministic
-linear resampler, explicitly disables the tracker's otherwise-random dither,
-and encodes stereo music at
+linear resampler, disables its time-seeded reverb, chorus, and delay paths,
+explicitly disables the tracker's otherwise-random dither, and encodes stereo music at
 160 kb/s VBR with `--music --comp 10`, and channel-scales mono to 80 kb/s. Ogg
 serial numbers derive from the immutable source SHA-256, all input comments are
 discarded, and archive timestamps/ownership/order are fixed. Vorbis inputs are
