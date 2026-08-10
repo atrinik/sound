@@ -274,6 +274,552 @@
       "reviewed_by": "zoeyrose",
       "source_sha256": "2c14549edfc2563ee1ddffb2e34aa2fe342d1e498dd161ea273c1ffa9d227093",
       "spdx_expression": "CC-BY-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/autumn.mid",
+      "notice_sha256": "79036d972e6fb710473ed52ef71df897c561db9fa52bcca5d2109e22df96dcc7",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "4d0b91ac3351ef942b6852a0ed27cd1f9e3690960c6a9cffb8a37530e5cec2aa",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/barcarolle.mid",
+      "notice_sha256": "622c789538256d255aada1b1f116651d72b9e6f5abd59743bf87a401b84a849c",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "77dc5d00e24245e0b62bf735e9076e4e47892a272a773ae716a671245b502dbc",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/carnival.mid",
+      "notice_sha256": "23e3c8262a73b8d552c74a2831448ca6005eebd783ed4a1b31943a14c05c60e3",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "b66b57e1d7575ef7d8ab492a139fe1b0058c2b97c514aee57761352de74721f5",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/christmas1.mid",
+      "notice_sha256": "02b1cf5ae7ad1835c699deb2c5cee54f350c65612a7a3791201fbd09a836f5d1",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "f17f2d784214bbf7444b29b3aea3ae2415c3d32e8fb1ed2ebefde40f04a8d84b",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/christmas2.mid",
+      "notice_sha256": "cccd6698a4fd72c2249e810e92cef930ee6105d4d21c81e926c8beaca8fe7517",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "aba4c8a944c39d577041d36c8597acc467a1f159f511551a6d1a18fc516f49c0",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/christmas3.mid",
+      "notice_sha256": "968f9fb5e758ae28c2951dd0d1ed7b2cd6f24660bc5b8ec35d2f5eeb3183bad4",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "61b4c298d74773ba31daf4ca02adf1f705fad5de83b07a654e451a13786396fc",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/christmas4.mid",
+      "notice_sha256": "db29a2374b3db58412c7c1899b23590059fae221f034545194e1538609392df3",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "51af00441887b3809e59aad29170704b8bf2193bff9f735168d4c40c355ef09c",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/christmas5.mid",
+      "notice_sha256": "7a3b596967989019ea23cc35747340992de28bffd6097de64c4b564a29ca8504",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "1d8fc5736afdc94a8030654f1445ca93fa5ae9207617b4e4810d703a873ae7d0",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/christmas6.mid",
+      "notice_sha256": "29a8fa8fbef6e85c7ed5bef310a7efd1b4c6586646f5107d3821b3b7cfd99ac4",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "589423e4a27d00e6a6e59bc466bf99b06c0a68fe697f0d0d57e4311cb362797b",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/elise.mid",
+      "notice_sha256": "2a9ce4550800b527e8ca1f87d842875c86ca6caaf4ec0a2018c470f7c505eaaa",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "f26dee755a2eb52c993784fef76bd1a1038c2b9f9c3a5b5e3f28566dd837cc73",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/fireside.mid",
+      "notice_sha256": "4103d77bd14ac1f05a47114de0e6085bfa5a2dda4661253b7a08c039cfb0097f",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "2e8a458db9fef6dd05960b494767e2117797a3788e699e0a80fe9e0d51bc1670",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/fountain.mid",
+      "notice_sha256": "b7273eb7782f5d5e5a64916b0cf3009d23365ee7850eca0c5c80c5b325d5a679",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "e0ec646d7ae4100ed4298d6bcabc15a3b91238f53d476de41632c044670b212b",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/harvest.mid",
+      "notice_sha256": "14b820a5a98eecba25f8d2833a1732aa4c60c8a14cde531456fe8eec5a053d09",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "1de42ed86051fa47f3528b4860834909b774a485e16c03e04ae00e801259a2e5",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/lark.mid",
+      "notice_sha256": "7e172c4c5e0d9bed54c904b0d00b9a32762e100ab724322cba5871aa57459d20",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "89f313d23b0574d212f912c6c4892260092b808077a8576adc741ee8866e40ed",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/pearls.mid",
+      "notice_sha256": "4a5094503df71260ec14a76ec91fdeac2fa155b3ecd388d7995cae1439c33e2e",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "a5891a46c756f1654b954312b0d1cc8380409d034c8069a0954482bc9fa773af",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/prelude1.mid",
+      "notice_sha256": "ced77413a7ca5cf952919fa7872310d4e6c7e9112461ebbf5488d3b4afa6cf9f",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "107f2b6a298f283f8d26d4e8359669e7780f7ea64011b7844f2ed066d874a37e",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/prelude2.mid",
+      "notice_sha256": "b2634b74067cceeada633f2b2e4ffd4c0be87839ddc334f642515f00a0e1fc6b",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "6a5a582455fee99765fd3c920810b36f1a4d7a991d7e93e74f072fc060faf0bf",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/prelude3.mid",
+      "notice_sha256": "0c68c7367baec0f04521f45a1c50c51c3cb9408d7247be595469f9ee4c32d72d",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "cfaf4db14b0f5f57f056211407aac26df8511e93afd00a6f581fda6cdfec9812",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/reaper.mid",
+      "notice_sha256": "8df58b61a8c67a9e2974b46560214280d6803d48f8cfca987b887fddc8d00c89",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "0f07ca3b168a4ea5213a806c6e31a000316c3f41ce171ba1168e0ff8d71274e7",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/ride.mid",
+      "notice_sha256": "167c867d47cbab02631ad39307dd2d1258bf4a4d3309a096680a685f5bae8345",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "c7172ee9287e68b32e93543516524d983d9a37d5ce2393c953882be84e01b713",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/snowdrop.mid",
+      "notice_sha256": "93aa04650eaee1c3bc71e1d00019e8da9cbacb33a9924bcc460b9405dab02732",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "251f52b91abfb44352944c8f5bee1434b6621577cb7a8a4c10860b262a397ff5",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/starlight.mid",
+      "notice_sha256": "d8b2df265de9e0373e6aa9a9d207a3a46aabb653a6239fdf2522841df045f619",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "e68444752e6a2a994fedb2cb3a2ca7e596501764993f445b35cf1b3387b35469",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/tango.mid",
+      "notice_sha256": "bb976e06b6648c7ffcfa20cb775eb687e608ab3734a6ed5ffbdc5d58475ebb46",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "b7a2087c004ea47f1c52443ae184fb901d698ea87b7396140c405c2206cbd12a",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/the_hunt.mid",
+      "notice_sha256": "7cee97244721b505f2fa894f5b8628c76732087941d3781950c906a49542fc6a",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "59f8664327c66e2566ea725387904caf61b96f1b1436ac5d33991f0d62eac60b",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/piano-midi-de-backgrounds.md",
+        "notes": "Archived first-party grant response and CDX payload digest bind this exact Bernd Krueger MIDI to CC-BY-SA-3.0-DE.",
+        "sha256": "b85ae5f4fd0c4ba855a62dcf107579db0c67f5cb5940f26f10750e83662e787c"
+      },
+      "logical_path": "background/thunderstorm.mid",
+      "notice_sha256": "ab99d918baff48130390b683eba06f856c3b8d7f83146c0436d112eed821c72b",
+      "reviewed_at": "2026-08-10T08:08:26Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "fc2295124ee88dbcd1117290070af69486553f5b2540443374549e17b22b80b3",
+      "spdx_expression": "CC-BY-SA-3.0-DE"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/battle.mid",
+      "notice_sha256": "2c5dc68814a0ed9fb1471f27fbe851e888519485497bfad0ca98e42616067749",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "2d01d0017f138f84de360f54665ecaa7fa6258e9eab99cb2ca583df4b358e95c",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/endless_sands.mid",
+      "notice_sha256": "b9e9e0d09d57d9bd7f9150c79f92d3ed98f3bf823f6371b042b99188c8e5a3ce",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "781b95d4316e1b984b7d83dff876444555b45d907b341d2198055d0ded17f636",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/game_over.mid",
+      "notice_sha256": "27990552ef6f261d17f0a9d3ae462ce267834d53882ca5ee4544b838f5148625",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "77d49ab81085853fea1cb08cca78ccd9b8d11a961a196574c2a51c9d89834bcc",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/gg.mid",
+      "notice_sha256": "6d3f3bdae63b28e6a642a700a0c56e727c7ee7432f1bbee4311bee11700578fb",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "68b7a02ca76346b41e2e96dd0d8fb13116684fa403cb5fc6cf7006fdaf4bef0f",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/gg2.mid",
+      "notice_sha256": "5cc6f7f607ac38e42384066cb0a8df921b9451aa720a6180f6befd002f655535",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "4abae7c0a9854a30761b07dad6276d003c2948fa70852ab4a6dd68b7e57891d4",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/green_forest.mid",
+      "notice_sha256": "f6ae690a5ab8268562891ee97b0351752deb3d86bd37b853273e7f352700e364",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "5104bee35e53b4d23ea86f6a035853166de6b670f5a2a5996a8e53495d3b7104",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/high_mountains.mid",
+      "notice_sha256": "5cc3fcbb6057d2f66a4cfbcdb9f29252e4db535bb56bac64a28896846b52f67d",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "060055cf7214d697c2634c2fac888f44135250789d8e6e4942b4d3d8b4a34103",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/interlude.mid",
+      "notice_sha256": "677f956afe762d722464592089fcb77c50f6af60b801cd04282f075ac5120274",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "82f20d0347102873e359d0b7353cbc46cb8c6fa87fd6db1cd1fe53e01a39903b",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/lava_city.mid",
+      "notice_sha256": "ecd50ee5994fbb05dedb224d2ac8dbf4c0991c1decd29290cc2c2d16534a1429",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "aa25a3fe8b21ba2711203d00823487fd5ff46a669e4ae5c1478cfeec218cec49",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/level_win.mid",
+      "notice_sha256": "d4dd4da3c2c6a00b19abae06fc874e115778909924ffde2c5ff932522beba17e",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "89f4f1e663216e4b6d34b240403bfcffbf6b15d48202440c9fa9b765c0b486c8",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/pirates.mid",
+      "notice_sha256": "244966d3efcbfa8dc78dbe8b5ec251a8ec5a35763753bc4a52b32e4477c0e29c",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "b3efe980377b11be4e322f51138b13c6e7e4113c28d514d4dcd733fc65ee1837",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/running_wild.mid",
+      "notice_sha256": "ef1906e9dfa131bf93047a9f8e728bff01cd1d9237e25f790a97ffcb089851aa",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "938f539848e8fb35bd8884f8ab6e1eba88c1b2c1c3e6a26230537b18b7b352c7",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/ship.mid",
+      "notice_sha256": "0e5c2b148627ac71f24f01b68ac492cc05582186a319a5684f2d9537f4145ee4",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "6e7c3ed5d23d9a35b37b4b30a80d1636364a818e45c2dafa00591c5ef26e1864",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/tethanus.mid",
+      "notice_sha256": "262d9f746820358a617d42b6d311437cfa49d09fada16f8acda201a451adc1ae",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "8a862891c264c68c44a26b6e816ebe8c184729cd65c01648cf9beec94c2e86ba",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/the_end.mid",
+      "notice_sha256": "5c78685d09a108e603cbbc52f3851f3eaeaee9e6777719cb3ad0f4257fcca172",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "13480b76f02a55c22754d730632ff8553b55d564f18dbde5206ca39a2275d068",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/underground.mid",
+      "notice_sha256": "a7f196fca1c2e32586fe4da3a6160d6b0b3c46f7903739b59fa50435c768c2ee",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "d8616799863f1c9776c6c868ab92fd970380afc86381ae340bfe37efec2b9cb6",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/metaruka-game-game-backgrounds.md",
+        "notes": "Archived first-party Game-Game grant and OpenGameArt source archive bind this exact Max McCracken (Metaruka) MIDI to CC-BY-SA-3.0.",
+        "sha256": "767dd00f0eff79021aab3c35c3d1c99a364bdd9cd44e47b5ad7cac06aca69a2d"
+      },
+      "logical_path": "background/vonstantine.mid",
+      "notice_sha256": "631d386aca1cd14dde37a8620b0db310b75f35e917357c492fe630d8ee1dfc5f",
+      "reviewed_at": "2026-08-10T08:17:01Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "69a99efdc9e464376909f6b8f769d7932cf3a5ee5f620b0c075124e133aab305",
+      "spdx_expression": "CC-BY-SA-3.0"
     }
   ]
 }

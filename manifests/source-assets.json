@@ -316,13 +316,13 @@
       "generated_path": "audio/background/autumn.mid.opus",
       "id": "sound:background/autumn.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:111",
-        "notice_sha256": "c9ae4622fc03c63cde4b37f4380042dfb995480131d9815ca5cc21a021165838",
+        "notice_sha256": "79036d972e6fb710473ed52ef71df897c561db9fa52bcca5d2109e22df96dcc7",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/autumn.mid",
       "quality_review": {
@@ -355,7 +355,7 @@
         "sha256": "4d0b91ac3351ef942b6852a0ed27cd1f9e3690960c6a9cffb8a37530e5cec2aa"
       },
       "source_path": "background/autumn.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: aed76db8ef2c26695e57e5ec2cfb12b8deb943c7235594b0b0807744038f1fb5"
     },
     {
       "encode": {
@@ -426,13 +426,13 @@
       "generated_path": "audio/background/barcarolle.mid.opus",
       "id": "sound:background/barcarolle.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:112",
-        "notice_sha256": "46572cd51aa8906113bc4c371a2ea72a1b8a8b297871a5a45a4091e028c6fb17",
+        "notice_sha256": "622c789538256d255aada1b1f116651d72b9e6f5abd59743bf87a401b84a849c",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/barcarolle.mid",
       "quality_review": {
@@ -465,7 +465,7 @@
         "sha256": "77dc5d00e24245e0b62bf735e9076e4e47892a272a773ae716a671245b502dbc"
       },
       "source_path": "background/barcarolle.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 75578ada457d276af79ef4a08501c25c2ece31f0bc2c7468eebcd142f4ca8191"
     },
     {
       "encode": {
@@ -481,13 +481,13 @@
       "generated_path": "audio/background/battle.mid.opus",
       "id": "sound:background/battle.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:194",
-        "notice_sha256": "de7cd6b52cbdae6530dc0169cdb3dfcb518f1d326ea4082b5bd273fd1e31ac6c",
+        "notice_sha256": "2c5dc68814a0ed9fb1471f27fbe851e888519485497bfad0ca98e42616067749",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/battle.mid",
       "quality_review": {
@@ -520,7 +520,7 @@
         "sha256": "2d01d0017f138f84de360f54665ecaa7fa6258e9eab99cb2ca583df4b358e95c"
       },
       "source_path": "background/battle.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: f0e527163675599ab8bcf3a5c77c8d3913b5c842ba535dc7b50a8c3e2115110d"
     },
     {
       "encode": {
@@ -763,13 +763,13 @@
       "generated_path": "audio/background/carnival.mid.opus",
       "id": "sound:background/carnival.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:113",
-        "notice_sha256": "846f43c428db2937335ae074126427b31c36d7feaddf888773813dd42fef83a7",
+        "notice_sha256": "23e3c8262a73b8d552c74a2831448ca6005eebd783ed4a1b31943a14c05c60e3",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/carnival.mid",
       "quality_review": {
@@ -802,7 +802,7 @@
         "sha256": "b66b57e1d7575ef7d8ab492a139fe1b0058c2b97c514aee57761352de74721f5"
       },
       "source_path": "background/carnival.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: e4548193e0ab11137452cb5552a46c92c85e61f1068428c17277e421abeeea50"
     },
     {
       "encode": {
@@ -1118,13 +1118,13 @@
       "generated_path": "audio/background/christmas1.mid.opus",
       "id": "sound:background/christmas1.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:114",
-        "notice_sha256": "945444636ac83d65c257c68db0eba009cb96d6d602f3755b6be45c7dfab1752b",
+        "notice_sha256": "02b1cf5ae7ad1835c699deb2c5cee54f350c65612a7a3791201fbd09a836f5d1",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/christmas1.mid",
       "quality_review": {
@@ -1157,7 +1157,7 @@
         "sha256": "f17f2d784214bbf7444b29b3aea3ae2415c3d32e8fb1ed2ebefde40f04a8d84b"
       },
       "source_path": "background/christmas1.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: b59c74fa228a5b4a1aacfc9d366682bcc39de12e0c4b199b1155dcc7223ded15"
     },
     {
       "encode": {
@@ -1173,13 +1173,13 @@
       "generated_path": "audio/background/christmas2.mid.opus",
       "id": "sound:background/christmas2.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:115",
-        "notice_sha256": "f4e2ec18edd1412ce85abd8a460ca9b428ccc69fb97348d34956e163f39c639a",
+        "notice_sha256": "cccd6698a4fd72c2249e810e92cef930ee6105d4d21c81e926c8beaca8fe7517",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/christmas2.mid",
       "quality_review": {
@@ -1212,7 +1212,7 @@
         "sha256": "aba4c8a944c39d577041d36c8597acc467a1f159f511551a6d1a18fc516f49c0"
       },
       "source_path": "background/christmas2.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 62dcfea8c3ab93eeec7f358e0c611f10a61724d9fad9caf444c17a980a3657e5"
     },
     {
       "encode": {
@@ -1228,13 +1228,13 @@
       "generated_path": "audio/background/christmas3.mid.opus",
       "id": "sound:background/christmas3.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:116",
-        "notice_sha256": "2958c8f8804a6b61dbd8f5c5a84bd50f4ff5c8cd3ea6d83ba9d7a6959416131b",
+        "notice_sha256": "968f9fb5e758ae28c2951dd0d1ed7b2cd6f24660bc5b8ec35d2f5eeb3183bad4",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/christmas3.mid",
       "quality_review": {
@@ -1267,7 +1267,7 @@
         "sha256": "61b4c298d74773ba31daf4ca02adf1f705fad5de83b07a654e451a13786396fc"
       },
       "source_path": "background/christmas3.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 8837a04738fb3d2720c37c67326e0db2d73075e8e493a5a2850bb4d7b84f8785"
     },
     {
       "encode": {
@@ -1283,13 +1283,13 @@
       "generated_path": "audio/background/christmas4.mid.opus",
       "id": "sound:background/christmas4.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:117",
-        "notice_sha256": "2689bb3396f11f1b248be17caec676b46ccac0fd34bf4b1f97467fdee9358879",
+        "notice_sha256": "db29a2374b3db58412c7c1899b23590059fae221f034545194e1538609392df3",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/christmas4.mid",
       "quality_review": {
@@ -1322,7 +1322,7 @@
         "sha256": "51af00441887b3809e59aad29170704b8bf2193bff9f735168d4c40c355ef09c"
       },
       "source_path": "background/christmas4.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: bdf1b65a9ed193cc5e2026ed43171fb9ed39939c9864da9197e0cf70d78f31a0"
     },
     {
       "encode": {
@@ -1338,13 +1338,13 @@
       "generated_path": "audio/background/christmas5.mid.opus",
       "id": "sound:background/christmas5.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:118",
-        "notice_sha256": "bd77430f479d7c0ab1ae2e0d885d39fe4fbd6404768ef73a130b1037065c95cd",
+        "notice_sha256": "7a3b596967989019ea23cc35747340992de28bffd6097de64c4b564a29ca8504",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/christmas5.mid",
       "quality_review": {
@@ -1377,7 +1377,7 @@
         "sha256": "1d8fc5736afdc94a8030654f1445ca93fa5ae9207617b4e4810d703a873ae7d0"
       },
       "source_path": "background/christmas5.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 5e5e8b1a4262a0668f27b238ed4aa464b2ed33e8b054b6879864a5da55725420"
     },
     {
       "encode": {
@@ -1393,13 +1393,13 @@
       "generated_path": "audio/background/christmas6.mid.opus",
       "id": "sound:background/christmas6.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:119",
-        "notice_sha256": "16bffd2f9c9400817cafbdbed9e9f5ea4f20469dd13d9e41a9881171a468c063",
+        "notice_sha256": "29a8fa8fbef6e85c7ed5bef310a7efd1b4c6586646f5107d3821b3b7cfd99ac4",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/christmas6.mid",
       "quality_review": {
@@ -1432,7 +1432,7 @@
         "sha256": "589423e4a27d00e6a6e59bc466bf99b06c0a68fe697f0d0d57e4311cb362797b"
       },
       "source_path": "background/christmas6.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: e0dcfe40a39412d34d554a33e3019ac3aad9c1b9c14d8d16b59976071377710f"
     },
     {
       "encode": {
@@ -2713,13 +2713,13 @@
       "generated_path": "audio/background/elise.mid.opus",
       "id": "sound:background/elise.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:120",
-        "notice_sha256": "0554c1000c034af3e4f282683818044d001f7c0b90cf26f2bee0362766d60830",
+        "notice_sha256": "2a9ce4550800b527e8ca1f87d842875c86ca6caaf4ec0a2018c470f7c505eaaa",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/elise.mid",
       "quality_review": {
@@ -2752,7 +2752,7 @@
         "sha256": "f26dee755a2eb52c993784fef76bd1a1038c2b9f9c3a5b5e3f28566dd837cc73"
       },
       "source_path": "background/elise.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 03875aec62f2254a90744ea3391e8836612bc9910340f528c91e612dc964dffb"
     },
     {
       "encode": {
@@ -2768,13 +2768,13 @@
       "generated_path": "audio/background/endless_sands.mid.opus",
       "id": "sound:background/endless_sands.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:195",
-        "notice_sha256": "789b161ac43374d55dcd05e57325a85129bb3bb11b1c4406c6b15639fb40836d",
+        "notice_sha256": "b9e9e0d09d57d9bd7f9150c79f92d3ed98f3bf823f6371b042b99188c8e5a3ce",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/endless_sands.mid",
       "quality_review": {
@@ -2807,7 +2807,7 @@
         "sha256": "781b95d4316e1b984b7d83dff876444555b45d907b341d2198055d0ded17f636"
       },
       "source_path": "background/endless_sands.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: fad11842eaadacc464b51159121c0ec0532a5a6af7e012ef0c64efb0c7fcc7d7"
     },
     {
       "encode": {
@@ -3172,13 +3172,13 @@
       "generated_path": "audio/background/fireside.mid.opus",
       "id": "sound:background/fireside.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:121",
-        "notice_sha256": "a0af15dc22ae3be862e152563dd9fb107f73b2baaa054b75c3558d5b9be3ee26",
+        "notice_sha256": "4103d77bd14ac1f05a47114de0e6085bfa5a2dda4661253b7a08c039cfb0097f",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/fireside.mid",
       "quality_review": {
@@ -3211,7 +3211,7 @@
         "sha256": "2e8a458db9fef6dd05960b494767e2117797a3788e699e0a80fe9e0d51bc1670"
       },
       "source_path": "background/fireside.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 5d0eff7a4423b852519b39eff8a2bc0f8a08e7882e76abda97a1869971a8f272"
     },
     {
       "encode": {
@@ -3227,13 +3227,13 @@
       "generated_path": "audio/background/fountain.mid.opus",
       "id": "sound:background/fountain.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:122",
-        "notice_sha256": "86b80cfa51c658f3baf20eb1701e58d873ca55df47ec1615bdb180965e94198c",
+        "notice_sha256": "b7273eb7782f5d5e5a64916b0cf3009d23365ee7850eca0c5c80c5b325d5a679",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/fountain.mid",
       "quality_review": {
@@ -3266,7 +3266,7 @@
         "sha256": "e0ec646d7ae4100ed4298d6bcabc15a3b91238f53d476de41632c044670b212b"
       },
       "source_path": "background/fountain.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: dc8716930828a3b92e1ce276b9eea2b796d57dc53c5b1126d444061fe83dae2c"
     },
     {
       "encode": {
@@ -3344,13 +3344,13 @@
       "generated_path": "audio/background/game_over.mid.opus",
       "id": "sound:background/game_over.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:196",
-        "notice_sha256": "5c04bcf442beab3224b435166682d54dcfe85736a8e347b9ac527bccf305fc6d",
+        "notice_sha256": "27990552ef6f261d17f0a9d3ae462ce267834d53882ca5ee4544b838f5148625",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/game_over.mid",
       "quality_review": {
@@ -3383,7 +3383,7 @@
         "sha256": "77d49ab81085853fea1cb08cca78ccd9b8d11a961a196574c2a51c9d89834bcc"
       },
       "source_path": "background/game_over.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 29250bfe69d64b7913499baed3231de9972793afcae29421aabc3537e1628a12"
     },
     {
       "encode": {
@@ -3399,13 +3399,13 @@
       "generated_path": "audio/background/gg.mid.opus",
       "id": "sound:background/gg.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:197",
-        "notice_sha256": "578fd1fa846cf0d349c68c270487a01d9befdce20a29423d746670d8f4e678a0",
+        "notice_sha256": "6d3f3bdae63b28e6a642a700a0c56e727c7ee7432f1bbee4311bee11700578fb",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/gg.mid",
       "quality_review": {
@@ -3438,7 +3438,7 @@
         "sha256": "68b7a02ca76346b41e2e96dd0d8fb13116684fa403cb5fc6cf7006fdaf4bef0f"
       },
       "source_path": "background/gg.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 389951d30734f2a4af8a2f71fb91e7b216ccdad789415f8122bf8aa9ee811ebf"
     },
     {
       "encode": {
@@ -3454,13 +3454,13 @@
       "generated_path": "audio/background/gg2.mid.opus",
       "id": "sound:background/gg2.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:198",
-        "notice_sha256": "79a8b86bddba8c2bc7c93d9d980878f2d08f4dd55e2f4fcf3d220abc5e28fb00",
+        "notice_sha256": "5cc6f7f607ac38e42384066cb0a8df921b9451aa720a6180f6befd002f655535",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/gg2.mid",
       "quality_review": {
@@ -3493,7 +3493,7 @@
         "sha256": "4abae7c0a9854a30761b07dad6276d003c2948fa70852ab4a6dd68b7e57891d4"
       },
       "source_path": "background/gg2.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 68bb670039156b3852b43f264492ab92862338310ef28ca0bb161e08a1a648a3"
     },
     {
       "encode": {
@@ -3564,13 +3564,13 @@
       "generated_path": "audio/background/green_forest.mid.opus",
       "id": "sound:background/green_forest.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:199",
-        "notice_sha256": "d28afdc56d1333cceb368f12f3364777a6a0d67efdd61c15872660cdc0bbec09",
+        "notice_sha256": "f6ae690a5ab8268562891ee97b0351752deb3d86bd37b853273e7f352700e364",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/green_forest.mid",
       "quality_review": {
@@ -3603,7 +3603,7 @@
         "sha256": "5104bee35e53b4d23ea86f6a035853166de6b670f5a2a5996a8e53495d3b7104"
       },
       "source_path": "background/green_forest.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: ef8af8d6ac7662b7380e18ad8ae8080bb23e3227a6fb91e22b605829c031490f"
     },
     {
       "encode": {
@@ -3729,13 +3729,13 @@
       "generated_path": "audio/background/harvest.mid.opus",
       "id": "sound:background/harvest.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:123",
-        "notice_sha256": "39c134e4b8b2678b1716302ac326ce1623a142fe60670f5ff387dfa7025b137c",
+        "notice_sha256": "14b820a5a98eecba25f8d2833a1732aa4c60c8a14cde531456fe8eec5a053d09",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/harvest.mid",
       "quality_review": {
@@ -3768,7 +3768,7 @@
         "sha256": "1de42ed86051fa47f3528b4860834909b774a485e16c03e04ae00e801259a2e5"
       },
       "source_path": "background/harvest.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 2074f50279e63c71cc70fc0b805d620c9909ce387e067a2ac65d3b01d3bb92fe"
     },
     {
       "encode": {
@@ -3846,13 +3846,13 @@
       "generated_path": "audio/background/high_mountains.mid.opus",
       "id": "sound:background/high_mountains.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:200",
-        "notice_sha256": "e19a463416d3f710b3a69ce29185c8ddd1791acdaa940c9f4a24be6a1f5f6b89",
+        "notice_sha256": "5cc3fcbb6057d2f66a4cfbcdb9f29252e4db535bb56bac64a28896846b52f67d",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/high_mountains.mid",
       "quality_review": {
@@ -3885,7 +3885,7 @@
         "sha256": "060055cf7214d697c2634c2fac888f44135250789d8e6e4942b4d3d8b4a34103"
       },
       "source_path": "background/high_mountains.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 1a4b4df51a1ad3011a9eccc12cd826b256e23303a0eaddf8b37e7d8e1eb31d5e"
     },
     {
       "encode": {
@@ -4250,13 +4250,13 @@
       "generated_path": "audio/background/interlude.mid.opus",
       "id": "sound:background/interlude.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:201",
-        "notice_sha256": "ac16a1ade80a9ad361839c78053ea222ba2f08c7b14f98f7ea01b60ebc8e394c",
+        "notice_sha256": "677f956afe762d722464592089fcb77c50f6af60b801cd04282f075ac5120274",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/interlude.mid",
       "quality_review": {
@@ -4289,7 +4289,7 @@
         "sha256": "82f20d0347102873e359d0b7353cbc46cb8c6fa87fd6db1cd1fe53e01a39903b"
       },
       "source_path": "background/interlude.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 0a36de42a94ffe4f78c3162e15060404662c599664bf933241f985c5698c83a4"
     },
     {
       "encode": {
@@ -4539,13 +4539,13 @@
       "generated_path": "audio/background/lark.mid.opus",
       "id": "sound:background/lark.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:124",
-        "notice_sha256": "b00a7efd378af8ca30c20d9de75f0cabe872f32abcc0803c9d329c132796a3d4",
+        "notice_sha256": "7e172c4c5e0d9bed54c904b0d00b9a32762e100ab724322cba5871aa57459d20",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/lark.mid",
       "quality_review": {
@@ -4578,7 +4578,7 @@
         "sha256": "89f313d23b0574d212f912c6c4892260092b808077a8576adc741ee8866e40ed"
       },
       "source_path": "background/lark.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: c4b4d88b5191ba573f17a60da11b5b2467b1820d22471df011823765c713b1c1"
     },
     {
       "encode": {
@@ -4594,13 +4594,13 @@
       "generated_path": "audio/background/lava_city.mid.opus",
       "id": "sound:background/lava_city.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:202",
-        "notice_sha256": "39ecec603fd6a6a18a1ff274ab8831467b8515c3df79125ef694f5183597afd6",
+        "notice_sha256": "ecd50ee5994fbb05dedb224d2ac8dbf4c0991c1decd29290cc2c2d16534a1429",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/lava_city.mid",
       "quality_review": {
@@ -4633,7 +4633,7 @@
         "sha256": "aa25a3fe8b21ba2711203d00823487fd5ff46a669e4ae5c1478cfeec218cec49"
       },
       "source_path": "background/lava_city.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 279b99902f0d8ccb9dde22ef750634bb113a6e332612671c10337eb3cf7bdf6d"
     },
     {
       "encode": {
@@ -4649,13 +4649,13 @@
       "generated_path": "audio/background/level_win.mid.opus",
       "id": "sound:background/level_win.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:203",
-        "notice_sha256": "b1194d76dc4291ab546a9ecb015f2c8004cceb7a4f358d75b80ba84db28e926a",
+        "notice_sha256": "d4dd4da3c2c6a00b19abae06fc874e115778909924ffde2c5ff932522beba17e",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/level_win.mid",
       "quality_review": {
@@ -4688,7 +4688,7 @@
         "sha256": "89f4f1e663216e4b6d34b240403bfcffbf6b15d48202440c9fa9b765c0b486c8"
       },
       "source_path": "background/level_win.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 47c01f99e7477e79092f1df593a34dec95041a316eef99bae5643a1a42dbb5df"
     },
     {
       "encode": {
@@ -5351,13 +5351,13 @@
       "generated_path": "audio/background/pearls.mid.opus",
       "id": "sound:background/pearls.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:125",
-        "notice_sha256": "56f8d6244905ad4e81cf20c25f36543a4a25ba3123c9f759bba3843433454413",
+        "notice_sha256": "4a5094503df71260ec14a76ec91fdeac2fa155b3ecd388d7995cae1439c33e2e",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/pearls.mid",
       "quality_review": {
@@ -5390,7 +5390,7 @@
         "sha256": "a5891a46c756f1654b954312b0d1cc8380409d034c8069a0954482bc9fa773af"
       },
       "source_path": "background/pearls.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 9777502face7278a0093a326da1cf9fd7de6de336b669b6416270e512190b161"
     },
     {
       "encode": {
@@ -5461,13 +5461,13 @@
       "generated_path": "audio/background/pirates.mid.opus",
       "id": "sound:background/pirates.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:204",
-        "notice_sha256": "c8ff4f20140788ad54d6673924ec71748743fa7a521a2c270979859fecf4f99b",
+        "notice_sha256": "244966d3efcbfa8dc78dbe8b5ec251a8ec5a35763753bc4a52b32e4477c0e29c",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/pirates.mid",
       "quality_review": {
@@ -5500,7 +5500,7 @@
         "sha256": "b3efe980377b11be4e322f51138b13c6e7e4113c28d514d4dcd733fc65ee1837"
       },
       "source_path": "background/pirates.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 3e1a5b3ee8124a0ca7b5bc0bccbaa3a8aebf785c493e94cd8a6b2e2bcb117c0a"
     },
     {
       "encode": {
@@ -5516,13 +5516,13 @@
       "generated_path": "audio/background/prelude1.mid.opus",
       "id": "sound:background/prelude1.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:126",
-        "notice_sha256": "1cbd42f0c897ddf1ca757772bdddba5c8df2d8cd48e347f1a03cc9f6d89c9bca",
+        "notice_sha256": "ced77413a7ca5cf952919fa7872310d4e6c7e9112461ebbf5488d3b4afa6cf9f",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/prelude1.mid",
       "quality_review": {
@@ -5555,7 +5555,7 @@
         "sha256": "107f2b6a298f283f8d26d4e8359669e7780f7ea64011b7844f2ed066d874a37e"
       },
       "source_path": "background/prelude1.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 266db059a3e564d0f37bf9d36ed1a469bba7f83d96035bfb07f62bab62f0004f"
     },
     {
       "encode": {
@@ -5571,13 +5571,13 @@
       "generated_path": "audio/background/prelude2.mid.opus",
       "id": "sound:background/prelude2.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:127",
-        "notice_sha256": "bb493aaa4d52dc1ccdc5db34ecd0672fb3ed3223dedb17c95832727b4ac9ea45",
+        "notice_sha256": "b2634b74067cceeada633f2b2e4ffd4c0be87839ddc334f642515f00a0e1fc6b",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/prelude2.mid",
       "quality_review": {
@@ -5610,7 +5610,7 @@
         "sha256": "6a5a582455fee99765fd3c920810b36f1a4d7a991d7e93e74f072fc060faf0bf"
       },
       "source_path": "background/prelude2.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 782e6a11a5bdfb10224ae3f9c182e983b46296635ba285ccb35319862a641210"
     },
     {
       "encode": {
@@ -5626,13 +5626,13 @@
       "generated_path": "audio/background/prelude3.mid.opus",
       "id": "sound:background/prelude3.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:128",
-        "notice_sha256": "f1c03c1195905fbace44c0cacce7247c1313b368faacb66bc208670803f10d26",
+        "notice_sha256": "0c68c7367baec0f04521f45a1c50c51c3cb9408d7247be595469f9ee4c32d72d",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/prelude3.mid",
       "quality_review": {
@@ -5665,7 +5665,7 @@
         "sha256": "cfaf4db14b0f5f57f056211407aac26df8511e93afd00a6f581fda6cdfec9812"
       },
       "source_path": "background/prelude3.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: effa861a07e28107b967600317c5087c45ff37d98f7385a90dfa4ff486b823a6"
     },
     {
       "encode": {
@@ -5804,13 +5804,13 @@
       "generated_path": "audio/background/reaper.mid.opus",
       "id": "sound:background/reaper.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:129",
-        "notice_sha256": "4039fc7399d8fe0b8e23a937e682d4024ce6b889e1db39dd22f57b879e9f4b60",
+        "notice_sha256": "8df58b61a8c67a9e2974b46560214280d6803d48f8cfca987b887fddc8d00c89",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/reaper.mid",
       "quality_review": {
@@ -5843,7 +5843,7 @@
         "sha256": "0f07ca3b168a4ea5213a806c6e31a000316c3f41ce171ba1168e0ff8d71274e7"
       },
       "source_path": "background/reaper.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: b254eb702600c1ca4b4af5837ccc05b8dcad2d910d5ec24d6678e2ba5ab3a02e"
     },
     {
       "encode": {
@@ -5975,13 +5975,13 @@
       "generated_path": "audio/background/ride.mid.opus",
       "id": "sound:background/ride.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:130",
-        "notice_sha256": "0cfcbcf3ab4026bfc4e90823a129135057932416c28690a04c55cd6de0044ab6",
+        "notice_sha256": "167c867d47cbab02631ad39307dd2d1258bf4a4d3309a096680a685f5bae8345",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/ride.mid",
       "quality_review": {
@@ -6014,7 +6014,7 @@
         "sha256": "c7172ee9287e68b32e93543516524d983d9a37d5ce2393c953882be84e01b713"
       },
       "source_path": "background/ride.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: e55e2685c0a3358651ae881ab61bd652947c436d545853755068528133736295"
     },
     {
       "encode": {
@@ -6318,13 +6318,13 @@
       "generated_path": "audio/background/running_wild.mid.opus",
       "id": "sound:background/running_wild.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:205",
-        "notice_sha256": "8603bfeb97cfe62eaacd013437a94622a5dde33222220556353761994a3f3e73",
+        "notice_sha256": "ef1906e9dfa131bf93047a9f8e728bff01cd1d9237e25f790a97ffcb089851aa",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/running_wild.mid",
       "quality_review": {
@@ -6357,7 +6357,7 @@
         "sha256": "938f539848e8fb35bd8884f8ab6e1eba88c1b2c1c3e6a26230537b18b7b352c7"
       },
       "source_path": "background/running_wild.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 390fb07c27514f72f4e2fe0f858802b562b6b03e9ee9e6aec39d5b6409deacf6"
     },
     {
       "encode": {
@@ -6669,13 +6669,13 @@
       "generated_path": "audio/background/ship.mid.opus",
       "id": "sound:background/ship.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:206",
-        "notice_sha256": "ad77cdc3596e80ce177d3f892b94f3784144c9f6f79fa1fdcf96ec6e3f9428ec",
+        "notice_sha256": "0e5c2b148627ac71f24f01b68ac492cc05582186a319a5684f2d9537f4145ee4",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/ship.mid",
       "quality_review": {
@@ -6708,7 +6708,7 @@
         "sha256": "6e7c3ed5d23d9a35b37b4b30a80d1636364a818e45c2dafa00591c5ef26e1864"
       },
       "source_path": "background/ship.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 0c9c30251c55b38e5d02132848ac300057c89d42aa55a3bb3fa90e9484cfedc7"
     },
     {
       "encode": {
@@ -6724,13 +6724,13 @@
       "generated_path": "audio/background/snowdrop.mid.opus",
       "id": "sound:background/snowdrop.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:131",
-        "notice_sha256": "5f9919be0dcefbe5db327b00186bae5703e83b6d51769d6af338a9eeb15284a2",
+        "notice_sha256": "93aa04650eaee1c3bc71e1d00019e8da9cbacb33a9924bcc460b9405dab02732",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/snowdrop.mid",
       "quality_review": {
@@ -6763,7 +6763,7 @@
         "sha256": "251f52b91abfb44352944c8f5bee1434b6621577cb7a8a4c10860b262a397ff5"
       },
       "source_path": "background/snowdrop.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 59a131d1884bde30069ead0ed2c6a88d1c2ee5a00443419c55c26b7562adec59"
     },
     {
       "encode": {
@@ -6834,13 +6834,13 @@
       "generated_path": "audio/background/starlight.mid.opus",
       "id": "sound:background/starlight.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:132",
-        "notice_sha256": "c89db653546c304c892fb75342e3b78699286931d670c666eba19d42624b6dbb",
+        "notice_sha256": "d8b2df265de9e0373e6aa9a9d207a3a46aabb653a6239fdf2522841df045f619",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/starlight.mid",
       "quality_review": {
@@ -6873,7 +6873,7 @@
         "sha256": "e68444752e6a2a994fedb2cb3a2ca7e596501764993f445b35cf1b3387b35469"
       },
       "source_path": "background/starlight.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 938041b82898188adc43080988fad62ed647ad2bc7e246aa3f237a97477095b3"
     },
     {
       "encode": {
@@ -6944,13 +6944,13 @@
       "generated_path": "audio/background/tango.mid.opus",
       "id": "sound:background/tango.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:133",
-        "notice_sha256": "60628cc4199a6800b80911aea01f613c39eaaf8b261f49098024bf577dd348f3",
+        "notice_sha256": "bb976e06b6648c7ffcfa20cb775eb687e608ab3734a6ed5ffbdc5d58475ebb46",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/tango.mid",
       "quality_review": {
@@ -6983,7 +6983,7 @@
         "sha256": "b7a2087c004ea47f1c52443ae184fb901d698ea87b7396140c405c2206cbd12a"
       },
       "source_path": "background/tango.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 8ef8c04cd9ebf754e9ea73c4fdb5d123b5173bf88bcc795b23ece23a0f16374c"
     },
     {
       "encode": {
@@ -6999,13 +6999,13 @@
       "generated_path": "audio/background/tethanus.mid.opus",
       "id": "sound:background/tethanus.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:207",
-        "notice_sha256": "99737b22770dc9b79f8bcbb2df57d6d6113a1017aca588b6f8bf7365f1b8d40d",
+        "notice_sha256": "262d9f746820358a617d42b6d311437cfa49d09fada16f8acda201a451adc1ae",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/tethanus.mid",
       "quality_review": {
@@ -7038,7 +7038,7 @@
         "sha256": "8a862891c264c68c44a26b6e816ebe8c184729cd65c01648cf9beec94c2e86ba"
       },
       "source_path": "background/tethanus.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 8391df8d6255f4f6f7df1ca74431571ebd513624ab4d5384ad4b427b21bee55a"
     },
     {
       "encode": {
@@ -8924,13 +8924,13 @@
       "generated_path": "audio/background/the_end.mid.opus",
       "id": "sound:background/the_end.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:208",
-        "notice_sha256": "1923871cfb8af642421cb3e2ca7357a7301fced2f7b2ab40c687c7615a8de77e",
+        "notice_sha256": "5c78685d09a108e603cbbc52f3851f3eaeaee9e6777719cb3ad0f4257fcca172",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/the_end.mid",
       "quality_review": {
@@ -8963,7 +8963,7 @@
         "sha256": "13480b76f02a55c22754d730632ff8553b55d564f18dbde5206ca39a2275d068"
       },
       "source_path": "background/the_end.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: a831dc06e2aa021155e47f1b882dc256e409bc796e94c6bc35a9432a48e16210"
     },
     {
       "encode": {
@@ -9096,13 +9096,13 @@
       "generated_path": "audio/background/the_hunt.mid.opus",
       "id": "sound:background/the_hunt.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:134",
-        "notice_sha256": "5e99fab487a16c93210ce60b015a1f8b3b658b14470cc313ad1d196dc33cd1cf",
+        "notice_sha256": "7cee97244721b505f2fa894f5b8628c76732087941d3781950c906a49542fc6a",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/the_hunt.mid",
       "quality_review": {
@@ -9135,7 +9135,7 @@
         "sha256": "59f8664327c66e2566ea725387904caf61b96f1b1436ac5d33991f0d62eac60b"
       },
       "source_path": "background/the_hunt.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: e4dde95b9d8ee169e0ada8191d0d16733021882cb3ca723e6b3300fc0ab5fae1"
     },
     {
       "encode": {
@@ -9392,13 +9392,13 @@
       "generated_path": "audio/background/thunderstorm.mid.opus",
       "id": "sound:background/thunderstorm.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0-DE.txt",
         "notice": "Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany",
         "notice_reference": "background/LICENSE:135",
-        "notice_sha256": "22a89b98a426683479cc31eb0aad77e3b9a09bb15b60cef54b7f3f453f9a5d44",
+        "notice_sha256": "ab99d918baff48130390b683eba06f856c3b8d7f83146c0436d112eed821c72b",
         "spdx_expression": "CC-BY-SA-3.0-DE",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/thunderstorm.mid",
       "quality_review": {
@@ -9431,7 +9431,7 @@
         "sha256": "fc2295124ee88dbcd1117290070af69486553f5b2540443374549e17b22b80b3"
       },
       "source_path": "background/thunderstorm.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 4052f77c5f0a30cd502febfa434272e42f12e77e732b0da0ab33022ab21b7225"
     },
     {
       "encode": {
@@ -9928,13 +9928,13 @@
       "generated_path": "audio/background/underground.mid.opus",
       "id": "sound:background/underground.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:209",
-        "notice_sha256": "eaedaf8f738e3b2f0924c94356e74236e8bd8b689c57339a9801e0fb647ab923",
+        "notice_sha256": "a7f196fca1c2e32586fe4da3a6160d6b0b3c46f7903739b59fa50435c768c2ee",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/underground.mid",
       "quality_review": {
@@ -9967,7 +9967,7 @@
         "sha256": "d8616799863f1c9776c6c868ab92fd970380afc86381ae340bfe37efec2b9cb6"
       },
       "source_path": "background/underground.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 83a11a8767088e7dfda58afd979ca7ba2beb696067af999344727650ff4d9797"
     },
     {
       "encode": {
@@ -10100,13 +10100,13 @@
       "generated_path": "audio/background/vonstantine.mid.opus",
       "id": "sound:background/vonstantine.mid",
       "license": {
-        "blocking_finding": "per-asset license review evidence is missing",
+        "blocking_finding": null,
         "license_text_path": "licenses/CC-BY-SA-3.0.txt",
         "notice": "http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0",
         "notice_reference": "background/LICENSE:210",
-        "notice_sha256": "5202a17913dc009627a670ab1c1a95d8ed02466068ef94d253119e3153cfd24f",
+        "notice_sha256": "631d386aca1cd14dde37a8620b0db310b75f35e917357c492fe630d8ee1dfc5f",
         "spdx_expression": "CC-BY-SA-3.0",
-        "status": "blocked"
+        "status": "allowed"
       },
       "logical_path": "background/vonstantine.mid",
       "quality_review": {
@@ -10139,7 +10139,7 @@
         "sha256": "69a99efdc9e464376909f6b8f769d7932cf3a5ee5f620b0c075124e133aab305"
       },
       "source_path": "background/vonstantine.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 37b184b79eefbfd1d4239099e06c07cdbf4013d81e1d7880cd27b013f370a28f"
     },
     {
       "encode": {
