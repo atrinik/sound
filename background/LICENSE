@@ -42,7 +42,7 @@ FreeDink original MIDI files - https://www.gnu.org/software/freedink/doc/sounds/
     love.mid (Wedding)
 
 Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+:
-    piano.mid (Reverie)
+    piano.mid (Atrinik use: Reverie; author: Sylvain Beucler; source: GNU FreeDink freedink-data-1.08.20190120 dink/Sound/105.mid; Copyright (C) 2008 Sylvain Beucler; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 ZhayTee - http://www.zhaymusic.com/ - GPLv2:
     the_trail_2.ogg (Quest, all alone, trek through something)
@@ -82,9 +82,9 @@ Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ 
     no_worry.mid (Tropical paradise)
 
 OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2:
-    run_for_your_life.mid (Maze, beach)
+    run_for_your_life.mid (Atrinik use: maze, beach; musician: Tistou Blomberg; supplied title: Excitement! Run for your life; source: OpenTTD/OpenMSX src/run_for_your_life.mid at 312ca0ae46a271fb65ba49674b5e935ca0f41036; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (2026-08-10): MIDI rendered to Opus)
     the_fast_route.mid (Fancy restaurant, forest)
-    ultimate_run.mid (Beach)
+    ultimate_run.mid (Atrinik use: beach; musician: Tistou Blomberg; supplied title: Ultimate run; source: OpenTTD/OpenMSX src/ultimate_run.mid at 312ca0ae46a271fb65ba49674b5e935ca0f41036; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 Sammy Broock - Freeware:
     crystal_cave.ogg (Eerie crystal cave, magic village)

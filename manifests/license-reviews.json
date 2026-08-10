@@ -6,11 +6,11 @@
       "evidence": {
         "locator": "evidence/freedink-backgrounds.md",
         "notes": "Byte-identical official FreeDink replacement member with Sylvain Beucler's GPLv3-or-later grant.",
-        "sha256": "2326bcfacb0ce04ae7cfe0923bcb7d4763caef44e887b6508a3d9a22ca866a52"
+        "sha256": "be2eacdbfc285950b5ab18a16ae7240f84d279c27f1629836c10e3c36b0cf957"
       },
       "logical_path": "background/piano.mid",
-      "notice_sha256": "7e5f189dbfd10de1e6f876571249d17870da8c231ccc3bd8435f54ecfdda64b5",
-      "reviewed_at": "2026-08-10T06:54:47Z",
+      "notice_sha256": "50fba41dad4c1a039296a8f0070e57f0748281b01ceb45cf8bfc3b9323cb3572",
+      "reviewed_at": "2026-08-10T07:13:59Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53",
       "spdx_expression": "GPL-3.0-or-later"
@@ -19,11 +19,11 @@
       "evidence": {
         "locator": "evidence/openmsx-gpl2-backgrounds.md",
         "notes": "Byte-identical official OpenMSX source and repository GPL-2.0 grant for this exact MIDI input.",
-        "sha256": "a29f97389a09bd6c8fd9bc0533fb65958fa7088ecfb8ece2eaecc17cf87757e8"
+        "sha256": "d000c7cd35d08f964ab27ec82112d777e8cf933246a2547b1fc6f4783a495da7"
       },
       "logical_path": "background/run_for_your_life.mid",
-      "notice_sha256": "fa052e36a28d96c237f7b18d575a63611ffa8f230a8c0914ddbbf3ba5e868ceb",
-      "reviewed_at": "2026-08-10T05:20:37Z",
+      "notice_sha256": "7a66b982ef0e5d89994e94b06271a174410504e67208da77903b13e3b247e890",
+      "reviewed_at": "2026-08-10T07:13:59Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "654f402855dd82d00a7b6ec596fa0aeb8906431224e79a57f115db8c2fb9a4d0",
       "spdx_expression": "GPL-2.0-only"
@@ -32,11 +32,11 @@
       "evidence": {
         "locator": "evidence/openmsx-gpl2-backgrounds.md",
         "notes": "Byte-identical official OpenMSX source and repository GPL-2.0 grant for this exact MIDI input.",
-        "sha256": "a29f97389a09bd6c8fd9bc0533fb65958fa7088ecfb8ece2eaecc17cf87757e8"
+        "sha256": "d000c7cd35d08f964ab27ec82112d777e8cf933246a2547b1fc6f4783a495da7"
       },
       "logical_path": "background/ultimate_run.mid",
-      "notice_sha256": "fb43fefe65bf215f8f49aea16e05603b4e87bc53335092d90251715de375ba19",
-      "reviewed_at": "2026-08-10T05:20:37Z",
+      "notice_sha256": "dd788e60d1d27be4cf2c881d53872df4a08d74190c9b9de48e5e9970cab5e3b4",
+      "reviewed_at": "2026-08-10T07:13:59Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "b1b8745f04e3f16e4924d6b1b9a489ead889001343fde3ed947fda2921199ded",
       "spdx_expression": "GPL-2.0-only"

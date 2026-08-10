@@ -8,14 +8,16 @@ evidence applies only to the two byte-identical source hashes listed below.
 The official `OpenTTD/OpenMSX` repository at commit
 `312ca0ae46a271fb65ba49674b5e935ca0f41036` states in `README.md` that the
 OpenMSX music set is copyrighted by the OpenMSX authors and licensed under GNU
-GPL version 2. The same tree contains the complete GPL version 2 text in
-`LICENSE`.
+GPL version 2. Its `src/themes.list` identifies Tistou Blomberg as the musician
+and records the supplied titles for both reviewed tracks. The same tree
+contains the complete GPL version 2 text in `LICENSE`.
 
 Immutable repository coordinates:
 
 - repository: <https://github.com/OpenTTD/OpenMSX>
 - reviewed commit: <https://github.com/OpenTTD/OpenMSX/commit/312ca0ae46a271fb65ba49674b5e935ca0f41036>
 - `README.md` Git blob: `55cc1b40292edfb7f6d902e66b9af05c3c2fa9fc`
+- `src/themes.list` Git blob: `e80313839c5fa614dbee544d7bd90181c14a3cdc`
 - `LICENSE` Git blob: `d159169d1050894d3ea3b98e1c965c4058208fe1`
 
 ## Exact source identity
@@ -40,5 +42,8 @@ the shared notice is not broadened to that asset.
 ## Decision
 
 The two exact Atrinik inputs above are approved under `GPL-2.0-only` for
-conversion to Opus and redistribution in the complete sound archive. Any byte
-change, notice change, or different logical path requires a new review.
+conversion to Opus and redistribution in the complete sound archive. The
+packaged per-asset notices preserve Tistou Blomberg, each supplied title, the
+OpenMSX copyright, immutable source coordinate, and Atrinik's dated MIDI-to-Opus
+modification statement. Any byte, notice, or different logical path requires a
+new review.

@@ -187,7 +187,7 @@ class SourceManifestTests(unittest.TestCase):
         catalog = sound_release.notice_catalog(ROOT / "background")
         attributed = {
             filename for filename, notice in catalog.items()
-            if "supplied title:" in notice["text"]
+            if "source: https://www.piano-midi.de/" in notice["text"]
         }
         self.assertEqual(21, len(attributed))
         for filename in attributed:
@@ -217,6 +217,21 @@ class SourceManifestTests(unittest.TestCase):
             license_path.write_bytes(b"Example - CC0:\r\n    example.ogg (notice)\r\n")
             crlf = sound_release.notice_catalog(directory)["example.ogg"]["text"]
             self.assertNotEqual(original, crlf)
+
+    def test_approved_gpl_notices_preserve_authors_and_modification_dates(self) -> None:
+        catalog = sound_release.notice_catalog(ROOT / "background")
+        expectations = {
+            "piano.mid": ("Sylvain Beucler", "Copyright (C) 2008 Sylvain Beucler"),
+            "run_for_your_life.mid": ("Tistou Blomberg", "supplied title: Excitement! Run for your life"),
+            "ultimate_run.mid": ("Tistou Blomberg", "supplied title: Ultimate run"),
+        }
+        for filename, required in expectations.items():
+            with self.subTest(filename=filename):
+                notice = catalog[filename]["text"]
+                self.assertEqual("allowed", self.assets[f"background/{filename}"]["license"]["status"])
+                for text in required:
+                    self.assertIn(text, notice)
+                self.assertIn("Atrinik modification (2026-08-10): MIDI rendered to Opus", notice)
 
     def test_exact_stendhal_tracks_preserve_storyteller_but_remain_blocked(self) -> None:
         reviewed_paths = {

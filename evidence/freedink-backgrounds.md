@@ -39,7 +39,9 @@ ambiguous and fail closed.
 ## Decision
 
 Only `background/piano.mid` is approved for deterministic conversion to Opus
-and redistribution under `GPL-3.0-or-later`. `background/insper.mid`,
+and redistribution under `GPL-3.0-or-later`. Its packaged per-asset notice
+preserves Sylvain Beucler's exact copyright, the release member identity, and
+Atrinik's dated MIDI-to-Opus modification statement. `background/insper.mid`,
 `background/lively.mid`, and `background/love.mid` remain blocked until an
 explicit grant for their exact musical works is preserved. Any byte, notice,
 logical-path, or upstream-evidence change requires a new review.

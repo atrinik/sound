@@ -5410,7 +5410,7 @@
         "license_text_path": "licenses/GPL-3.0.txt",
         "notice": "Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+",
         "notice_reference": "background/LICENSE:45",
-        "notice_sha256": "7e5f189dbfd10de1e6f876571249d17870da8c231ccc3bd8435f54ecfdda64b5",
+        "notice_sha256": "50fba41dad4c1a039296a8f0070e57f0748281b01ceb45cf8bfc3b9323cb3572",
         "spdx_expression": "GPL-3.0-or-later",
         "status": "allowed"
       },
@@ -5445,7 +5445,7 @@
         "sha256": "0c464dd925d59415fdad806f55682e2bcc8434c5be81fa783c69a6d7d6bf0b53"
       },
       "source_path": "background/piano.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 75bd1211e20335135af2ba0d00a479f966924f2a4ef8a4a1f2becc5f2473942d"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 31a0b5106455ca713bfb3eadb4b41a907650a3397d3bdbb50bf813425b97b218"
     },
     {
       "encode": {
@@ -6205,7 +6205,7 @@
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2",
         "notice_reference": "background/LICENSE:85",
-        "notice_sha256": "fa052e36a28d96c237f7b18d575a63611ffa8f230a8c0914ddbbf3ba5e868ceb",
+        "notice_sha256": "7a66b982ef0e5d89994e94b06271a174410504e67208da77903b13e3b247e890",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -6240,7 +6240,7 @@
         "sha256": "654f402855dd82d00a7b6ec596fa0aeb8906431224e79a57f115db8c2fb9a4d0"
       },
       "source_path": "background/run_for_your_life.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: eab15ed18a3467d2441c5f8e1acefe432e308b59f3338b6975c49b7093b541f0"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 893902f81658f24c44a679a110628a9624c6b2e03b0225e706c48f89590abc63"
     },
     {
       "encode": {
@@ -9877,7 +9877,7 @@
         "license_text_path": "licenses/GPL-2.0.txt",
         "notice": "OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2",
         "notice_reference": "background/LICENSE:87",
-        "notice_sha256": "fb43fefe65bf215f8f49aea16e05603b4e87bc53335092d90251715de375ba19",
+        "notice_sha256": "dd788e60d1d27be4cf2c881d53872df4a08d74190c9b9de48e5e9970cab5e3b4",
         "spdx_expression": "GPL-2.0-only",
         "status": "allowed"
       },
@@ -9912,7 +9912,7 @@
         "sha256": "b1b8745f04e3f16e4924d6b1b9a489ead889001343fde3ed947fda2921199ded"
       },
       "source_path": "background/ultimate_run.mid",
-      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 086d0aa313176bad3fc40c569a1fbcef8b087b683ceca9208e61e31d0bce8407"
+      "transformation_notes": "rendered from the preserved authored source at release time; license review SHA-256: 73815d524e6b51e0c38c55f8d150b98261b13b3aa37cd03ed9df28abd39bb44b"
     },
     {
       "encode": {
