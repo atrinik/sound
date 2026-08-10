@@ -7,6 +7,6 @@
   "properties": {
     "$schema": {"const": "../schemas/tracker-durations-v1.schema.json"}, "schema_version": {"const": 1},
     "toolchain_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "entries": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["logical_path", "source_sha256", "duration_seconds"], "properties": {"logical_path": {"type": "string", "pattern": "^background/(?:[a-z0-9_.-]+/)*[a-z0-9_.-]+\\.(mod|s3m|xm)$"}, "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "duration_seconds": {"type": "number", "exclusiveMinimum": 0}}}}
+    "entries": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["logical_path", "source_sha256", "duration_seconds"], "properties": {"logical_path": {"type": "string", "pattern": "^background/(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\\.(mod|s3m|xm)$"}, "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "duration_seconds": {"type": "number", "exclusiveMinimum": 0}}}}
   }
 }

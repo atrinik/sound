@@ -17,7 +17,8 @@ loudness, clipping result, and rendered-PCM measurements.
 The current inventory intentionally records 339 fail-closed license/provenance
 findings. This includes terse GPL/CC headings until a per-asset review binds
 the source and notice hashes, SPDX interpretation, reviewer, timestamp, and a
-retrievable hash-verified evidence document; ambiguous `Permission to use`,
+Git-tracked, non-symlink, content-hash-verified evidence document under
+`evidence/`; ambiguous `Permission to use`,
 `Freeware`, Sampling Plus, noncommercial, incomplete, and missing notices have
 no candidate interpretation. Approval is never a default-allow keyword filter.
 All 196 preserved Vorbis inputs also have source-hash-bound quality reviews
@@ -29,7 +30,8 @@ continue unchanged.
 `manifests/vorbis-quality-reviews.json` is the independent review ledger. A
 passed entry binds the source, toolchain, reviewed evidence artifact, and exact
 generated output hashes, plus a GitHub reviewer identity and canonical UTC
-timestamp; stale, malformed, missing, or failed evidence blocks publication.
+timestamp. The referenced `evidence/` file must be tracked and match its hash;
+stale, malformed, missing, or failed evidence blocks publication.
 `manifests/license-reviews.json` records those evidence-backed per-asset
 decisions, so an asset replacement cannot inherit a notice-level approval.
 These manifests and the

@@ -161,7 +161,7 @@ class SourceManifestTests(unittest.TestCase):
             "logical_path": "effects/example.ogg", "status": "passed", "source_sha256": "a" * 64,
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN), "output_sha256": "b" * 64,
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
-            "evidence": {"method": "critical-listening", "artifact_locator": "https://example.invalid/review.wav", "artifact_sha256": "c" * 64, "notes": "ABX comparison"},
+            "evidence": {"method": "critical-listening", "artifact_locator": "evidence/README.md", "artifact_sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a", "notes": "schema verification fixture only"},
         }
         document = {"$schema": "../schemas/vorbis-quality-reviews-v1.schema.json", "schema_version": 1, "reviews": [entry]}
         original_read_json = sound_release.read_json
@@ -171,6 +171,11 @@ class SourceManifestTests(unittest.TestCase):
         broken["reviews"][0]["reviewed_at"] = "yesterday"
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: broken if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "timestamp"):
+                sound_release.checked_quality_reviews()
+        wrong_hash = copy.deepcopy(document)
+        wrong_hash["reviews"][0]["evidence"]["artifact_sha256"] = "0" * 64
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: wrong_hash if path == sound_release.QUALITY_REVIEWS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "hash mismatch"):
                 sound_release.checked_quality_reviews()
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
@@ -186,7 +191,7 @@ class SourceManifestTests(unittest.TestCase):
             "logical_path": "effects/example.ogg", "source_sha256": "a" * 64,
             "notice_sha256": "b" * 64, "spdx_expression": "CC0-1.0",
             "reviewed_by": "reviewer", "reviewed_at": "2026-08-10T00:00:00Z",
-            "evidence": {"locator": "https://example.invalid/license.txt", "sha256": "c" * 64, "notes": "full grant"},
+            "evidence": {"locator": "evidence/README.md", "sha256": "7fabbf69efe3dba33656e9a9852c70edee2072e9a4ea772a4c1ca91a613b121a", "notes": "schema verification fixture only"},
         }
         document = {"$schema": "../schemas/license-reviews-v1.schema.json", "schema_version": 1, "reviews": [review]}
         original_read_json = sound_release.read_json
@@ -196,6 +201,11 @@ class SourceManifestTests(unittest.TestCase):
         broken["reviews"][0]["evidence"].pop("locator")
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: broken if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "required"):
+                sound_release.checked_license_reviews()
+        missing = copy.deepcopy(document)
+        missing["reviews"][0]["evidence"]["locator"] = "evidence/missing.txt"
+        with mock.patch.object(sound_release, "read_json", side_effect=lambda path: missing if path == sound_release.LICENSE_REVIEWS else original_read_json(path)):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "missing"):
                 sound_release.checked_license_reviews()
 
     def test_tracker_durations_are_bound_to_pinned_measurements(self) -> None:

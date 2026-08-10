@@ -452,6 +452,22 @@ def notice_status(
     return "candidate", "per-asset license review evidence is missing", expression, license_text_path
 
 
+def verify_review_evidence(evidence: dict[str, object], logical_path: str) -> None:
+    locator = evidence.get("artifact_locator", evidence.get("locator"))
+    pure = PurePosixPath(str(locator))
+    if not isinstance(locator, str) or not locator.startswith("evidence/") or pure.is_absolute() or ".." in pure.parts or pure.as_posix() != locator:
+        raise ReleaseError(f"review evidence locator is unsafe or not repository-owned: {logical_path}")
+    path = ROOT / locator
+    if path.is_symlink() or not path.is_file():
+        raise ReleaseError(f"review evidence is missing or not a regular file: {logical_path}")
+    try:
+        run(["git", "ls-files", "--error-unmatch", "--", locator], capture=True)
+    except ReleaseError as exc:
+        raise ReleaseError(f"review evidence is not Git-tracked: {logical_path}") from exc
+    if sha256(path) != evidence.get("artifact_sha256", evidence.get("sha256")):
+        raise ReleaseError(f"review evidence hash mismatch: {logical_path}")
+
+
 def checked_quality_reviews() -> dict[str, dict[str, object]]:
     schema = checked_schema("vorbis-quality-reviews-v1.schema.json")
     value = read_json(QUALITY_REVIEWS)
@@ -490,8 +506,9 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
         evidence = entry.get("evidence")
         if not isinstance(evidence, dict) or set(evidence) != {"method", "artifact_locator", "artifact_sha256", "notes"}:
             raise ReleaseError(f"quality review lacks immutable evidence: {logical_path}")
-        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"(https://|evidence/).+", str(evidence.get("artifact_locator", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
+        if evidence.get("method") != "critical-listening" or not re.fullmatch(r"evidence/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)*", str(evidence.get("artifact_locator", ""))) or not re.fullmatch(r"[0-9a-f]{64}", str(evidence.get("artifact_sha256", ""))) or not isinstance(evidence.get("notes"), str) or not evidence["notes"].strip():
             raise ReleaseError(f"quality review has invalid evidence: {logical_path}")
+        verify_review_evidence(evidence, logical_path)
         reviews[logical_path] = entry
     return reviews
 
@@ -523,6 +540,9 @@ def checked_license_reviews() -> dict[str, dict[str, object]]:
             datetime.strptime(reviewed_at, "%Y-%m-%dT%H:%M:%SZ")
         except ValueError as exc:
             raise ReleaseError(f"license review has a non-canonical UTC timestamp: {logical}") from exc
+        evidence = review["evidence"]
+        assert isinstance(evidence, dict)
+        verify_review_evidence(evidence, logical)
         reviews[logical] = review
     return reviews
 

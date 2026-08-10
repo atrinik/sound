@@ -13,7 +13,7 @@
         "source_sha256": {"$ref": "#/$defs/sha256"}, "toolchain_sha256": {"$ref": "#/$defs/sha256"}, "output_sha256": {"$ref": "#/$defs/sha256"},
         "reviewed_by": {"type": "string", "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"},
         "reviewed_at": {"type": "string", "format": "date-time"},
-        "evidence": {"type": "object", "additionalProperties": false, "required": ["method", "artifact_locator", "artifact_sha256", "notes"], "properties": {"method": {"const": "critical-listening"}, "artifact_locator": {"type": "string", "pattern": "^(https://|evidence/).+"}, "artifact_sha256": {"$ref": "#/$defs/sha256"}, "notes": {"type": "string", "minLength": 1}}}
+        "evidence": {"type": "object", "additionalProperties": false, "required": ["method", "artifact_locator", "artifact_sha256", "notes"], "properties": {"method": {"const": "critical-listening"}, "artifact_locator": {"type": "string", "pattern": "^evidence/[A-Za-z0-9][A-Za-z0-9_.-]*(?:/[A-Za-z0-9][A-Za-z0-9_.-]*)*$"}, "artifact_sha256": {"$ref": "#/$defs/sha256"}, "notes": {"type": "string", "minLength": 1}}}
       }
     }}
   },
