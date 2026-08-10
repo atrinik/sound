@@ -1,0 +1,6 @@
+*
+!tools/
+tools/*
+!tools/audio/
+tools/audio/*
+!tools/audio/sdl3-mixer-runtime-probe.c
