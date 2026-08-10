@@ -20,6 +20,17 @@ The Evil Temple publication additionally records the creator's statement that
 the vocals are his own. No third-party vocal source is asserted by this
 decision.
 
+The first-party publication responses retrieved on 2026-08-10 are preserved
+byte-for-byte so the author, submitter, license, title, and published-file
+claims remain independently hash-verifiable:
+
+| Publication | Capture | Capture SHA-256 |
+| --- | --- | --- |
+| Evil Temple Ambiance Loop | `evidence/captures/opengameart-evil-temple-ambiance-loop.html` | `42b52e20c0c49b7732ae6453cff4e174126872204f86dcd8dd360ae446c3f051` |
+| Lost in the Meadows | `evidence/captures/opengameart-lost-in-the-meadows.html` | `4a1d8a3d9a1757845a3078f03ef9ee9975df63f368970e52ff132cd6919d64d6` |
+| Running from Something | `evidence/captures/opengameart-running-from-something.html` | `99ec05b389340187aa785674190f8c7d34ddac8c2b769ab85f7136dde952d274` |
+| Rat Sewer | `evidence/captures/opengameart-rat-sewer.html` | `ad41b1b5aa01ae8a83daa1ae4fdf8ff7915ab32dbbc06771c54ff40e1eca592b` |
+
 CC0 1.0 permits copying, modification, conversion, and commercial
 redistribution without an attribution condition. Atrinik nevertheless keeps
 the creator and publication attribution in `background/LICENSE`.
@@ -45,8 +56,10 @@ issue #21.
 
 ## Decision
 
-The downloaded audio identity is established, but this review did not preserve
-hash-verifiable first-party page or API captures containing the creator and
-CC0 grant. Mutable publication links alone do not meet issue #18's immutable
-grant-evidence requirement. All four inputs remain blocked until those
-authoritative metadata captures are preserved and reviewed.
+The preserved first-party responses establish the author and CC0 grant, and
+the published audio comparisons establish complete-work identity for the four
+exact local source hashes. All four inputs are approved under `CC0-1.0` for
+conversion to Opus and redistribution. The packaged notices retain the
+supplied author/title/source and Atrinik's dated conversion statement even
+though CC0 does not require attribution. Any source, capture, notice, or
+encoding-identity change requires a new review.

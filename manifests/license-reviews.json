@@ -19,11 +19,11 @@
       "evidence": {
         "locator": "evidence/openmsx-gpl2-backgrounds.md",
         "notes": "Byte-identical official OpenMSX source and repository GPL-2.0 grant for this exact MIDI input.",
-        "sha256": "d000c7cd35d08f964ab27ec82112d777e8cf933246a2547b1fc6f4783a495da7"
+        "sha256": "9981ae7ca58eb6ce2dc6ac28497d91fde5d6365bd1bb8decf8efb7ea327bae2f"
       },
       "logical_path": "background/run_for_your_life.mid",
       "notice_sha256": "7a66b982ef0e5d89994e94b06271a174410504e67208da77903b13e3b247e890",
-      "reviewed_at": "2026-08-10T07:13:59Z",
+      "reviewed_at": "2026-08-10T07:45:42Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "654f402855dd82d00a7b6ec596fa0aeb8906431224e79a57f115db8c2fb9a4d0",
       "spdx_expression": "GPL-2.0-only"
@@ -32,14 +32,248 @@
       "evidence": {
         "locator": "evidence/openmsx-gpl2-backgrounds.md",
         "notes": "Byte-identical official OpenMSX source and repository GPL-2.0 grant for this exact MIDI input.",
-        "sha256": "d000c7cd35d08f964ab27ec82112d777e8cf933246a2547b1fc6f4783a495da7"
+        "sha256": "9981ae7ca58eb6ce2dc6ac28497d91fde5d6365bd1bb8decf8efb7ea327bae2f"
       },
       "logical_path": "background/ultimate_run.mid",
       "notice_sha256": "dd788e60d1d27be4cf2c881d53872df4a08d74190c9b9de48e5e9970cab5e3b4",
-      "reviewed_at": "2026-08-10T07:13:59Z",
+      "reviewed_at": "2026-08-10T07:45:42Z",
       "reviewed_by": "zoeyrose",
       "source_sha256": "b1b8745f04e3f16e4924d6b1b9a489ead889001343fde3ed947fda2921199ded",
       "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/openmsx-gpl2-backgrounds.md",
+        "notes": "Official OpenMSX GPL-2.0 grant and complete normalized MIDI-event comparison establish this exact Atrinik file as a modified derivative of The Fast Route by mimm.",
+        "sha256": "9981ae7ca58eb6ce2dc6ac28497d91fde5d6365bd1bb8decf8efb7ea327bae2f"
+      },
+      "logical_path": "background/the_fast_route.mid",
+      "notice_sha256": "4a85b9e281dd883917fb6d2460c9b25801f6b60bde4a6dc5fd44bc300ad7bcc2",
+      "reviewed_at": "2026-08-10T07:45:42Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "f66dcda2d8916961c85f8468ad8e428e92f6a9fd5ab7bb3d32acc3a273d9e9ce",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/opengameart-evil-temple-ambiance-loop.html",
+        "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 169.524/169.538 dB APSNR.",
+        "sha256": "42b52e20c0c49b7732ae6453cff4e174126872204f86dcd8dd360ae446c3f051"
+      },
+      "logical_path": "background/evil_temple.ogg",
+      "notice_sha256": "a1a2f44d34408b08028092ce24c63169bf1af06c1aa88c64e4e482172ca52386",
+      "reviewed_at": "2026-08-10T07:39:31Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "c51d29768e038a96ad00ed656561f4f24ef75907ee9f258bd9095f64a17f2a01",
+      "spdx_expression": "CC0-1.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/opengameart-lost-in-the-meadows.html",
+        "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 165.612/165.587 dB APSNR.",
+        "sha256": "4a1d8a3d9a1757845a3078f03ef9ee9975df63f368970e52ff132cd6919d64d6"
+      },
+      "logical_path": "background/lost_in_meadows.ogg",
+      "notice_sha256": "0c294602a71146acf77bbb67805c873cd5300e37f841eb458adce85f6ff092b5",
+      "reviewed_at": "2026-08-10T07:39:31Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "2f8184b6b3ac0c2d495ca5d37b2378c2e1f5ab2cc57dafb1631e2f15db8e1c43",
+      "spdx_expression": "CC0-1.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/opengameart-running-from-something.html",
+        "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 170.060/169.543 dB APSNR.",
+        "sha256": "99ec05b389340187aa785674190f8c7d34ddac8c2b769ab85f7136dde952d274"
+      },
+      "logical_path": "background/running.ogg",
+      "notice_sha256": "8a6d5701ffd0f350bfa2ddec84f3d55e86e38d191407ee6ad19088c76b09ae7e",
+      "reviewed_at": "2026-08-10T07:39:31Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "7fe0de9e8d7af2b19e69c0f5f74c67bbf1296b91e1a6b2266f2e25acc6be4fc0",
+      "spdx_expression": "CC0-1.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/opengameart-rat-sewer.html",
+        "notes": "Preserved first-party author, CC0, title, and published-file response; complete published/local streams match in duration/layout/rate at 168.668/168.695 dB APSNR.",
+        "sha256": "ad41b1b5aa01ae8a83daa1ae4fdf8ff7915ab32dbbc06771c54ff40e1eca592b"
+      },
+      "logical_path": "background/sewer_rats.ogg",
+      "notice_sha256": "fb19d8c7a11a5d66e63863209cdc43929ea95577c6004dc08183ecd1f411e296",
+      "reviewed_at": "2026-08-10T07:39:31Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "c58926e6295dddc7b676d6c5837445517bf10ac8461e63bd751b39ab13e7a742",
+      "spdx_expression": "CC0-1.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/banrril.mid",
+      "notice_sha256": "43bbc2552cb289b42f8a7ac2c19ee505337c129d05cde0152e0090807546411a",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "85309d31655ecd4b26bcc1f4652a25ef5408eb614121ede7296c4576a39fd24c",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/burnt_forest.mid",
+      "notice_sha256": "78e4fcc44ca99aa8cfa4cec6e4eddcefb86f623576cb235132e69d779bcdbd5e",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "6dff5a5b2e3f92c7b765b73e4d2636072c366b1499f1201de1496b204c66930b",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/burnt_forest2.mid",
+      "notice_sha256": "12f194ecf00bb359c4b7b11e3773615b8de0b843038d852b82bf4e905ad3341a",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "8281a472059546ecb12784621ef1382f81a840e63bc632cd820337955013e14d",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/chether.mid",
+      "notice_sha256": "a75025f158cee6df94e69b83ea9d4260a8302a375560e420638a432e640d8e9c",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "e9a4014dfec6513ff084cfd2fe3848afb84d040b28caa7606019a852262b7d8d",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/denkash.mid",
+      "notice_sha256": "fb1b654240ac0a24f2a70ad89223e894da840124291ec334aa37587d88f3858e",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "6199a44746ca77bbb6a649e0a6b1c6063ba4ce8e38144c0b562c9119ca630569",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/denkash-finale.mid",
+      "notice_sha256": "edb097e81982507d24cd97a42e68fb93bbe2660ea23acccf0beb4f30ebdd6b00",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "8a80b92a47976578a5d39936e0d359c4f1ef3306b5526c4ee7c08f8002c2e2f1",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/endurance.mid",
+      "notice_sha256": "5d20fd69aa4d6a04ab842230d569d1e9b421ba1cf6798d3bc693863c5f564a5a",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "814ac9be92ff3dc7fe1fa584e402ac365abfab32d4a167c21cca2e99c9fbdbe0",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/essilda-finale.mid",
+      "notice_sha256": "d0ff3c473b8f0ae18a95ffc7a6f53ab948bec4891aeb76fc464289f55c49ec7c",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "bd7da944dbb9cdd8ff54978e82032a503d89e2d899968966a7b602f0afcf2dc3",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/kaitindam.mid",
+      "notice_sha256": "1e3b6e3784ec6e9af1a5f3e4e77162dba325d292dae83aed77a18346b324a87a",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "e91ad620e03a9919e34b0e149d3ca118032f11fe5f8eb490246ddeb2ad0165e0",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/mamoru-backgrounds.md",
+        "notes": "First-party Edwin Miltenburg commit chain, exact sound Git blob, and GPL version 2 grant for this MIDI work.",
+        "sha256": "b1de526a3453b5fb4998986282fe965084002d232de937c82d0c431cffe11955"
+      },
+      "logical_path": "background/tutorialisland.mid",
+      "notice_sha256": "44b7c5ab9d054a0b34320a46ffefcefcbc83e6721155a2c87033a13c8e58c7e1",
+      "reviewed_at": "2026-08-10T07:43:03Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "401cbadc54a00dc903775d5faa4fe7c81423e9711a8ca86754287b19ae913f25",
+      "spdx_expression": "GPL-2.0-only"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/opengameart-random-sfx.html",
+        "notes": "Preserved first-party Écrivain CC0 and SFX.zip response; published Crystal Falls WAV and complete local stream match in duration/layout/rate at 173.658 dB APSNR.",
+        "sha256": "240b016698e8299af78e322cda2f71eb92532f3167464545d78d4ac9e8e6c567"
+      },
+      "logical_path": "background/crystal_falls.ogg",
+      "notice_sha256": "a2eff15d4e9d4fae539c34d0b3190a2d63f961438994c4aa1c58973f23389df6",
+      "reviewed_at": "2026-08-10T07:49:33Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "28d24191dcb17fca2e0c2b8837b28748ebf2b2d6f6fce9c2b2ed36de01530283",
+      "spdx_expression": "CC0-1.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/opengameart-boss-music-probably.html",
+        "notes": "Preserved first-party Gobusto CC-BY-SA-3.0 and exact-file response; published and complete local streams match in duration/layout/rate at 170.452/170.452 dB APSNR.",
+        "sha256": "39189718146959249aa1327f651841716bd25a23580084f3c091caf960763ab2"
+      },
+      "logical_path": "background/hull_et_belle.ogg",
+      "notice_sha256": "2e97c94de54cac559fa8e4c4da7c1bff99a7336cb65e9855df3e28980e68061b",
+      "reviewed_at": "2026-08-10T07:49:33Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "78a434eebb1eeee963c59704cdb6b40ad9c4366cae1f638b0720b28a7f68050e",
+      "spdx_expression": "CC-BY-SA-3.0"
+    },
+    {
+      "evidence": {
+        "locator": "evidence/captures/yofrankie-download.html",
+        "notes": "Preserved official Yo Frankie CC-BY-3.0 archive and attribution response; official frankieloop2 WAV and complete local stream match in duration/layout/rate at 169.260/169.232 dB APSNR.",
+        "sha256": "4412c1575a833e8fed8faef10eb25af7b9d2d116e04011bf3c2007e2a6ff1965"
+      },
+      "logical_path": "background/frankie.ogg",
+      "notice_sha256": "fbad72fd0cd4ad444cbd6f71615671b9610ff1ff7704b28b9732cfecbe42342f",
+      "reviewed_at": "2026-08-10T07:49:33Z",
+      "reviewed_by": "zoeyrose",
+      "source_sha256": "2c14549edfc2563ee1ddffb2e34aa2fe342d1e498dd161ea273c1ffa9d227093",
+      "spdx_expression": "CC-BY-3.0"
     }
   ]
 }

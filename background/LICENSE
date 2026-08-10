@@ -83,7 +83,7 @@ Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ 
 
 OpenTTD OpenMSX - http://wiki.openttd.org/OpenMSX - GPLv2:
     run_for_your_life.mid (Atrinik use: maze, beach; musician: Tistou Blomberg; supplied title: Excitement! Run for your life; source: OpenTTD/OpenMSX src/run_for_your_life.mid at 312ca0ae46a271fb65ba49674b5e935ca0f41036; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (2026-08-10): MIDI rendered to Opus)
-    the_fast_route.mid (Fancy restaurant, forest)
+    the_fast_route.mid (Atrinik use: fancy restaurant, forest; musician: mimm; supplied title: The Fast Route; source: OpenTTD/OpenMSX src/the_fast_route.mid at 1bc84b0f821daef86f2e938b75619a3085f79dd9; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (no later than 2014-02-13): Rosegarden rewrite changed 96 to 480 PPQN, omitted channel 5, and added controller/time-signature metadata; Atrinik modification (2026-08-10): MIDI rendered to Opus)
     ultimate_run.mid (Atrinik use: beach; musician: Tistou Blomberg; supplied title: Ultimate run; source: OpenTTD/OpenMSX src/ultimate_run.mid at 312ca0ae46a271fb65ba49674b5e935ca0f41036; Copyright (C) 2010-2021 OpenMSX Authors; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 Sammy Broock - Freeware:
@@ -96,16 +96,16 @@ Sammy Broock - Freeware:
     town_music.ogg (Town music, sinister, Berri Lur)
 
 Edwin "Mamoru" Miltenburg - GPLv2:
-    banrril.mid (Peaceful, homes)
-    burnt_forest.mid (Burnt Forest, grim, sadness, depressive)
-    burnt_forest2.mid (Burnt Forest, sadness)
-    chether.mid (Happy homes, town music, Asteria)
-    denkash.mid (Lazy town)
-    denkash-finale.mid (Related to denkash.mid)
-    endurance.mid (Holding breath, scanning machine)
-    essilda-finale.mid (Tavern, sub-boss)
-    kaitindam.mid (Palace, castle, fort, cathedral)
-    tutorialisland.mid (Tutorial island)
+    banrril.mid (Atrinik use: peaceful, homes; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/banrril.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    burnt_forest.mid (Atrinik use: burnt forest, grim, sadness, depressive; author: Edwin “Mamoru” Miltenburg; supplied title: Burnt Forest; source: atrinik/sound background/burnt_forest.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    burnt_forest2.mid (Atrinik use: burnt forest, sadness; author: Edwin “Mamoru” Miltenburg; supplied title: Burnt Forest; source: atrinik/sound background/burnt_forest2.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    chether.mid (Atrinik use: happy homes, town music, Asteria; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/chether.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    denkash.mid (Atrinik use: lazy town; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/denkash.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    denkash-finale.mid (Atrinik use: related to denkash.mid; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/denkash-finale.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    endurance.mid (Atrinik use: holding breath, scanning machine; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/endurance.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    essilda-finale.mid (Atrinik use: tavern, sub-boss; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/essilda-finale.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    kaitindam.mid (Atrinik use: palace, castle, fort, cathedral; author: Edwin “Mamoru” Miltenburg; source: atrinik/sound background/kaitindam.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
+    tutorialisland.mid (Atrinik use: tutorial island; author: Edwin “Mamoru” Miltenburg; supplied title: tutorialisland; source: atrinik/sound background/tutorialisland.mid at c2b8af8426b6275b345fa906348db51ca16336f5; Atrinik modification (2026-08-10): MIDI rendered to Opus)
 
 Bernd Krueger - https://www.piano-midi.de/ - CC BY-SA 3.0 Germany:
     autumn.mid (Atrinik use: town dungeon, peaceful, tavern; supplied title: Tschaikowsky: The Seasons: Oktober; Copyright © 2004 by Bernd Krüger; source: https://www.piano-midi.de/; Atrinik modification: MIDI rendered to Opus)
@@ -146,13 +146,13 @@ David J. Grossman - http://www.jsbach.net/ - Freely re-distributable for non-com
     dg9.mid (Castle, fort, palace)
 
 Brandon Morris / HaelDB / Augmentality - OpenGameArt - CC0 1.0:
-    running.ogg (Dungeon, giants stronghold on top of a mountain)
-    evil_temple.ogg (Evil eerie temple, chanting)
-    lost_in_meadows.ogg (Peaceful, meadow)
-    sewer_rats.ogg (Sewers, abandoned church)
+    running.ogg (Atrinik use: dungeon, giants stronghold on top of a mountain; author: Augmentality (Brandon Morris), submitted by HaelDB; supplied title: Running from something; source: https://opengameart.org/content/running-from-something; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
+    evil_temple.ogg (Atrinik use: evil eerie temple, chanting; author: Brandon Morris, submitted by HaelDB; supplied title: Evil temple Ambiance loop; source: https://opengameart.org/content/evil-temple-ambiance-loop; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
+    lost_in_meadows.ogg (Atrinik use: peaceful, meadow; author: Augmentality, submitted by HaelDB; supplied title: Lost in the meadows; source: https://opengameart.org/content/lost-in-the-meadows; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
+    sewer_rats.ogg (Atrinik use: sewers, abandoned church; author: HaelDB; supplied title: Rat Sewer; source: https://opengameart.org/content/rat-sewer; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 Gobusto - http://opengameart.org/users/gobusto - CC-BY-SA 3.0:
-    hull_et_belle.ogg (Boss rush, pre-boss)
+    hull_et_belle.ogg (Atrinik use: boss rush, pre-boss; author: Gobusto; supplied title: Boss Music. Probably.; source: https://opengameart.org/content/boss-music-probably; license: CC-BY-SA-3.0, https://creativecommons.org/licenses/by-sa/3.0/; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 ZUN - http://en.touhouwiki.net/wiki/Touhou_Wiki:Copyrights - Transcribed by Gramlath based on sheet music:
     th_01.mid (Faith is For the Transient People: Castle, church, searching for something)
@@ -210,13 +210,13 @@ http://sites.google.com/site/metaruka/GameGame - CC BY-SA 3.0:
     vonstantine.mid (Boss)
 
 Ecrivain - http://opengameart.org/users/Ecrivain - CC0:
-    crystal_falls.ogg (Crystal cave)
+    crystal_falls.ogg (Atrinik use: crystal cave; author: Écrivain; supplied archive member: SFX/Background/Crystal Falls.wav; source: https://opengameart.org/content/random-sfx; Atrinik modification (no later than 2014-02-13): official WAV encoded to Vorbis; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 Future Wave Shaper - http://www.futurewaveshaper.com/ - CC BY-NC 3.0:
     thonkdonk.ogg (Tribal, dungeon-like)
 
 Yo Frankie! - http://www.yofrankie.org/ - CC-BY 3.0:
-    frankie.ogg (Thieves, under city, caves)
+    frankie.ogg (Atrinik use: thieves, under city, caves; supplied archive member: audio/frankieloop2.wav; source: Blender Foundation Yo Frankie yofrankie_bge.zip, https://download.blender.org/apricot/yofrankie_bge.zip; attribution: (c) copyright Blender Foundation | apricot.blender.org; license: CC-BY-3.0, https://creativecommons.org/licenses/by/3.0/; Atrinik modification (no later than 2014-02-13): official WAV encoded to Vorbis; Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus)
 
 Mike Koenig - CC-BY:
     pure_romance.ogg (Techno, cave)

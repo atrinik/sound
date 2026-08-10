@@ -33,17 +33,30 @@ by the repository's GPL-2.0 grant. GPL-2.0 permits conversion and
 redistribution under its conditions; the complete license text and attribution
 are retained in the runtime archive.
 
-`background/the_fast_route.mid` is intentionally excluded. Its Atrinik Git
-blob `fdde1fc537d461dca1bc3333e5bfa498483e3a5b` does not match either official
-revision (`44901e4dd2fba35365f3f61f39f9b7af0865337b` at its introduction or
-`dd7488a822ec2983daded17a9d1761892d9fc77f` after the only recorded edit), so
-the shared notice is not broadened to that asset.
+`background/the_fast_route.mid` is a modified derivative rather than a
+byte-identical copy. OpenMSX introduced it at commit
+`4e4109111f5c7c707dd1a7c78c098850be8575a1` (Git blob
+`44901e4dd2fba35365f3f61f39f9b7af0865337b`) and made its only upstream edit at
+commit `1bc84b0f821daef86f2e938b75619a3085f79dd9` (Git blob
+`dd7488a822ec2983daded17a9d1761892d9fc77f`). `src/themes.list` identifies
+musician `mimm` and supplied title `The Fast Route`.
+
+The Atrinik source SHA-256
+`f66dcda2d8916961c85f8468ad8e428e92f6a9fd5ab7bb3d32acc3a273d9e9ce`
+is a Rosegarden rewrite of the edited official revision. After normalizing the
+96-to-480 PPQN timebase and note-off velocity, all 7,030 local note events
+exactly equal the upstream events outside channel 5. The rewrite omits upstream
+channel 5 (312 note events and four setup events), adds 20 controller defaults,
+a channel-10 program event, Rosegarden boilerplate, and a 12/8 time signature,
+and retains the exact tempo. This complete event comparison establishes the
+modified-work identity permitted by GPL-2.0.
 
 ## Decision
 
-The two exact Atrinik inputs above are approved under `GPL-2.0-only` for
+The three Atrinik inputs above are approved under `GPL-2.0-only` for
 conversion to Opus and redistribution in the complete sound archive. The
 packaged per-asset notices preserve Tistou Blomberg, each supplied title, the
-OpenMSX copyright, immutable source coordinate, and Atrinik's dated MIDI-to-Opus
+`mimm` credit and Fast Route rewrite details where applicable, the OpenMSX
+copyright, immutable source coordinates, and Atrinik's dated MIDI-to-Opus
 modification statement. Any byte, notice, or different logical path requires a
 new review.

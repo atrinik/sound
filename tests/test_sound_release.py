@@ -39,9 +39,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(532, len(blockers))
+        self.assertEqual(514, len(blockers))
         self.assertEqual(
-            {"license/provenance": 336, "quality-review": 196},
+            {"license/provenance": 318, "quality-review": 196},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -128,8 +128,8 @@ class SourceManifestTests(unittest.TestCase):
         self.assertFalse((ROOT / "background" / "durations").exists())
 
     def test_license_findings_fail_closed(self) -> None:
-        self.assertEqual("blocked", self.assets["background/banrril.mid"]["license"]["status"])
-        self.assertIn("per-asset license review", self.assets["background/banrril.mid"]["license"]["blocking_finding"])
+        self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])
+        self.assertIn("per-asset license review", self.assets["background/aa_arofl.xm"]["license"]["blocking_finding"])
         for logical in (
             "background/campfire_tales.mid",
             "background/thonkdonk.ogg",
@@ -166,8 +166,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(129, candidates)
-        self.assertEqual(3, allowed)
+        self.assertEqual(111, candidates)
+        self.assertEqual(21, allowed)
 
     def test_meritous_project_notice_does_not_approve_music(self) -> None:
         notice = {
@@ -227,6 +227,7 @@ class SourceManifestTests(unittest.TestCase):
                 "Copyright (C) 2008 Sylvain Beucler",
             ),
             "run_for_your_life.mid": ("Tistou Blomberg", "supplied title: Excitement! Run for your life"),
+            "the_fast_route.mid": ("musician: mimm", "supplied title: The Fast Route", "omitted channel 5"),
             "ultimate_run.mid": ("Tistou Blomberg", "supplied title: Ultimate run"),
         }
         for filename, required in expectations.items():
@@ -236,6 +237,55 @@ class SourceManifestTests(unittest.TestCase):
                 for text in required:
                     self.assertIn(text, notice)
                 self.assertIn("Atrinik modification (2026-08-10): MIDI rendered to Opus", notice)
+
+    def test_mamoru_approvals_preserve_author_source_and_modification(self) -> None:
+        catalog = sound_release.notice_catalog(ROOT / "background")
+        filenames = {
+            "banrril.mid", "burnt_forest.mid", "burnt_forest2.mid", "chether.mid",
+            "denkash.mid", "denkash-finale.mid", "endurance.mid", "essilda-finale.mid",
+            "kaitindam.mid", "tutorialisland.mid",
+        }
+        for filename in filenames:
+            with self.subTest(filename=filename):
+                notice = catalog[filename]["text"]
+                self.assertEqual("allowed", self.assets[f"background/{filename}"]["license"]["status"])
+                self.assertIn("author: Edwin “Mamoru” Miltenburg", notice)
+                self.assertIn(f"source: atrinik/sound background/{filename} at c2b8af8426b6275b345fa906348db51ca16336f5", notice)
+                self.assertIn("Atrinik modification (2026-08-10): MIDI rendered to Opus", notice)
+
+    def test_opengameart_cc0_approvals_bind_preserved_first_party_pages(self) -> None:
+        catalog = sound_release.notice_catalog(ROOT / "background")
+        expected = {
+            "evil_temple.ogg": "Brandon Morris",
+            "lost_in_meadows.ogg": "Augmentality",
+            "running.ogg": "Augmentality (Brandon Morris)",
+            "sewer_rats.ogg": "HaelDB",
+        }
+        reviews = sound_release.checked_license_reviews()
+        for filename, author in expected.items():
+            logical_path = f"background/{filename}"
+            with self.subTest(filename=filename):
+                notice = catalog[filename]["text"]
+                self.assertEqual("allowed", self.assets[logical_path]["license"]["status"])
+                self.assertIn(f"author: {author}", notice)
+                self.assertIn("Atrinik modification (2026-08-10): historical Vorbis encoding converted to Opus", notice)
+                self.assertTrue(str(reviews[logical_path]["evidence"]["locator"]).endswith(".html"))
+
+    def test_oneoff_vorbis_approvals_preserve_first_party_grants_and_changes(self) -> None:
+        catalog = sound_release.notice_catalog(ROOT / "background")
+        required = {
+            "crystal_falls.ogg": ("author: Écrivain", "official WAV encoded to Vorbis"),
+            "hull_et_belle.ogg": ("author: Gobusto", "license: CC-BY-SA-3.0"),
+            "frankie.ogg": ("(c) copyright Blender Foundation | apricot.blender.org", "license: CC-BY-3.0"),
+        }
+        for filename, fields in required.items():
+            logical_path = f"background/{filename}"
+            with self.subTest(filename=filename):
+                notice = catalog[filename]["text"]
+                self.assertEqual("allowed", self.assets[logical_path]["license"]["status"])
+                for field in fields:
+                    self.assertIn(field, notice)
+                self.assertIn("Atrinik modification (2026-08-10)", notice)
 
     def test_exact_stendhal_tracks_preserve_storyteller_but_remain_blocked(self) -> None:
         reviewed_paths = {
@@ -283,7 +333,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(3, len(reviewed["reviews"]))
+        self.assertEqual(21, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -447,7 +497,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "532 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "514 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:
@@ -527,7 +577,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            arguments = type("Arguments", (), {"logical_path": "background/banrril.mid", "output_directory": temporary})()
+            arguments = type("Arguments", (), {"logical_path": "background/aa_arofl.xm", "output_directory": temporary})()
             with self.assertRaisesRegex(sound_release.ReleaseError, "passed per-asset license review"):
                 sound_release.command_build_review_candidate(arguments)
 
