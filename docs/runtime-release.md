@@ -312,7 +312,12 @@ mappings, and content-based SDL3_mixer decoding of all 339 staged paths, then
 rechecks the clean source commit and tree. A standalone verification reproduces
 every converted output with the pinned toolchain before decoding the complete
 tree. A pre-existing exact tree is verified and reused; no failed or concurrent
-build replaces it.
+build replaces it. Both public commands hold a shared
+`atrinik-playtest-builds.lock` lease in this exact worktree's Git admin
+directory. Its `atrinik-sound-playtest-builds-v1` marker proves participation;
+workspace cleanup must hold the exclusive side while removing the
+worktree, closing the producer-start race without serializing independent
+exact-input builds.
 
 ```sh
 python3 tools/sound_release.py build-playtest-tree build/classic-playtest

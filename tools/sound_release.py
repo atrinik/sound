@@ -42,6 +42,8 @@ TRACKER_DURATIONS = ROOT / "manifests" / "tracker-durations.json"
 SCHEMA_ROOT = ROOT / "schemas"
 PLAYTEST_MANIFEST_NAME = "playtest-manifest.json"
 PLAYTEST_BLOCKERS_NAME = "playtest-blockers.json"
+PLAYTEST_ROOT_LOCK_NAME = "atrinik-playtest-builds.lock"
+PLAYTEST_ROOT_LOCK_MARKER = b"atrinik-sound-playtest-builds-v1\n"
 PLAYTEST_MARKER_NAME = ".atrinik-playtest-tree.json"
 PLAYTEST_MARKER = {
     "format": "atrinik-sound-playtest-tree",
@@ -2320,12 +2322,30 @@ def convert_playtest_asset(
 
 
 @contextlib.contextmanager
-def playtest_output_lock(output: Path) -> Iterator[None]:
-    lock = output.parent / f".{output.name}.build.lock"
+def playtest_root_lock(output: Path) -> Iterator[None]:
+    """Hold the Git-admin reader lease shared with wrapper worktree cleanup."""
+    try:
+        raw_lock = run(
+            [
+                "git",
+                "-C",
+                str(ROOT),
+                "rev-parse",
+                "--path-format=absolute",
+                "--git-path",
+                PLAYTEST_ROOT_LOCK_NAME,
+            ],
+            capture=True,
+        ).stdout.strip()
+    except subprocess.CalledProcessError as exc:
+        raise ReleaseError("playtest root lock requires Git worktree metadata") from exc
+    lock = Path(raw_lock)
+    if not raw_lock or not lock.is_absolute() or not lock.parent.is_dir():
+        raise ReleaseError("playtest root lock path is invalid")
     try:
         descriptor = os.open(lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     except OSError as exc:
-        raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}") from exc
+        raise ReleaseError(f"playtest root lock is not a safe regular file: {lock}") from exc
     try:
         metadata = os.fstat(descriptor)
         if (
@@ -2333,18 +2353,62 @@ def playtest_output_lock(output: Path) -> Iterator[None]:
             or metadata.st_uid != os.geteuid()
             or metadata.st_nlink != 1
         ):
-            raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}")
-        try:
-            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as exc:
-            raise ReleaseError(f"playtest output has an active build lock: {lock}") from exc
+            raise ReleaseError(f"playtest root lock is not a safe regular file: {lock}")
         os.fchmod(descriptor, 0o600)
-        os.ftruncate(descriptor, 0)
-        os.write(descriptor, b"atrinik-sound-playtest-tree-v1\n")
-        os.fsync(descriptor)
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_SH | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ReleaseError(f"playtest cache root is being removed: {lock}") from exc
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        marker = os.read(descriptor, len(PLAYTEST_ROOT_LOCK_MARKER) + 1)
+        if not marker:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise ReleaseError(f"playtest root lock is being initialized: {lock}") from exc
+            os.lseek(descriptor, 0, os.SEEK_SET)
+            marker = os.read(descriptor, len(PLAYTEST_ROOT_LOCK_MARKER) + 1)
+            if not marker:
+                os.ftruncate(descriptor, 0)
+                os.write(descriptor, PLAYTEST_ROOT_LOCK_MARKER)
+                os.fsync(descriptor)
+                marker = PLAYTEST_ROOT_LOCK_MARKER
+            fcntl.flock(descriptor, fcntl.LOCK_SH)
+        if marker != PLAYTEST_ROOT_LOCK_MARKER:
+            raise ReleaseError(f"playtest root lock has an invalid marker: {lock}")
         yield
     finally:
         os.close(descriptor)
+
+
+@contextlib.contextmanager
+def playtest_output_lock(output: Path) -> Iterator[None]:
+    lock = output.parent / f".{output.name}.build.lock"
+    with playtest_root_lock(output):
+        try:
+            descriptor = os.open(lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        except OSError as exc:
+            raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}") from exc
+        try:
+            metadata = os.fstat(descriptor)
+            if (
+                not stat.S_ISREG(metadata.st_mode)
+                or metadata.st_uid != os.geteuid()
+                or metadata.st_nlink != 1
+            ):
+                raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}")
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise ReleaseError(f"playtest output has an active build lock: {lock}") from exc
+            os.fchmod(descriptor, 0o600)
+            os.ftruncate(descriptor, 0)
+            os.write(descriptor, b"atrinik-sound-playtest-tree-v1\n")
+            os.fsync(descriptor)
+            yield
+        finally:
+            os.close(descriptor)
 
 
 def _playtest_files(root: Path) -> set[str]:
@@ -3501,7 +3565,9 @@ def command_build_playtest_tree(arguments: argparse.Namespace) -> None:
 
 
 def command_verify_playtest_tree(arguments: argparse.Namespace) -> None:
-    manifest = verify_playtest_tree(Path(arguments.output_directory))
+    output = Path(arguments.output_directory)
+    with playtest_root_lock(output):
+        manifest = verify_playtest_tree(output)
     print(
         f"verified {manifest['logical_path_count']} playtest paths; "
         f"tree SHA-256: {manifest['output_tree_sha256']}"

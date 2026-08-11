@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import copy
+import fcntl
 import importlib.util
 import io
 import json
@@ -1752,12 +1753,35 @@ class PlaytestTreeTests(unittest.TestCase):
             output = parent / "tree"
             lock = parent / ".tree.build.lock"
             lock.write_text("abandoned\n", encoding="utf-8")
-            with sound_release.playtest_output_lock(output):
-                with self.assertRaisesRegex(sound_release.ReleaseError, "active build lock"):
-                    with sound_release.playtest_output_lock(output):
-                        self.fail("contended lock unexpectedly acquired")
-            with sound_release.playtest_output_lock(output):
-                self.assertTrue(lock.is_file())
+            root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
+            with mock.patch.object(sound_release, "run", return_value=result):
+                with sound_release.playtest_output_lock(output):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "active build lock"):
+                        with sound_release.playtest_output_lock(output):
+                            self.fail("contended lock unexpectedly acquired")
+                with sound_release.playtest_output_lock(output):
+                    self.assertTrue(lock.is_file())
+
+    def test_root_lock_excludes_build_during_cache_removal(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-root-lock-") as temporary:
+            parent = Path(temporary)
+            output = parent / "tree"
+            root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            descriptor = os.open(
+                root_lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600
+            )
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
+                with mock.patch.object(sound_release, "run", return_value=result):
+                    with self.assertRaisesRegex(
+                        sound_release.ReleaseError, "cache root is being removed"
+                    ):
+                        with sound_release.playtest_output_lock(output):
+                            self.fail("build acquired a root under removal")
+            finally:
+                os.close(descriptor)
 
     def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
         asset = next(
