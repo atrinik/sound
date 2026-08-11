@@ -1406,8 +1406,17 @@ class PlaytestTreeTests(unittest.TestCase):
         )
 
     def test_dirty_playtest_source_is_rejected(self) -> None:
-        completed = type("Completed", (), {"stdout": " M effects/campfire.ogg\n"})()
-        with mock.patch.object(sound_release, "run", return_value=completed), \
+        completed = lambda output: type("Completed", (), {"stdout": output})()
+        responses = [
+            completed(f"{ROOT}\n"),
+            completed(f"{ROOT / '.git' / 'info' / 'grafts'}\n"),
+            completed(" M effects/campfire.ogg\n"),
+            completed(f"{'b' * 40}\n"),
+            completed(f"{'c' * 40}\n"),
+            completed(" M effects/campfire.ogg\n"),
+            completed(f"{'b' * 40}\n"),
+        ]
+        with mock.patch.object(sound_release, "run", side_effect=responses), \
                 mock.patch.object(sound_release, "ensure_exact_tracked_tree"):
             with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
                 sound_release.clean_source_coordinates()
