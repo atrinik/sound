@@ -445,6 +445,14 @@ class SourceManifestTests(unittest.TestCase):
         publisher = (ROOT / "tools" / "build-release-assets.sh").read_text(encoding="utf-8")
         self.assertRegex(workflow, r"(?m)^  issues: read$")
         self.assertEqual(3, workflow.count("fetch-depth: 0"))
+        asset_job, runtime_job, playtest_job = (
+            workflow.split("\n  runtime-fixtures:\n", 1)[0],
+            workflow.split("\n  runtime-fixtures:\n", 1)[1].split("\n  playtest-tree:\n", 1)[0],
+            workflow.split("\n  playtest-tree:\n", 1)[1],
+        )
+        self.assertIn("--file tools/audio/Dockerfile", asset_job)
+        self.assertIn("--file tools/audio/Dockerfile", runtime_job)
+        self.assertIn("--file tools/audio/playtest.Dockerfile", playtest_job)
         self.assertIn("--env GH_TOKEN", publisher)
         reviews = {"background/example.ogg": {"evidence": {
             "artifact_locator": "evidence/review.json",
@@ -1450,6 +1458,49 @@ class PlaytestTreeTests(unittest.TestCase):
                 )
                 tracked.write_text("committed\n", encoding="utf-8")
 
+    def test_source_coordinates_ignore_replace_refs_and_reject_grafts(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-git-objects-") as temporary:
+            root = Path(temporary)
+            tracked = root / "tracked"
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            tracked.write_text("first\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "tracked"], check=True)
+            commit = [
+                "git", "-C", str(root), "-c", "user.name=Test",
+                "-c", "user.email=test@example.invalid", "commit", "-qm",
+            ]
+            subprocess.run([*commit, "first"], check=True)
+            first = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True, capture_output=True, text=True,
+            ).stdout.strip()
+            tracked.write_text("second\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "tracked"], check=True)
+            subprocess.run([*commit, "second"], check=True)
+            second = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True, capture_output=True, text=True,
+            ).stdout.strip()
+            subprocess.run(["git", "-C", str(root), "replace", second, first], check=True)
+            exact_environment = dict(os.environ)
+            exact_environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+            second_tree = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", f"{second}^{{tree}}"],
+                check=True, capture_output=True, text=True, env=exact_environment,
+            ).stdout.strip()
+            with mock.patch.object(sound_release, "ROOT", root):
+                self.assertEqual((second, second_tree), sound_release.clean_source_coordinates())
+
+                git_directory = subprocess.run(
+                    ["git", "-C", str(root), "rev-parse", "--git-dir"],
+                    check=True, capture_output=True, text=True,
+                ).stdout.strip()
+                graft_path = root / git_directory / "info" / "grafts"
+                graft_path.parent.mkdir(parents=True, exist_ok=True)
+                graft_path.write_text(f"{second} {first}\n", encoding="ascii")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "grafts"):
+                    sound_release.clean_source_coordinates()
+
     def test_output_ancestor_swap_stays_anchored_and_is_rejected(self) -> None:
         build_root = ROOT / "build"
         build_root.mkdir(exist_ok=True)
@@ -1698,7 +1749,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 side_effect=[("b" * 40, "c" * 40), ("b" * 40, "c" * 40), ("d" * 40, "e" * 40)],
             )
             with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
-                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while building"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while verifying"):
                     sound_release.build_playtest_tree(raced)
             self.assertFalse(raced.exists())
 
@@ -1810,7 +1861,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
             )
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5] as probe:
+            with patches[0] as coordinates, patches[1], patches[2], patches[3], patches[4], patches[5] as probe:
                 sound_release.verify_playtest_tree(root)
                 probe.assert_called_once()
                 self.assertEqual(
@@ -1846,6 +1897,15 @@ class PlaytestTreeTests(unittest.TestCase):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "source_commit"):
                     sound_release.verify_playtest_tree(root)
                 manifest_path.write_bytes(sound_release.canonical_json(manifest))
+
+                coordinates.side_effect = [
+                    ("b" * 40, "c" * 40),
+                    ("d" * 40, "c" * 40),
+                ]
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while verifying"):
+                    sound_release.verify_playtest_tree(root)
+                coordinates.side_effect = None
+                coordinates.return_value = ("b" * 40, "c" * 40)
 
                 extra = root / "unexpected"
                 extra.write_bytes(b"extra")

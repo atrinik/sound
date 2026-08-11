@@ -488,10 +488,19 @@ def ensure_clean_release_input() -> None:
         raise ReleaseError("full runtime release input worktree is not clean")
 
 
+def exact_git_environment() -> dict[str, str]:
+    """Return an environment that resolves the repository's real object graph."""
+    environment = dict(os.environ)
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    return environment
+
+
 def ensure_exact_tracked_tree(commit: str) -> None:
     """Reject hidden index flags and bind every tracked byte/mode to a tree."""
+    environment = exact_git_environment()
     flags = run(
         ["git", "-C", str(ROOT), "ls-files", "-v", "-z"], capture=True,
+        env=environment,
     ).stdout
     for entry in flags.rstrip("\0").split("\0") if flags else []:
         if len(entry) < 3 or entry[1] != " ":
@@ -502,6 +511,7 @@ def ensure_exact_tracked_tree(commit: str) -> None:
     tree = run(
         ["git", "-C", str(ROOT), "ls-tree", "-r", "-z", "--full-tree", commit],
         capture=True,
+        env=environment,
     ).stdout
     for entry in tree.rstrip("\0").split("\0") if tree else []:
         metadata, separator, relative = entry.partition("\t")
@@ -555,23 +565,42 @@ def ensure_exact_tracked_tree(commit: str) -> None:
 def clean_source_coordinates() -> tuple[str, str]:
     """Return immutable coordinates for a clean, Git-backed local checkout."""
     try:
+        environment = exact_git_environment()
+        graft_path_value = run(
+            ["git", "-C", str(ROOT), "rev-parse", "--git-path", "info/grafts"],
+            capture=True,
+            env=environment,
+        ).stdout.strip()
+        graft_path = Path(graft_path_value)
+        if not graft_path.is_absolute():
+            graft_path = ROOT / graft_path
+        if graft_path.is_file() and graft_path.read_bytes().strip():
+            raise SourceIntegrityError("legacy Git grafts cannot establish exact source coordinates")
         status_before = run(
             ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=all"],
             capture=True,
+            env=environment,
         ).stdout
-        commit = run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture=True).stdout.strip()
+        commit = run(
+            ["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+            capture=True,
+            env=environment,
+        ).stdout.strip()
         tree = run(
             ["git", "-C", str(ROOT), "rev-parse", f"{commit}^{{tree}}"],
             capture=True,
+            env=environment,
         ).stdout.strip()
         ensure_exact_tracked_tree(commit)
         status_after = run(
             ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=all"],
             capture=True,
+            env=environment,
         ).stdout
         ensure_exact_tracked_tree(commit)
         final_commit = run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture=True,
+            env=environment,
         ).stdout.strip()
     except SourceIntegrityError:
         raise
@@ -2695,6 +2724,17 @@ def verify_playtest_tree(
     logical_paths = sorted(expected_by_path)
     if logical_tree_sha256(root, logical_paths) != manifest_value.get("output_tree_sha256"):
         raise ReleaseError("playtest output-tree digest mismatch")
+    if clean_source_coordinates() != (source_commit, source_tree):
+        raise ReleaseError("sound checkout changed while verifying the playtest tree")
+    if (
+        sha256(SOURCE_MANIFEST) != expected_coordinates["source_manifest_sha256"]
+        or sha256(PLAYTEST_TOOLCHAIN) != expected_coordinates["toolchain_sha256"]
+        or sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json")
+        != expected_coordinates["schema_sha256"]
+        or canonical_json(checked_playtest_toolchain()) != canonical_json(toolchain)
+        or verify_toolchain(toolchain, strict_playtest=True) != versions
+    ):
+        raise ReleaseError("playtest verification inputs changed during verification")
     return manifest_value
 
 
