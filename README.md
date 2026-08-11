@@ -36,7 +36,7 @@ any unresolved finding publishes an explicit
 archive.
 
 Approvals are immutable-input contracts: license reviews bind source, notice,
-and SPDX hashes, while Vorbis quality reviews additionally bind the exact
+and SPDX hashes, while required quality reviews additionally bind the exact
 toolchain, evidence artifact, and generated output. Versioned JSON Schemas in
 [`schemas/`](schemas/) define the checked and packaged manifest interfaces.
 

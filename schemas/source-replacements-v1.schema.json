@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrinik.org/schemas/sound/source-replacements-v1.schema.json",
+  "title": "Atrinik authored source replacement ledger v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "replacements"],
+  "properties": {
+    "$schema": {"const": "../schemas/source-replacements-v1.schema.json"},
+    "schema_version": {"const": 1},
+    "replacements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["logical_path", "source_path", "replaced_source_sha256", "transformation_notes"],
+        "properties": {
+          "logical_path": {"$ref": "#/$defs/logicalPath"},
+          "source_path": {"type": "string", "pattern": "^(background|effects)/replacements/(?:[a-z0-9][a-z0-9_.-]*/)*[A-Za-z0-9][A-Za-z0-9_.-]*\\.(flac|mid|mod|s3m|xm|ogg)$"},
+          "replaced_source_sha256": {"$ref": "#/$defs/sha256"},
+          "transformation_notes": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "logicalPath": {"type": "string", "pattern": "^(background|effects)/(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\\.(mid|mod|s3m|xm|ogg)$"}
+  }
+}

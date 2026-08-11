@@ -2,27 +2,28 @@
 
 ## Contract and current gate
 
-The repository preserves 339 canonical mixed-format sources (32,026,363 bytes):
-126 MIDI, five MOD, five S3M, seven XM, and 196 Ogg Vorbis files. The generated
-runtime product normalizes every deliverable source to Opus in its standard Ogg
-encapsulation without changing any authored file or content-side filename.
+The repository preserves 339 canonical sources (135,695,742 bytes): 122 MIDI,
+189 Ogg Vorbis, and 28 lossless FLAC files. The generated runtime product
+normalizes every deliverable source to Opus in its standard Ogg encapsulation
+without changing any authored file or content-side logical key.
 
 `manifests/source-assets.json` is the source-of-truth inventory. Each entry has
-a stable ID, legacy logical/source path, collision-free generated path, source
+a stable ID, legacy logical key, authored source path, collision-free generated path, source
 hash and media metadata, renderer/encoder recipe, loop and tail policy,
 transformation note, and exact notice reference. Runtime generation adds the
 output hash, size, codec/container, sample rate, channels, duration, peak,
 loudness, clipping result, and rendered-PCM measurements.
 
-The current inventory records 276 fail-closed license/provenance
+The current inventory records 248 fail-closed license/provenance
 findings. This includes terse GPL/CC headings until a per-asset review binds
 the source and notice hashes, SPDX interpretation, reviewer, timestamp, and a
 Git-tracked, non-symlink, content-hash-verified evidence document under
 `evidence/`; ambiguous `Permission to use`,
 `Freeware`, Sampling Plus, noncommercial, incomplete, and missing notices have
 no candidate interpretation. Approval is never a default-allow keyword filter.
-All 196 preserved Vorbis inputs also have source-hash-bound quality reviews
-pending, producing 472 total gates. They are not silently omitted: while any
+All 189 preserved Vorbis inputs and the 28 lossless replacements have
+source-hash-bound quality reviews pending, producing 465 total gates. They are
+not silently omitted: while any
 finding remains, releases
 publish the complete blocker report and no runtime archive. Source archives
 continue unchanged.
@@ -36,6 +37,10 @@ stale, malformed, missing, or failed evidence blocks publication.
 decisions, including the primary evidence hash and every supporting capture
 hash. Each artifact must remain Git-tracked, regular, and byte-exact, so an
 asset replacement or corrupted capture cannot inherit an approval.
+`manifests/source-replacements.json` binds each replacement's authored source
+path, removed source hash, stable logical key, and transformation note. A
+replacement cannot coexist with the removed legacy file, silently change a
+lookup key, or bypass the independent behavioral and critical-listening gate.
 These manifests and the
 stable sound IDs are shared groundwork for `atrinik/sound#13`, not a parallel
 Classic-only contract.
@@ -118,7 +123,7 @@ docker run --rm --volume "$PWD:/workspaces/sound:ro" \
   python3 tools/sound_release.py build-review-candidate effects/example.ogg /output
 ```
 
-To hand off every currently license-approved Vorbis source that still needs a
+To hand off every currently license-approved source that still needs a
 quality review, build a self-contained non-publishing listening bundle:
 
 ```sh

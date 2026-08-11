@@ -33,8 +33,9 @@ FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
 QUALITY_REVIEWS = ROOT / "manifests" / "vorbis-quality-reviews.json"
 LICENSE_REVIEWS = ROOT / "manifests" / "license-reviews.json"
 TRACKER_DURATIONS = ROOT / "manifests" / "tracker-durations.json"
+SOURCE_REPLACEMENTS = ROOT / "manifests" / "source-replacements.json"
 SCHEMA_ROOT = ROOT / "schemas"
-AUDIO_SUFFIXES = {".mid", ".mod", ".s3m", ".xm", ".ogg"}
+AUDIO_SUFFIXES = {".flac", ".mid", ".mod", ".s3m", ".xm", ".ogg"}
 TRACKER_SUFFIXES = {".mod", ".s3m", ".xm"}
 FIXTURE_PATHS = (
     "background/fireside.mid",
@@ -68,6 +69,7 @@ REVIEWED_NOTICE_LICENSES = {
     'Ogrebane - http://opengameart.org/users/ogrebane - CC0 (Public Domain)': ("CC0-1.0", "licenses/CC0-1.0.txt"),
     'Jute - http://opengameart.org/users/qubodup - GNU GPL 2.0': ("GPL-2.0-only", "licenses/GPL-2.0.txt"),
     'kurt - http://opengameart.org/users/kurt - CC-BY 3.0': ("CC-BY-3.0", "licenses/CC-BY-3.0.txt"),
+    'Nooskewl / troutsneeze - https://opengameart.org/content/42-monster-rpg-2-music-tracks - CC0': ("CC0-1.0", "licenses/CC0-1.0.txt"),
 }
 
 
@@ -227,6 +229,59 @@ def discover_sources() -> list[Path]:
     return sorted(sources, key=lambda path: path.relative_to(ROOT).as_posix())
 
 
+def checked_source_replacements() -> dict[str, dict[str, object]]:
+    schema = checked_schema("source-replacements-v1.schema.json")
+    value = read_json(SOURCE_REPLACEMENTS)
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"$schema", "schema_version", "replacements"}
+        or value.get("$schema") != "../schemas/source-replacements-v1.schema.json"
+        or value.get("schema_version") != 1
+        or not isinstance(value.get("replacements"), list)
+    ):
+        raise ReleaseError("source-replacement ledger must use the complete version 1 contract")
+    validate_schema_instance(value, schema)
+    replacements: dict[str, dict[str, object]] = {}
+    logical_paths: set[str] = set()
+    for replacement in value["replacements"]:
+        assert isinstance(replacement, dict)
+        source_path = str(replacement["source_path"])
+        logical_path = str(replacement["logical_path"])
+        if source_path in replacements:
+            raise ReleaseError(f"duplicate replacement source path: {source_path}")
+        if logical_path in logical_paths:
+            raise ReleaseError(f"duplicate replacement logical path: {logical_path}")
+        source = ROOT / source_path
+        legacy = ROOT / logical_path
+        if source.is_symlink() or not source.is_file():
+            raise ReleaseError(f"replacement source is missing or not a regular file: {source_path}")
+        if legacy.exists():
+            raise ReleaseError(f"replacement leaves legacy source present: {logical_path}")
+        replacements[source_path] = replacement
+        logical_paths.add(logical_path)
+    return replacements
+
+
+def source_coordinates() -> list[tuple[str, Path, dict[str, object] | None]]:
+    replacements = checked_source_replacements()
+    coordinates: list[tuple[str, Path, dict[str, object] | None]] = []
+    logical_paths: set[str] = set()
+    discovered_paths: set[str] = set()
+    for path in discover_sources():
+        source_path = path.relative_to(ROOT).as_posix()
+        discovered_paths.add(source_path)
+        replacement = replacements.get(source_path)
+        logical_path = str(replacement["logical_path"]) if replacement is not None else source_path
+        if logical_path in logical_paths:
+            raise ReleaseError(f"duplicate discovered logical path: {logical_path}")
+        logical_paths.add(logical_path)
+        coordinates.append((logical_path, path, replacement))
+    missing = set(replacements) - discovered_paths
+    if missing:
+        raise ReleaseError(f"replacement ledger references undiscovered sources: {', '.join(sorted(missing))}")
+    return coordinates
+
+
 def ensure_sources_tracked(sources: list[Path]) -> None:
     try:
         completed = run(["git", "ls-files", "-z", "--", "background", "effects"], capture=True)
@@ -381,6 +436,23 @@ def ogg_vorbis_metadata(path: Path) -> SourceMetadata:
     return SourceMetadata(round(last_granule / sample_rate, 6), sample_rate, channels)
 
 
+def flac_metadata(path: Path) -> SourceMetadata:
+    data = path.read_bytes()
+    if len(data) < 42 or data[:4] != b"fLaC":
+        raise ReleaseError(f"invalid FLAC source: {path.relative_to(ROOT)}")
+    block_type = data[4] & 0x7F
+    block_length = int.from_bytes(data[5:8], "big")
+    if block_type != 0 or block_length != 34 or len(data) < 8 + block_length:
+        raise ReleaseError(f"FLAC source lacks a canonical STREAMINFO block: {path.relative_to(ROOT)}")
+    packed = int.from_bytes(data[18:26], "big")
+    sample_rate = (packed >> 44) & 0xFFFFF
+    channels = ((packed >> 41) & 0x7) + 1
+    total_samples = packed & ((1 << 36) - 1)
+    if sample_rate <= 0 or channels not in {1, 2} or total_samples <= 0:
+        raise ReleaseError(f"invalid FLAC stream metadata: {path.relative_to(ROOT)}")
+    return SourceMetadata(round(total_samples / sample_rate, 6), sample_rate, channels)
+
+
 def checked_tracker_durations() -> dict[str, dict[str, object]]:
     schema = checked_schema("tracker-durations-v1.schema.json")
     value = read_json(TRACKER_DURATIONS)
@@ -447,6 +519,8 @@ def measured_tracker_duration(path: Path) -> float:
 
 def source_metadata(path: Path) -> SourceMetadata:
     suffix = path.suffix.lower()
+    if suffix == ".flac":
+        return flac_metadata(path)
     if suffix == ".ogg":
         return ogg_vorbis_metadata(path)
     if suffix == ".mid":
@@ -603,10 +677,10 @@ def archived_repository_tree(source_tree: str) -> Iterator[Path]:
 @contextlib.contextmanager
 def repository_root(root: Path) -> Iterator[None]:
     global ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS
-    global LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT
+    global LICENSE_REVIEWS, TRACKER_DURATIONS, SOURCE_REPLACEMENTS, SCHEMA_ROOT
     previous = (
         ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS,
-        LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT,
+        LICENSE_REVIEWS, TRACKER_DURATIONS, SOURCE_REPLACEMENTS, SCHEMA_ROOT,
     )
     ROOT = root
     SOURCE_MANIFEST = root / "manifests" / "source-assets.json"
@@ -615,13 +689,14 @@ def repository_root(root: Path) -> Iterator[None]:
     QUALITY_REVIEWS = root / "manifests" / "vorbis-quality-reviews.json"
     LICENSE_REVIEWS = root / "manifests" / "license-reviews.json"
     TRACKER_DURATIONS = root / "manifests" / "tracker-durations.json"
+    SOURCE_REPLACEMENTS = root / "manifests" / "source-replacements.json"
     SCHEMA_ROOT = root / "schemas"
     try:
         yield
     finally:
         (
             ROOT, SOURCE_MANIFEST, TOOLCHAIN, FIXTURE_PLAN, QUALITY_REVIEWS,
-            LICENSE_REVIEWS, TRACKER_DURATIONS, SCHEMA_ROOT,
+            LICENSE_REVIEWS, TRACKER_DURATIONS, SOURCE_REPLACEMENTS, SCHEMA_ROOT,
         ) = previous
 
 
@@ -711,7 +786,7 @@ def quality_review_bundle_contract(
         raise ReleaseError("critical-listening result must contain exactly one asset class")
     asset_class = next(iter(asset_classes))
     snapshot_manifest, snapshot_verified = review_snapshot_manifest(result)
-    expected_assets = eligible_vorbis_review_assets(snapshot_manifest, asset_class)
+    expected_assets = eligible_quality_review_assets(snapshot_manifest, asset_class)
     if not snapshot_verified:
         expected_assets = [
             current_by_path[str(asset["logical_path"])]
@@ -857,6 +932,8 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
 
 
 def codec_contract(suffix: str) -> tuple[str, str, str]:
+    if suffix == ".flac":
+        return "flac", "flac", "ffmpeg"
     if suffix == ".mid":
         return "midi", "standard-midi-file", "timidity"
     if suffix in TRACKER_SUFFIXES:
@@ -925,8 +1002,8 @@ def build_source_manifest() -> dict[str, object]:
     assets: list[dict[str, object]] = []
     quality_reviews = checked_quality_reviews()
     license_reviews = checked_license_reviews()
-    for path in discover_sources():
-        relative = path.relative_to(ROOT).as_posix()
+    for relative, path, replacement in source_coordinates():
+        source_relative = path.relative_to(ROOT).as_posix()
         logical = PurePosixPath(relative)
         metadata = source_metadata(path)
         codec, container, renderer = codec_contract(path.suffix.lower())
@@ -957,7 +1034,7 @@ def build_source_manifest() -> dict[str, object]:
         asset: dict[str, object] = {
             "id": f"sound:{relative}",
             "logical_path": relative,
-            "source_path": relative,
+            "source_path": source_relative,
             "generated_path": generated,
             "source": {
                 "sha256": source_hash,
@@ -986,9 +1063,13 @@ def build_source_manifest() -> dict[str, object]:
                 "discard_comments": True,
             },
             "transformation_notes": (
-                "second lossy generation from the only preserved Vorbis source; quality review required"
-                if path.suffix.lower() == ".ogg"
-                else "rendered from the preserved authored source at release time"
+                str(replacement["transformation_notes"])
+                if replacement is not None
+                else (
+                    "second lossy generation from the only preserved Vorbis source; quality review required"
+                    if path.suffix.lower() == ".ogg"
+                    else "rendered from the preserved authored source at release time"
+                )
             ) + (f"; license review SHA-256: {review_hash}" if review_hash is not None else ""),
             "license": {
                 "status": status,
@@ -1000,13 +1081,17 @@ def build_source_manifest() -> dict[str, object]:
                 "license_text_path": license_text_path,
             },
         }
-        if path.suffix.lower() == ".ogg":
+        if path.suffix.lower() == ".ogg" or replacement is not None:
             quality_review = quality_reviews.get(relative)
             if quality_review is not None and quality_review.get("source_sha256") != asset["source"]["sha256"]:  # type: ignore[index]
-                raise ReleaseError(f"stale Vorbis quality review: {relative}")
+                raise ReleaseError(f"stale quality review: {relative}")
             asset["quality_review"] = published_quality_review(quality_review) if quality_review is not None else {
                 "status": "blocked",
-                "blocking_finding": "second-generation Vorbis-to-Opus review evidence is missing",
+                "blocking_finding": (
+                    "replacement source-to-Opus behavioral and critical-listening review evidence is missing"
+                    if replacement is not None
+                    else "second-generation Vorbis-to-Opus review evidence is missing"
+                ),
                 "source_sha256": asset["source"]["sha256"],  # type: ignore[index]
             }
         else:
@@ -1047,6 +1132,10 @@ def validate_manifest(
         ensure_sources_tracked(discovered)
     if len(assets) != len(discovered):
         raise ReleaseError(f"source manifest has {len(assets)} assets; discovered {len(discovered)}")
+    discovered_paths = {path.relative_to(ROOT).as_posix() for path in discovered}
+    manifest_source_paths = {str(asset.get("source_path")) for asset in assets if isinstance(asset, dict)}
+    if manifest_source_paths != discovered_paths:
+        raise ReleaseError("source manifest paths do not exactly cover the discovered corpus")
     logical: set[str] = set()
     generated: set[str] = set()
     blockers: list[dict[str, object]] = []
@@ -1076,9 +1165,12 @@ def validate_manifest(
                 raise ReleaseError(f"unsafe {label} path: {candidate!r}")
         logical.add(logical_path)
         generated.add(generated_path)
-        path = ROOT / logical_path
+        source_path = asset.get("source_path")
+        if not isinstance(source_path, str):
+            raise ReleaseError(f"invalid source path: {logical_path}")
+        path = ROOT / source_path
         if not path.is_file() or path.is_symlink():
-            raise ReleaseError(f"manifest source is not a tracked regular file: {logical_path}")
+            raise ReleaseError(f"manifest source is not a tracked regular file: {source_path}")
         license_contract = asset.get("license")
         if not isinstance(license_contract, dict):
             raise ReleaseError(f"missing license contract: {logical_path}")
@@ -1792,7 +1884,7 @@ def write_review_candidate(
     return evidence
 
 
-def eligible_vorbis_review_assets(
+def eligible_quality_review_assets(
     manifest: dict[str, object],
     asset_class: str | None = None,
 ) -> list[dict[str, object]]:
@@ -1801,8 +1893,6 @@ def eligible_vorbis_review_assets(
     return sorted([
         asset for asset in assets
         if isinstance(asset, dict)
-        and isinstance(asset.get("source"), dict)
-        and asset["source"].get("codec") == "vorbis"  # type: ignore[union-attr]
         and isinstance(asset.get("license"), dict)
         and asset["license"].get("status") == "allowed"  # type: ignore[union-attr]
         and isinstance(asset.get("quality_review"), dict)
@@ -1903,9 +1993,9 @@ def command_build_review_bundle(arguments: argparse.Namespace) -> None:
     manifest = checked_manifest()
     validate_manifest(manifest)
     asset_class = getattr(arguments, "asset_class", None)
-    selected = eligible_vorbis_review_assets(manifest, asset_class)
+    selected = eligible_quality_review_assets(manifest, asset_class)
     if not selected:
-        raise ReleaseError("no license-approved Vorbis sources await quality review")
+        raise ReleaseError("no license-approved sources await quality review")
     selected_classes = {str(asset["logical_path"]).partition("/")[0] for asset in selected}
     if len(selected_classes) != 1:
         raise ReleaseError("eligible reviews span asset classes; select --asset-class background or effects")
@@ -1918,10 +2008,10 @@ def command_build_review_bundle(arguments: argparse.Namespace) -> None:
     bundle_assets: list[dict[str, object]] = []
     for asset in selected:
         logical_path = str(asset["logical_path"])
-        source_relative = PurePosixPath("sources") / PurePosixPath(logical_path)
+        source_relative = PurePosixPath("sources") / PurePosixPath(str(asset["source_path"]))
         source_output = output_directory / source_relative
         source_output.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(ROOT / logical_path, source_output)
+        shutil.copyfile(ROOT / str(asset["source_path"]), source_output)
         candidate_root = output_directory / "candidates" / PurePosixPath(logical_path)
         evidence = write_review_candidate(asset, candidate_root, toolchain, versions)
         candidate_relative = candidate_root.relative_to(output_directory) / str(asset["generated_path"])
@@ -2054,7 +2144,7 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
     validate_manifest(current_manifest)
     expected_by_path = {
         str(asset["logical_path"]): asset
-        for asset in eligible_vorbis_review_assets(current_manifest, asset_class)
+        for asset in eligible_quality_review_assets(current_manifest, asset_class)
     }
     if bundle_value.get("review_input_sha256") != quality_review_input_sha256(list(expected_by_path.values())):
         raise ReleaseError("review bundle is stale for the current review inputs")
@@ -2073,7 +2163,7 @@ def verify_review_bundle_result(bundle_root: Path, result: object) -> tuple[dict
             raise ReleaseError(f"review-bundle asset is not currently eligible: {logical_path}")
         current_source = current_asset.get("source")
         assert isinstance(current_source, dict)
-        expected_source_path = (PurePosixPath("sources") / PurePosixPath(logical_path)).as_posix()
+        expected_source_path = (PurePosixPath("sources") / PurePosixPath(str(current_asset["source_path"]))).as_posix()
         expected_evidence_path = (PurePosixPath("candidates") / PurePosixPath(logical_path) / "review-evidence.json").as_posix()
         expected_candidate_path = (PurePosixPath("candidates") / PurePosixPath(logical_path) / str(current_asset["generated_path"])).as_posix()
         if asset["source_path"] != expected_source_path or asset["source_sha256"] != current_source.get("sha256") or asset["review_evidence_path"] != expected_evidence_path or asset["candidate_path"] != expected_candidate_path:
@@ -2373,7 +2463,7 @@ def parser() -> argparse.ArgumentParser:
     candidate.add_argument("logical_path")
     candidate.add_argument("output_directory")
     candidate.set_defaults(function=command_build_review_candidate)
-    bundle = commands.add_parser("build-review-bundle", help="build all eligible non-publishing Vorbis candidates and a listening worksheet")
+    bundle = commands.add_parser("build-review-bundle", help="build all eligible non-publishing quality-review candidates and a listening worksheet")
     bundle.add_argument("output_directory")
     bundle.add_argument(
         "--asset-class", choices=("background", "effects"),
