@@ -18,6 +18,7 @@
   record the actual payload codec, and require clean exact-source and pinned
   toolchain verification without weakening released-runtime blockers.
 - Keep `manifests/source-assets.json`, `manifests/audio-toolchain.json`, the
+  separate nonpublishing `manifests/playtest-audio-toolchain.json`, the
   license and Vorbis quality-review ledgers, pinned tracker-duration ledger,
   versioned schemas, fixture plan,
   runtime builder, release workflow,

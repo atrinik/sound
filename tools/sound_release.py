@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import contextlib
 import ctypes
 import dataclasses
@@ -33,6 +34,7 @@ from typing import Iterator
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_MANIFEST = ROOT / "manifests" / "source-assets.json"
 TOOLCHAIN = ROOT / "manifests" / "audio-toolchain.json"
+PLAYTEST_TOOLCHAIN = ROOT / "manifests" / "playtest-audio-toolchain.json"
 FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
 QUALITY_REVIEWS = ROOT / "manifests" / "vorbis-quality-reviews.json"
 LICENSE_REVIEWS = ROOT / "manifests" / "license-reviews.json"
@@ -86,6 +88,10 @@ REVIEWED_NOTICE_LICENSES = {
 
 class ReleaseError(RuntimeError):
     """A release contract violation with an operator-facing diagnostic."""
+
+
+class SourceIntegrityError(ReleaseError):
+    """A tracked checkout differs from its claimed immutable Git tree."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -482,6 +488,70 @@ def ensure_clean_release_input() -> None:
         raise ReleaseError("full runtime release input worktree is not clean")
 
 
+def ensure_exact_tracked_tree(commit: str) -> None:
+    """Reject hidden index flags and bind every tracked byte/mode to a tree."""
+    flags = run(
+        ["git", "-C", str(ROOT), "ls-files", "-v", "-z"], capture=True,
+    ).stdout
+    for entry in flags.rstrip("\0").split("\0") if flags else []:
+        if len(entry) < 3 or entry[1] != " ":
+            raise SourceIntegrityError("cannot parse tracked source flags")
+        if entry[0] == "S" or entry[0].islower():
+            raise SourceIntegrityError(f"tracked source has a hidden index flag: {entry[2:]}")
+
+    tree = run(
+        ["git", "-C", str(ROOT), "ls-tree", "-r", "-z", "--full-tree", commit],
+        capture=True,
+    ).stdout
+    for entry in tree.rstrip("\0").split("\0") if tree else []:
+        metadata, separator, relative = entry.partition("\t")
+        fields = metadata.split()
+        if not separator or len(fields) != 3:
+            raise SourceIntegrityError("cannot parse exact source tree")
+        mode, kind, expected_object = fields
+        if kind != "blob":
+            continue
+        path = ROOT / relative
+        try:
+            before = path.lstat()
+            if mode == "120000":
+                if not stat.S_ISLNK(before.st_mode):
+                    raise SourceIntegrityError(f"tracked source mode differs from {commit}: {relative}")
+                payload = os.fsencode(os.readlink(path))
+                after = path.lstat()
+                if (before.st_dev, before.st_ino) != (after.st_dev, after.st_ino):
+                    raise SourceIntegrityError(f"tracked source changed while hashing: {relative}")
+                digest = hashlib.sha1(
+                    f"blob {len(payload)}\0".encode("ascii") + payload,
+                    usedforsecurity=False,
+                ).hexdigest()
+            else:
+                if mode not in {"100644", "100755"} or not stat.S_ISREG(before.st_mode):
+                    raise SourceIntegrityError(f"tracked source mode differs from {commit}: {relative}")
+                if bool(before.st_mode & stat.S_IXUSR) != (mode == "100755"):
+                    raise SourceIntegrityError(f"tracked source mode differs from {commit}: {relative}")
+                descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW)
+                try:
+                    opened = os.fstat(descriptor)
+                    if (
+                        not stat.S_ISREG(opened.st_mode)
+                        or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)
+                    ):
+                        raise SourceIntegrityError(f"tracked source changed while hashing: {relative}")
+                    digest_builder = hashlib.sha1(usedforsecurity=False)
+                    digest_builder.update(f"blob {opened.st_size}\0".encode("ascii"))
+                    with os.fdopen(os.dup(descriptor), "rb") as stream:
+                        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                            digest_builder.update(chunk)
+                    digest = digest_builder.hexdigest()
+                finally:
+                    os.close(descriptor)
+        except OSError as exc:
+            raise SourceIntegrityError(f"cannot verify tracked source against {commit}: {relative}") from exc
+        if digest != expected_object:
+            raise SourceIntegrityError(f"tracked source bytes differ from {commit}: {relative}")
+
+
 def clean_source_coordinates() -> tuple[str, str]:
     """Return immutable coordinates for a clean, Git-backed local checkout."""
     try:
@@ -494,13 +564,17 @@ def clean_source_coordinates() -> tuple[str, str]:
             ["git", "-C", str(ROOT), "rev-parse", f"{commit}^{{tree}}"],
             capture=True,
         ).stdout.strip()
+        ensure_exact_tracked_tree(commit)
         status_after = run(
             ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=all"],
             capture=True,
         ).stdout
+        ensure_exact_tracked_tree(commit)
         final_commit = run(
             ["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture=True,
         ).stdout.strip()
+    except SourceIntegrityError:
+        raise
     except ReleaseError as exc:
         raise ReleaseError("playtest-tree generation requires Git metadata") from exc
     if status_before or status_after:
@@ -1032,7 +1106,7 @@ def checked_quality_reviews() -> dict[str, dict[str, object]]:
 
 def codec_contract(suffix: str) -> tuple[str, str, str]:
     if suffix == ".mid":
-        return "midi", "standard-midi-file", "wildmidi"
+        return "midi", "standard-midi-file", "timidity"
     if suffix in TRACKER_SUFFIXES:
         return suffix[1:], "tracker-module", "openmpt123"
     if suffix == ".ogg":
@@ -1104,10 +1178,6 @@ def build_source_manifest(*, allow_historical_toolchain: bool = False) -> dict[s
         logical = PurePosixPath(relative)
         metadata = source_metadata(path)
         codec, container, renderer = codec_contract(path.suffix.lower())
-        tools = toolchain["tools"]
-        assert isinstance(tools, dict)
-        if renderer == "wildmidi" and "wildmidi" not in tools:
-            renderer = "timidity"
         notice = catalogs[logical.parts[0]].get(logical.name)
         status, finding, expression, license_text_path = notice_status(notice)
         source_hash = sha256(path)
@@ -1128,12 +1198,7 @@ def build_source_manifest(*, allow_historical_toolchain: bool = False) -> dict[s
         channels = metadata.channels if metadata.channels is not None else 2
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
         render_recipes = {
-            "wildmidi": ["wildmidi", "-c", "{instrument_config}", "-r", str(sample_rate), "-o", "{output}", "{input}"],
-            "timidity": (
-                ["timidity", "-c", "{instrument_config}", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"]
-                if allow_historical_toolchain
-                else ["timidity", "-c", "{instrument_config}", "-EFreverb=d", "-EFchorus=d", "-EFdelay=d", "-EFresamp=l", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"]
-            ),
+            "timidity": ["timidity", "-c", "{instrument_config}", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"],
             "openmpt123": ["openmpt123", "--quiet", "--batch", "--samplerate", str(sample_rate), "--channels", "2", "--no-float", "--dither", "0", "--force", "--output", "{output}", "--", "{input}"],
             "ffmpeg": ["ffmpeg", "-nostdin", "-v", "error", "-i", "{input}", "-map_metadata", "-1", "-ar", str(sample_rate), "-c:a", "pcm_s16le", "-y", "{output}"],
         }
@@ -1320,10 +1385,17 @@ def checked_manifest() -> dict[str, object]:
     return value
 
 
-def checked_toolchain(*, allow_historical: bool = False) -> dict[str, object]:
-    toolchain_schema = checked_schema("audio-toolchain-v1.schema.json")
-    value = read_json(TOOLCHAIN)
-    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "apt_snapshot", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != "../schemas/audio-toolchain-v1.schema.json" or value.get("schema_version") != 1:
+def checked_toolchain(
+    *, allow_historical: bool = False, playtest: bool = False,
+) -> dict[str, object]:
+    schema_name = (
+        "playtest-audio-toolchain-v1.schema.json"
+        if playtest else "audio-toolchain-v1.schema.json"
+    )
+    toolchain_path = PLAYTEST_TOOLCHAIN if playtest else TOOLCHAIN
+    toolchain_schema = checked_schema(schema_name)
+    value = read_json(toolchain_path)
+    if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "apt_snapshot", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != f"../schemas/{schema_name}" or value.get("schema_version") != 1:
         raise ReleaseError("toolchain root must use schema version 1")
     validate_schema_instance(value, toolchain_schema)
     if not re.fullmatch(r"https://snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z", str(value.get("apt_snapshot", ""))):
@@ -1352,7 +1424,9 @@ def checked_toolchain(*, allow_historical: bool = False) -> dict[str, object]:
     if not isinstance(value.get("duration_tolerance_seconds"), (int, float)) or not 0 < float(value["duration_tolerance_seconds"]) <= 5:
         raise ReleaseError("duration tolerance must be a positive bounded number")
     tools = value.get("tools")
-    current_tools = {"ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
+    runtime_tools = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
+    playtest_tools = {"ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
+    current_tools = playtest_tools if playtest else runtime_tools
     historical_tools = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
     allowed_tools = {frozenset(current_tools)}
     if allow_historical:
@@ -1429,7 +1503,7 @@ def checked_toolchain(*, allow_historical: bool = False) -> dict[str, object]:
                 or not re.fullmatch(r"[0-9a-f]{64}", str(probe_installed_sha256 or ""))
             )
         )
-        or (not allow_historical and probe_installed is None)
+        or (playtest and probe_installed is None)
     ):
         raise ReleaseError("SDL3_mixer probe must pin its source and installed binary")
     probe_path = ROOT / probe_source
@@ -1441,18 +1515,21 @@ def checked_toolchain(*, allow_historical: bool = False) -> dict[str, object]:
         seed_source = ROOT / str(deterministic_seed["source_path"])
         if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
             raise ReleaseError("TiMidity deterministic seed source does not match its pinned SHA-256")
-    if allow_historical:
+    if allow_historical and not playtest:
         # Historical review trees were already validated by their own pinned
         # Dockerfile contract. Reconstruct their canonical source manifest with
         # the version-1 tool shape, without applying today's stronger image pins.
         return value
     dockerfile = (ROOT / "tools" / "audio" / "Dockerfile").read_text(encoding="utf-8")
+    docker_pinned_tools = {"ffmpeg", "openmpt123", "opusenc"}
+    if playtest:
+        docker_pinned_tools.add("wildmidi")
     required_literals = [
         str(build_image["image"]),
         str(value["apt_snapshot"]),
         str(debian_source["url"]), str(debian_source["sha256"]), str(bank["upstream_archive_sha256"]),
         *(str(contract[field]) for contract in license_texts.values() if str(contract["installed_path"]).startswith("/opt/") for field in ("source_url", "sha256")),
-        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "timidity", "wildmidi", "openmpt123", "opusenc"}),
+        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in docker_pinned_tools),
         *(
             str(contract[field]) for name, contract in tools.items()
             if name != "sdl3_mixer_probe" and isinstance(contract, dict) and isinstance(contract.get("source_path"), str)
@@ -1467,6 +1544,10 @@ def checked_toolchain(*, allow_historical: bool = False) -> dict[str, object]:
     if any(literal not in dockerfile for literal in required_literals):
         raise ReleaseError("Dockerfile drifts from pinned toolchain coordinates")
     return value
+
+
+def checked_playtest_toolchain() -> dict[str, object]:
+    return checked_toolchain(playtest=True)
 
 
 def checked_fixture_plan(manifest: dict[str, object]) -> dict[str, object]:
@@ -1645,10 +1726,13 @@ def verify_release_tag(tag: str, source_commit: str, source_tree: str) -> None:
         raise ReleaseError("runtime source commit/tree do not match the release tag")
 
 
-def verify_toolchain(toolchain: dict[str, object]) -> dict[str, str]:
-    for name in ("ATRINIK_INSTRUMENT_CONFIG", "LD_LIBRARY_PATH", "LD_PRELOAD"):
-        if os.environ.get(name):
-            raise ReleaseError(f"pinned toolchain rejects environment override: {name}")
+def verify_toolchain(
+    toolchain: dict[str, object], *, strict_playtest: bool = False,
+) -> dict[str, str]:
+    if strict_playtest:
+        for name in ("ATRINIK_INSTRUMENT_CONFIG", "LD_LIBRARY_PATH", "LD_PRELOAD"):
+            if os.environ.get(name):
+                raise ReleaseError(f"pinned toolchain rejects environment override: {name}")
     versions: dict[str, str] = {}
     tools = toolchain["tools"]
     assert isinstance(tools, dict)
@@ -1661,24 +1745,30 @@ def verify_toolchain(toolchain: dict[str, object]) -> dict[str, str]:
             raise ReleaseError(f"invalid version command: {name}")
         if not isinstance(expected, str):
             raise ReleaseError(f"invalid version pattern: {name}")
+        executable = shutil.which(command[0])
+        if executable is None:
+            raise ReleaseError(f"required tool is missing: {command[0]}")
         installed_path = contract.get("installed_path")
         installed_sha256 = contract.get("installed_sha256")
-        if not isinstance(installed_path, str) or not isinstance(installed_sha256, str):
-            raise ReleaseError(f"tool lacks an installed binary hash: {name}")
-        installed = Path(installed_path)
-        executable = shutil.which(installed.name)
-        if executable is None or Path(executable).resolve() != installed.resolve():
+        installed = Path(installed_path) if isinstance(installed_path, str) else None
+        if strict_playtest and (
+            installed is None
+            or Path(executable).resolve() != installed.resolve()
+        ):
             raise ReleaseError(f"required tool is not the pinned executable: {name}")
-        if not installed.is_file() or sha256(installed) != installed_sha256:
-            raise ReleaseError(f"installed tool hash mismatch: {name}")
         version_command = list(command)
-        if Path(version_command[0]).name == installed.name:
+        if strict_playtest and installed is not None and Path(version_command[0]).name == installed.name:
             version_command[0] = str(installed)
         completed = run(version_command, capture=True)
         output = (completed.stdout + completed.stderr).strip()
         if not re.search(expected, output, re.MULTILINE):
             raise ReleaseError(f"unexpected {name} version; expected /{expected}/, got: {output}")
         versions[name] = output.splitlines()[0]
+        if name != "sdl3_mixer_probe" or installed is not None:
+            if installed is None or not isinstance(installed_sha256, str):
+                raise ReleaseError(f"tool lacks an installed binary hash: {name}")
+            if not installed.is_file() or sha256(installed) != installed_sha256:
+                raise ReleaseError(f"installed tool hash mismatch: {name}")
     libraries = toolchain.get("runtime_libraries")
     if not isinstance(libraries, list):
         raise ReleaseError("toolchain runtime libraries must be an array")
@@ -1789,7 +1879,11 @@ def render_source(
     if renderer in {"wildmidi", "timidity"}:
         bank = toolchain["instrument_bank"]
         assert isinstance(bank, dict)
-        config_path = Path(str(bank["installed_config"]))
+        config_path = Path(
+            str(bank["installed_config"])
+            if command_root is not None
+            else os.environ.get("ATRINIK_INSTRUMENT_CONFIG", str(bank["installed_config"]))
+        )
         if not config_path.is_file():
             raise ReleaseError(f"pinned instrument-bank config is missing: {config_path}")
         replacements["{instrument_config}"] = str(config_path)
@@ -1800,9 +1894,10 @@ def render_source(
         command = [part.replace(placeholder, replacement) for part in command]
     if any(re.fullmatch(r"\{[^}]+\}", part) for part in command):
         raise ReleaseError(f"unresolved render recipe placeholder for {asset['logical_path']}")
-    renderer_contract = toolchain["tools"][renderer]  # type: ignore[index]
-    assert isinstance(renderer_contract, dict)
-    command[0] = str(renderer_contract["installed_path"])
+    if command_root is not None:
+        renderer_contract = toolchain["tools"][renderer]  # type: ignore[index]
+        assert isinstance(renderer_contract, dict)
+        command[0] = str(renderer_contract["installed_path"])
     run(command, cwd=command_root)
 
 
@@ -1818,7 +1913,10 @@ def encode_opus(
     assert isinstance(encode, dict)
     serial = int(str(asset["source"]["sha256"])[0:8], 16)  # type: ignore[index]
     command = [
-        str(toolchain["tools"]["opusenc"]["installed_path"]),  # type: ignore[index]
+        (
+            str(toolchain["tools"]["opusenc"]["installed_path"])  # type: ignore[index]
+            if command_root is not None else "opusenc"
+        ),
         "--quiet",
         "--bitrate", str(encode["bitrate_kbps"]),
         f"--{encode['mode']}",
@@ -1841,6 +1939,7 @@ def run_sdl_probe(
     behaviors: tuple[str, ...],
     expected_channels: int,
     toolchain: dict[str, object],
+    strict_playtest: bool = False,
 ) -> None:
     probe = toolchain["tools"]["sdl3_mixer_probe"]  # type: ignore[index]
     assert isinstance(probe, dict)
@@ -1855,7 +1954,8 @@ def run_sdl_probe(
     command = [str(part) for part in probe_command]
     for placeholder, value in replacements.items():
         command = [part.replace(placeholder, value) for part in command]
-    command[0] = str(probe["installed_path"])
+    if strict_playtest:
+        command[0] = str(probe["installed_path"])
     run(command)
 
 
@@ -1871,7 +1971,7 @@ def validate_conversion_durations(
     source = asset["source"]
     assert isinstance(render, dict) and isinstance(source, dict)
     source_duration = float(source["duration_seconds"])
-    if render["renderer"] == "openmpt123" and abs(decoded_duration - source_duration) > tolerance:
+    if render["renderer"] != "wildmidi" and abs(decoded_duration - source_duration) > tolerance:
         raise ReleaseError(
             f"duration outside {tolerance}s tolerance for {asset['logical_path']}: "
             f"source={source_duration}, decoded={decoded_duration}"
@@ -1888,24 +1988,27 @@ def convert_asset(
 ) -> dict[str, object]:
     generated = output_root / str(asset["generated_path"])
     generated.parent.mkdir(parents=True, exist_ok=True)
+    strict_playtest = source_root is not None
     with tempfile.TemporaryDirectory(prefix="atrinik-sound-") as temporary:
         temporary_path = Path(temporary)
-        input_root = temporary_path / "source"
-        stable_source = input_root / str(asset["source_path"])
-        stable_source.parent.mkdir(parents=True, exist_ok=True)
-        original_source = (ROOT if source_root is None else source_root) / str(asset["source_path"])
-        shutil.copyfile(original_source, stable_source)
-        if sha256(stable_source) != asset["source"]["sha256"]:  # type: ignore[index]
-            raise ReleaseError(f"source changed before conversion: {asset['logical_path']}")
+        input_root = ROOT
+        if strict_playtest:
+            input_root = temporary_path / "source"
+            stable_source = input_root / str(asset["source_path"])
+            stable_source.parent.mkdir(parents=True, exist_ok=True)
+            original_source = source_root / str(asset["source_path"])
+            shutil.copyfile(original_source, stable_source)
+            if sha256(stable_source) != asset["source"]["sha256"]:  # type: ignore[index]
+                raise ReleaseError(f"source changed before conversion: {asset['logical_path']}")
         rendered_wave = temporary_path / "rendered.wav"
         decoded_wave = temporary_path / "decoded.wav"
-        encoded_opus = temporary_path / "generated.opus"
+        encoded_opus = temporary_path / "generated.opus" if strict_playtest else generated
         render_source(
             asset,
             rendered_wave,
             toolchain,
-            source_root=input_root,
-            command_root=temporary_path,
+            source_root=input_root if strict_playtest else None,
+            command_root=temporary_path if strict_playtest else None,
         )
         quality_budget = toolchain["quality_budget"]
         assert isinstance(quality_budget, dict)
@@ -1913,9 +2016,14 @@ def convert_asset(
             rendered_wave,
             float(quality_budget["clipped_render_peak_target_dbfs"]),
         )
-        encode_opus(asset, rendered_wave, encoded_opus, toolchain, command_root=temporary_path)
-        run([str(toolchain["tools"]["opusinfo"]["installed_path"]), "-q", str(encoded_opus)])  # type: ignore[index]
-        run([str(toolchain["tools"]["ffmpeg"]["installed_path"]), "-nostdin", "-v", "error", "-i", str(encoded_opus), "-map_metadata", "-1", "-c:a", "pcm_s16le", "-y", str(decoded_wave)])  # type: ignore[index]
+        encode_opus(
+            asset, rendered_wave, encoded_opus, toolchain,
+            command_root=temporary_path if strict_playtest else None,
+        )
+        opusinfo = str(toolchain["tools"]["opusinfo"]["installed_path"]) if strict_playtest else "opusinfo"  # type: ignore[index]
+        ffmpeg = str(toolchain["tools"]["ffmpeg"]["installed_path"]) if strict_playtest else "ffmpeg"  # type: ignore[index]
+        run([opusinfo, "-q", str(encoded_opus)])
+        run([ffmpeg, "-nostdin", "-v", "error", "-i", str(encoded_opus), "-map_metadata", "-1", "-c:a", "pcm_s16le", "-y", str(decoded_wave)])
         decoded = inspect_wave(decoded_wave)
         if decoded["clipping"]:
             raise ReleaseError(f"decoded Opus PCM clips for {asset['logical_path']}")
@@ -1925,8 +2033,10 @@ def convert_asset(
             behaviors=behaviors,
             expected_channels=int(asset["render"]["channels"]),  # type: ignore[index]
             toolchain=toolchain,
+            strict_playtest=strict_playtest,
         )
-        shutil.move(encoded_opus, generated)
+        if strict_playtest:
+            shutil.move(encoded_opus, generated)
     intended_channels = int(asset["render"]["channels"])  # type: ignore[index]
     expected_rate = int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
     if rendered["sample_rate"] != expected_rate or decoded["sample_rate"] != expected_rate:
@@ -2099,6 +2209,34 @@ def blocker_report(manifest: dict[str, object], blockers: list[dict[str, object]
         "count": len(blockers),
         "findings": blockers,
     }
+
+
+def playtest_assets(
+    source_manifest: dict[str, object], toolchain: dict[str, object],
+) -> list[dict[str, object]]:
+    """Overlay the playtest-only MIDI recipe without changing runtime inputs."""
+    source_assets = source_manifest.get("assets")
+    if not isinstance(source_assets, list):
+        raise ReleaseError("source manifest assets must be an array")
+    sample_rate = int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
+    assets = copy.deepcopy(source_assets)
+    for asset in assets:
+        if not isinstance(asset, dict) or not isinstance(asset.get("source"), dict):
+            raise ReleaseError("source manifest asset is incomplete")
+        if asset["source"].get("codec") != "midi":  # type: ignore[union-attr]
+            continue
+        render = asset.get("render")
+        if not isinstance(render, dict) or render.get("renderer") != "timidity":
+            raise ReleaseError(f"runtime MIDI recipe drifted: {asset.get('logical_path')}")
+        asset["render"] = {
+            **render,
+            "renderer": "wildmidi",
+            "recipe": [
+                "wildmidi", "-c", "{instrument_config}",
+                "-r", str(sample_rate), "-o", "{output}", "{input}",
+            ],
+        }
+    return assets
 
 
 def playtest_output_record(
@@ -2435,8 +2573,8 @@ def verify_playtest_tree(
     source_commit, source_tree = clean_source_coordinates()
     source_manifest = checked_manifest()
     blockers = validate_manifest(source_manifest, verify_tracked=True)
-    toolchain = checked_toolchain()
-    versions = verify_toolchain(toolchain)
+    toolchain = checked_playtest_toolchain()
+    versions = verify_toolchain(toolchain, strict_playtest=True)
 
     manifest_path = root / PLAYTEST_MANIFEST_NAME
     manifest_payload = manifest_path.read_bytes() if manifest_path.is_file() else b""
@@ -2450,7 +2588,7 @@ def verify_playtest_tree(
         "source_commit": source_commit,
         "source_tree": source_tree,
         "source_manifest_sha256": sha256(SOURCE_MANIFEST),
-        "toolchain_sha256": sha256(TOOLCHAIN),
+        "toolchain_sha256": sha256(PLAYTEST_TOOLCHAIN),
         "schema_sha256": sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json"),
         "tool_versions": versions,
     }
@@ -2477,12 +2615,12 @@ def verify_playtest_tree(
     if manifest_value.get("blocker_count") != len(blockers):
         raise ReleaseError("playtest blocker count does not match the source manifest")
 
-    source_assets = source_manifest.get("assets")
-    playtest_assets = manifest_value.get("assets")
-    assert isinstance(source_assets, list) and isinstance(playtest_assets, list)
+    source_assets = playtest_assets(source_manifest, toolchain)
+    actual_playtest_assets = manifest_value.get("assets")
+    assert isinstance(actual_playtest_assets, list)
     expected_by_path = {str(asset["logical_path"]): asset for asset in source_assets if isinstance(asset, dict)}
-    actual_by_path = {str(asset["logical_path"]): asset for asset in playtest_assets if isinstance(asset, dict)}
-    if set(actual_by_path) != set(expected_by_path) or len(actual_by_path) != len(playtest_assets):
+    actual_by_path = {str(asset["logical_path"]): asset for asset in actual_playtest_assets if isinstance(asset, dict)}
+    if set(actual_by_path) != set(expected_by_path) or len(actual_by_path) != len(actual_playtest_assets):
         raise ReleaseError("playtest tree does not close exactly over source logical paths")
     allowed_files = set(expected_by_path) | {
         PLAYTEST_MANIFEST_NAME, PLAYTEST_BLOCKERS_NAME, PLAYTEST_MARKER_NAME,
@@ -2589,16 +2727,15 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
         source_commit, source_tree = clean_source_coordinates()
         source_manifest = checked_manifest()
         blockers = validate_manifest(source_manifest, verify_tracked=True)
-        toolchain = checked_toolchain()
-        versions = verify_toolchain(toolchain)
+        toolchain = checked_playtest_toolchain()
+        versions = verify_toolchain(toolchain, strict_playtest=True)
         source_manifest_sha256 = sha256(SOURCE_MANIFEST)
-        toolchain_sha256 = sha256(TOOLCHAIN)
+        toolchain_sha256 = sha256(PLAYTEST_TOOLCHAIN)
         schema_sha256 = sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json")
         if output_directory.exists():
             verify_playtest_tree(output_directory, require_build_path=False)
             return
-        assets = source_manifest["assets"]
-        assert isinstance(assets, list)
+        assets = playtest_assets(source_manifest, toolchain)
         with tempfile.TemporaryDirectory(prefix=f".{output_directory.name}.staging-", dir=output_directory.parent) as temporary:
             staging = Path(temporary)
             generated_assets: list[dict[str, object]] = []
@@ -2682,10 +2819,10 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
                     raise ReleaseError("sound checkout changed while building the playtest tree")
                 if (
                     sha256(SOURCE_MANIFEST) != source_manifest_sha256
-                    or sha256(TOOLCHAIN) != toolchain_sha256
+                    or sha256(PLAYTEST_TOOLCHAIN) != toolchain_sha256
                     or sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json") != schema_sha256
-                    or canonical_json(checked_toolchain()) != canonical_json(toolchain)
-                    or verify_toolchain(toolchain) != versions
+                    or canonical_json(checked_playtest_toolchain()) != canonical_json(toolchain)
+                    or verify_toolchain(toolchain, strict_playtest=True) != versions
                 ):
                     raise ReleaseError("playtest generation inputs changed while building")
                 verified.reject_mutations()

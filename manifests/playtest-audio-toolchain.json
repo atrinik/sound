@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/audio-toolchain-v1.schema.json",
+  "$schema": "../schemas/playtest-audio-toolchain-v1.schema.json",
   "schema_version": 1,
   "apt_snapshot": "https://snapshot.ubuntu.com/ubuntu/20260810T000000Z",
   "build_image": {
@@ -84,6 +84,7 @@
     {"path": "/usr/lib/x86_64-linux-gnu/libavutil.so.60", "sha256": "56557dd89c99afd4c7c1f62297fc0f4c19ed97e29bd903937fac480d38fbe3a5"},
     {"path": "/usr/lib/x86_64-linux-gnu/libswresample.so.6", "sha256": "2d7816cb7ab4785d17bb34a9bdead9e1f0dfe5b8c64f2aa999a395d3e5c60f40"},
     {"path": "/usr/lib/x86_64-linux-gnu/libopenmpt.so.0", "sha256": "e9f76dbb9c1416d7d87201c45717103d3089fb6426c75157665e41a5a7b42650"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libWildMidi.so.2", "sha256": "0c1d5f942a149b52433e6d3e0bebdb3a4bdb07c2d355df11fc8e795805c24842"},
     {"path": "/usr/lib/x86_64-linux-gnu/libopus.so.0", "sha256": "5f01eaf11e7326d83f9c341a1d943851a0b00e3444668697dd663c14b138476e"},
     {"path": "/usr/local/lib/libSDL3_mixer.so.0", "sha256": "5f47e4eef61feab6e14bc501027b2d42de7cda8c91a5b47feec907f0c0557e73"},
     {"path": "/usr/lib/x86_64-linux-gnu/libSDL3.so.0", "sha256": "6c68aecb2057c78c02cb694edc691a81f92bda2b186e6e8ad156d79638c19048"}
@@ -102,23 +103,24 @@
       "version_command": ["ffmpeg", "-version"],
       "version_pattern": "^ffmpeg version 8\\.0\\.1"
     },
-    "timidity": {
+    "wildmidi": {
       "purpose": "MIDI renderer",
-      "package": "timidity=2.14.0-8.3ubuntu1",
-      "installed_path": "/usr/bin/timidity",
-      "installed_sha256": "916b9a492c3660866302f14e9afed1ba8eabe8dd3edf4b7952cbfb2dcf78bf20",
-      "source": "pinned inside the build-image digest",
+      "package": "wildmidi=0.4.6-1",
+      "installed_path": "/usr/local/bin/atrinik-wildmidi-render",
+      "installed_sha256": "ee829ceed4dfff0c4d9f4b541140d3e77692676f1a9781316b45f84dc0ca6ff3",
+      "source_path": "tools/audio/wildmidi-render.c",
+      "source_sha256": "cfe59c824dfdf7b13d1f730d79e3f01627b4e82246b05433f5d8996a7ef750f4",
       "upstream": {
-        "version": "2.14.0",
-        "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/timidity/2.14.0-8.3ubuntu1/timidity_2.14.0.orig.tar.bz2",
-        "sha256": "f97fb643f049e9c2e5ef5b034ea9eeb582f0175dce37bc5df843cc85090f6476"
+        "version": "0.4.6",
+        "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/wildmidi/0.4.6-1/wildmidi_0.4.6.orig.tar.gz",
+        "sha256": "edad5c2434300aab03dc45a39d3d50947e0a461e2fc1afcb6a6c1d279241ee72"
       },
       "ubuntu_patch": {
-        "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/timidity/2.14.0-8.3ubuntu1/timidity_2.14.0-8.3ubuntu1.debian.tar.xz",
-        "sha256": "eaf54de8b655e093f9dfb2f11c4f780a60547740c2eda609c787a77e2bd906ff"
+        "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/wildmidi/0.4.6-1/wildmidi_0.4.6-1.debian.tar.xz",
+        "sha256": "d212f8cb0e2a7242ff536aae06eb6e95f7ce2c0ccc2b3e087706dd4e23103fe9"
       },
-      "version_command": ["timidity", "--version"],
-      "version_pattern": "TiMidity\\+\\+ version 2\\.14\\.0"
+      "version_command": ["atrinik-wildmidi-render", "--version"],
+      "version_pattern": "^atrinik-wildmidi-render 1$"
     },
     "openmpt123": {
       "purpose": "MOD, S3M, and XM renderer",
@@ -163,6 +165,8 @@
       "purpose": "device-free SDL3_mixer Opus backend full decode",
       "source_path": "tools/audio/sdl3-mixer-runtime-probe.c",
       "source_sha256": "6a68c6535e9865e4198501348689b89cd63f7c36f29ee70182f3bcc65eea9dba",
+      "installed_path": "/usr/local/bin/atrinik-sound-sdl3-mixer-probe",
+      "installed_sha256": "cfbad665c7f7a22e5055e3ae4a81d44d1704c11e5e6514551f121f8b20c06dc9",
       "decoder_library_source_repository": "atrinik/devcontainer",
       "decoder_library_source_commit": "66b8508434044ca50822558172c5cef47a888762",
       "decoded_pcm_safety_bound_bytes": 268435456,

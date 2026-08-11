@@ -55,11 +55,8 @@ libraries delivered by `atrinik/devcontainer#21`.
 `tools/audio/Dockerfile` creates the exact runnable environment.
 
 The checked quality budget authoritatively generates and validates the release
-recipe. A repository-owned, hash-pinned offline driver renders MIDI as signed
-16-bit stereo PCM at 48 kHz with pinned WildMIDI and FreePats inputs, without
-the interactive player's real-time pacing. The recipe normalizes renderer paths
-to a fixed relative command layout, explicitly disables the tracker's
-otherwise-random dither, and encodes stereo music at
+recipe. It renders signed 16-bit PCM at 48 kHz, explicitly disables
+the tracker's otherwise-random dither, and encodes stereo music at
 160 kb/s VBR with `--music --comp 10`, and channel-scales mono to 80 kb/s. Ogg
 serial numbers derive from the immutable source SHA-256, all input comments are
 discarded, and archive timestamps/ownership/order are fixed. Vorbis inputs are
@@ -70,10 +67,7 @@ No input is truncated: each renderer runs to decoder EOF. Background entries
 are loopable and effects are one-shot. A generated output must pass `opusinfo`,
 fully decode through FFmpeg and the pinned SDL3_mixer Opus backend, contain
 nonzero PCM, match the expected decoded length, remain within the documented
-2.5-second tracker-duration tolerance, and report no clipping. MIDI event
-timelines are informational because synthesized notes can outlast their MIDI
-events through WildMIDI's instrument release tails; rendered PCM EOF is authoritative
-and must still match the decoded Opus output within 0.1 seconds. Fixture tracks also
+2.5-second duration tolerance, and report no clipping. Fixture tracks also
 execute device-free seek, stop, loop, decoded-channel, and short-effect
 natural-EOF transitions through SDL3_mixer. The
 runtime manifest reports source/runtime totals so bitrate or size changes are
@@ -302,8 +296,9 @@ fail closed.
 
 The builder accepts only a directory below the selected checkout's ignored
 `build/` root and requires a clean Git-backed source tree. It snapshots the
-exact commit and tree, validates the authoritative source manifest and pinned
-toolchain, copies the 196 existing Vorbis files byte-for-byte, and converts only
+exact commit and tree, validates the unchanged authoritative runtime source
+manifest plus the separate playtest-only WildMIDI toolchain, copies the 196
+existing Vorbis files byte-for-byte, and converts only
 the 143 MIDI/MOD/S3M/XM files to deterministic Opus. All bytes are staged at
 their 339 legacy logical paths. `playtest-manifest.json` records both the source
 codec and actual output codec for each path, the source manifest, toolchain,
@@ -327,5 +322,6 @@ python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
 The tree must never be archived, uploaded, cached, released, packaged, installed,
 or embedded in an image. Its blocker report preserves every unresolved release
 finding, and its marker is intentionally incompatible with the released-runtime
-manifest schema. Local playback provides no license, provenance, or critical-
-listening evidence.
+manifest schema. The runtime manifest, toolchain, renderer recipes, schemas, and
+publisher remain byte-for-byte unchanged from the release baseline. Local
+playback provides no license, provenance, or critical-listening evidence.

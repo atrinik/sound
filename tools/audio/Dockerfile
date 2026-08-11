@@ -51,6 +51,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && test -s /opt/freepats/freepats.cfg \
     && printf 'dir /opt/freepats\nsource /opt/freepats/freepats.cfg\n' \
         >/opt/atrinik-freepats.cfg \
+    && ln -sf /opt/atrinik-freepats.cfg /etc/timidity/fluidr3_gm.cfg \
     && mkdir -p /opt/atrinik-sound-license-texts \
     && curl --fail --location --silent --show-error "${CC_BY_URL}" \
         --output /opt/atrinik-sound-license-texts/CC-BY-3.0.txt \
@@ -88,6 +89,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 RUN ffmpeg -version | grep -F 'ffmpeg version 8.0.1' \
     && gh --version | grep -F 'gh version 2.46.0' \
+    && timidity --version | grep -F 'TiMidity++ version 2.14.0' \
     && atrinik-wildmidi-render --version | grep -F 'atrinik-wildmidi-render 1' \
     && openmpt123 --version | grep -F 'openmpt123 v0.8.4' \
     && opusenc --version | grep -F 'opusenc opus-tools 0.2' \

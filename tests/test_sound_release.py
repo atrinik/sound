@@ -144,8 +144,16 @@ class SourceManifestTests(unittest.TestCase):
             sound_release.validate_conversion_durations(midi, 97.2, 97.04, 2.5)
 
     def test_midi_recipe_uses_pinned_wildmidi(self) -> None:
-        midi_assets = [
+        runtime_midi = [
             asset for asset in self.assets.values()
+            if asset["render"]["renderer"] == "timidity"
+        ]
+        self.assertEqual(126, len(runtime_midi))
+        playtest = sound_release.playtest_assets(
+            self.manifest, sound_release.checked_playtest_toolchain(),
+        )
+        midi_assets = [
+            asset for asset in playtest
             if asset["render"]["renderer"] == "wildmidi"
         ]
         self.assertEqual(126, len(midi_assets))
@@ -156,7 +164,12 @@ class SourceManifestTests(unittest.TestCase):
             self.assertIn("48000", recipe)
 
     def test_renderer_command_paths_are_stable_and_relative(self) -> None:
-        asset = copy.deepcopy(self.assets["background/burnt_forest.mid"])
+        asset = next(
+            item for item in sound_release.playtest_assets(
+                self.manifest, sound_release.checked_playtest_toolchain(),
+            )
+            if item["logical_path"] == "background/burnt_forest.mid"
+        )
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             source = root / "source" / "background" / "burnt_forest.mid"
@@ -637,7 +650,8 @@ class SourceManifestTests(unittest.TestCase):
         for name in (
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
             "playtest-manifest-v1.schema.json",
-            "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
+            "audio-toolchain-v1.schema.json", "playtest-audio-toolchain-v1.schema.json",
+            "fixture-plan-v1.schema.json",
             "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json",
             "critical-listening-review-v1.schema.json", "license-reviews-v1.schema.json",
             "license-reviews-v2.schema.json",
@@ -653,7 +667,21 @@ class SourceManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
             sound_release.validate_manifest(drifted, compare_generated=False)
 
-    def test_version_one_schemas_accept_released_and_current_renderer_shapes(self) -> None:
+    def test_runtime_and_playtest_toolchain_schemas_are_isolated(self) -> None:
+        for relative in (
+            "manifests/audio-toolchain.json",
+            "manifests/source-assets.json",
+            "manifests/tracker-durations.json",
+            "schemas/audio-toolchain-v1.schema.json",
+            "schemas/runtime-manifest-v1.schema.json",
+            "schemas/source-assets-v1.schema.json",
+        ):
+            released = subprocess.run(
+                ["git", "-C", str(ROOT), "show", f"acb29ba:{relative}"],
+                check=True,
+                capture_output=True,
+            ).stdout
+            self.assertEqual(released, (ROOT / relative).read_bytes(), relative)
         for manifest_name, schema_name in (
             ("audio-toolchain.json", "audio-toolchain-v1.schema.json"),
             ("source-assets.json", "source-assets-v1.schema.json"),
@@ -673,26 +701,33 @@ class SourceManifestTests(unittest.TestCase):
             self.manifest,
             sound_release.checked_schema("source-assets-v1.schema.json"),
         )
-        invalid_toolchain = copy.deepcopy(sound_release.checked_toolchain())
+        playtest_toolchain = sound_release.checked_playtest_toolchain()
+        sound_release.validate_schema_instance(
+            playtest_toolchain,
+            sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
+        )
+        invalid_toolchain = copy.deepcopy(playtest_toolchain)
         invalid_toolchain["tools"]["wildmidi"]["unexpected"] = True
         with self.assertRaisesRegex(sound_release.ReleaseError, "unknown schema field"):
             sound_release.validate_schema_instance(
                 invalid_toolchain,
-                sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+                sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
             )
-        both_renderers = copy.deepcopy(sound_release.checked_toolchain())
-        both_renderers["tools"]["timidity"] = copy.deepcopy(both_renderers["tools"]["wildmidi"])
-        with self.assertRaisesRegex(sound_release.ReleaseError, "oneOf"):
-            sound_release.validate_schema_instance(
-                both_renderers,
-                sound_release.checked_schema("audio-toolchain-v1.schema.json"),
-            )
-        incomplete_probe = copy.deepcopy(sound_release.checked_toolchain())
+        for missing, present in (("source_sha256", "source_path"), ("source_path", "source_sha256")):
+            incomplete_source = copy.deepcopy(playtest_toolchain)
+            del incomplete_source["tools"]["wildmidi"][missing]
+            self.assertIn(present, incomplete_source["tools"]["wildmidi"])
+            with self.assertRaisesRegex(sound_release.ReleaseError, "dependent field"):
+                sound_release.validate_schema_instance(
+                    incomplete_source,
+                    sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
+                )
+        incomplete_probe = copy.deepcopy(playtest_toolchain)
         del incomplete_probe["tools"]["sdl3_mixer_probe"]["installed_sha256"]
         with self.assertRaisesRegex(sound_release.ReleaseError, "dependent field"):
             sound_release.validate_schema_instance(
                 incomplete_probe,
-                sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+                sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
             )
 
     def test_released_review_source_tree_remains_reconstructable(self) -> None:
@@ -767,18 +802,18 @@ class SourceManifestTests(unittest.TestCase):
             "quality_budget": toolchain["quality_budget"],
             "tool_versions": {
                 name: "test"
-                for name in ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+                for name in ("ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
             },
             "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
             "assets": [asset],
         }
         sound_release.validate_runtime_manifest(runtime_manifest)
-        legacy_runtime = copy.deepcopy(runtime_manifest)
-        legacy_runtime["tool_versions"]["timidity"] = legacy_runtime["tool_versions"].pop("wildmidi")
-        legacy_runtime["assets"][0]["render"]["renderer"] = "timidity"
-        sound_release.validate_schema_instance(
-            legacy_runtime,
-            sound_release.checked_schema("runtime-manifest-v1.schema.json"),
+        self.assertEqual(
+            126,
+            sum(
+                item["render"]["renderer"] == "timidity"
+                for item in self.manifest["assets"]
+            ),
         )
 
     def test_playtest_manifest_maps_the_complete_current_corpus(self) -> None:
@@ -861,7 +896,7 @@ class SourceManifestTests(unittest.TestCase):
         self.assertGreater(midi.duration_seconds, 0)
 
     def test_toolchain_is_pinned_and_records_instrument_output_permission(self) -> None:
-        toolchain = sound_release.checked_toolchain()
+        toolchain = sound_release.checked_playtest_toolchain()
         self.assertRegex(toolchain["apt_snapshot"], r"snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z$")
         self.assertRegex(toolchain["build_image"]["image"], r"@sha256:[0-9a-f]{64}$")
         self.assertTrue(toolchain["instrument_bank"]["recording_distribution_permission"])
@@ -877,13 +912,13 @@ class SourceManifestTests(unittest.TestCase):
             self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
 
     def test_toolchain_rejects_path_shadowing(self) -> None:
-        toolchain = sound_release.checked_toolchain()
+        toolchain = sound_release.checked_playtest_toolchain()
         with mock.patch.object(sound_release.shutil, "which", return_value="/tmp/shadow/ffmpeg"):
             with self.assertRaisesRegex(sound_release.ReleaseError, "pinned executable"):
-                sound_release.verify_toolchain(toolchain)
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
         with mock.patch.dict(sound_release.os.environ, {"LD_PRELOAD": "/tmp/shadow.so"}):
             with self.assertRaisesRegex(sound_release.ReleaseError, "LD_PRELOAD"):
-                sound_release.verify_toolchain(toolchain)
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1376,9 +1411,43 @@ class PlaytestTreeTests(unittest.TestCase):
 
     def test_dirty_playtest_source_is_rejected(self) -> None:
         completed = type("Completed", (), {"stdout": " M effects/campfire.ogg\n"})()
-        with mock.patch.object(sound_release, "run", return_value=completed):
+        with mock.patch.object(sound_release, "run", return_value=completed), \
+                mock.patch.object(sound_release, "ensure_exact_tracked_tree"):
             with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
                 sound_release.clean_source_coordinates()
+
+    def test_hidden_tracked_modifications_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-exact-git-") as temporary:
+            root = Path(temporary)
+            tracked = root / "tracked"
+            tracked.write_text("committed\n", encoding="utf-8")
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "add", "tracked"], check=True)
+            subprocess.run(
+                [
+                    "git", "-C", str(root), "-c", "user.name=Test",
+                    "-c", "user.email=test@example.invalid", "commit", "-qm", "base",
+                ],
+                check=True,
+            )
+            for flag in ("--assume-unchanged", "--skip-worktree"):
+                subprocess.run(
+                    ["git", "-C", str(root), "update-index", flag, "tracked"],
+                    check=True,
+                )
+                tracked.write_text(f"hidden by {flag}\n", encoding="utf-8")
+                with mock.patch.object(sound_release, "ROOT", root):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "hidden index flag"):
+                        sound_release.clean_source_coordinates()
+                reset_flag = (
+                    "--no-assume-unchanged"
+                    if flag == "--assume-unchanged" else "--no-skip-worktree"
+                )
+                subprocess.run(
+                    ["git", "-C", str(root), "update-index", reset_flag, "tracked"],
+                    check=True,
+                )
+                tracked.write_text("committed\n", encoding="utf-8")
 
     def test_output_ancestor_swap_stays_anchored_and_is_rejected(self) -> None:
         build_root = ROOT / "build"
@@ -1606,7 +1675,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
                 mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
                 mock.patch.object(sound_release, "validate_manifest", return_value=[]),
-                mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain),
+                mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain),
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
             )
@@ -1627,7 +1696,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 "clean_source_coordinates",
                 side_effect=[("b" * 40, "c" * 40), ("b" * 40, "c" * 40), ("d" * 40, "e" * 40)],
             )
-            with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+            with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "changed while building"):
                     sound_release.build_playtest_tree(raced)
             self.assertFalse(raced.exists())
@@ -1640,7 +1709,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 if calls == 3:
                     collided.mkdir()
                 return "b" * 40, "c" * 40
-            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=create_destination), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=create_destination), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
                     sound_release.build_playtest_tree(collided)
             self.assertTrue(collided.is_dir())
@@ -1661,7 +1730,7 @@ class PlaytestTreeTests(unittest.TestCase):
                     )
                 return "b" * 40, "c" * 40
 
-            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=mutate_verified_staging), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=mutate_verified_staging), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
                     sound_release.build_playtest_tree(mutated)
             self.assertFalse(mutated.exists())
@@ -1706,7 +1775,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 "source_commit": "b" * 40,
                 "source_tree": "c" * 40,
                 "source_manifest_sha256": sound_release.sha256(sound_release.SOURCE_MANIFEST),
-                "toolchain_sha256": sound_release.sha256(sound_release.TOOLCHAIN),
+                "toolchain_sha256": sound_release.sha256(sound_release.PLAYTEST_TOOLCHAIN),
                 "schema_sha256": sound_release.sha256(
                     sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
                 ),
@@ -1736,7 +1805,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
                 mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
                 mock.patch.object(sound_release, "validate_manifest", return_value=[]),
-                mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain),
+                mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain),
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
             )

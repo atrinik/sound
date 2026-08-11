@@ -61,7 +61,8 @@ python3 tools/sound_release.py build-playtest-tree build/classic-playtest
 python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
 ```
 
-The command requires a clean Git checkout and the pinned audio toolchain. It
+The command requires a clean Git checkout and the separate pinned playtest
+audio toolchain; released-runtime inputs remain unchanged. It
 copies all 196 Vorbis inputs byte-for-byte, deterministically renders the 143
 MIDI/tracker inputs to Opus, and stages every payload at its existing legacy
 logical path. The canonical manifest records the source and actual payload
