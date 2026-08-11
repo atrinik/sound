@@ -2235,32 +2235,54 @@ def start_playtest_mutation_watch(root: Path) -> int:
         | 0x02000000  # IN_DONT_FOLLOW
     )
     try:
-        def watch(entry: Path) -> None:
-            if add_watch(descriptor, os.fsencode(entry), mutation_mask) < 0:
+        root_directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except OSError as exc:
+        os.close(descriptor)
+        raise ReleaseError(f"cannot anchor playtest mutation monitoring: {root}") from exc
+    try:
+        def watch(path: str, label: str) -> None:
+            if add_watch(descriptor, os.fsencode(path), mutation_mask) < 0:
                 error = ctypes.get_errno()
                 raise ReleaseError(
-                    f"cannot monitor playtest tree entry {entry.relative_to(root) if entry != root else '.'}: "
-                    f"{os.strerror(error)}"
+                    f"cannot monitor playtest tree entry {label}: {os.strerror(error)}"
                 )
-        def watch_tree(directory: Path) -> None:
-            watch(directory)
+        def watch_tree(directory_descriptor: int, label: PurePosixPath) -> None:
+            watch(f"/proc/self/fd/{directory_descriptor}/.", label.as_posix())
             try:
-                entries = list(os.scandir(directory))
+                entries = list(os.scandir(directory_descriptor))
             except OSError as exc:
-                raise ReleaseError(f"cannot enumerate playtest tree for mutation monitoring: {directory}") from exc
+                raise ReleaseError(f"cannot enumerate playtest tree for mutation monitoring: {label}") from exc
             for entry in entries:
-                path = Path(entry.path)
+                child_label = label / entry.name
                 if entry.is_dir(follow_symlinks=False):
-                    watch_tree(path)
+                    try:
+                        child = os.open(
+                            entry.name,
+                            os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                            dir_fd=directory_descriptor,
+                        )
+                    except OSError as exc:
+                        raise ReleaseError(
+                            f"playtest tree changed while monitoring: {child_label}"
+                        ) from exc
+                    try:
+                        watch_tree(child, child_label)
+                    finally:
+                        os.close(child)
                 else:
-                    watch(path)
+                    watch(
+                        f"/proc/self/fd/{directory_descriptor}/{entry.name}",
+                        child_label.as_posix(),
+                    )
 
-        watch_tree(root)
+        watch_tree(root_directory, PurePosixPath("."))
         reject_playtest_mutations(descriptor)
         return descriptor
     except Exception:
         os.close(descriptor)
         raise
+    finally:
+        os.close(root_directory)
 
 
 def reject_playtest_mutations(descriptor: int) -> None:

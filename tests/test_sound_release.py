@@ -1500,6 +1500,45 @@ class PlaytestTreeTests(unittest.TestCase):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
                     sound_release.start_playtest_mutation_watch(root)
 
+    def test_mutation_watch_never_traverses_a_swapped_directory_symlink(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-watch-swap-") as temporary, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-watch-external-") as external_temporary:
+            root = Path(temporary)
+            child = root / "child"
+            moved = root / "moved-child"
+            child.mkdir()
+            (child / "payload").write_bytes(b"payload")
+            external = Path(external_temporary)
+            (external / "outside").write_bytes(b"outside")
+            external_identity = (external.stat().st_dev, external.stat().st_ino)
+            original_open = os.open
+            original_scandir = os.scandir
+            swapped = False
+            external_scanned = False
+
+            def open_and_swap(path: object, flags: int, mode: int = 0o777, *, dir_fd: int | None = None) -> int:
+                nonlocal swapped
+                if path == "child" and dir_fd is not None and not swapped:
+                    swapped = True
+                    child.rename(moved)
+                    child.symlink_to(external, target_is_directory=True)
+                return original_open(path, flags, mode, dir_fd=dir_fd)
+
+            def guarded_scandir(path: object) -> os.ScandirIterator[str]:
+                nonlocal external_scanned
+                if isinstance(path, int):
+                    metadata = os.fstat(path)
+                    if (metadata.st_dev, metadata.st_ino) == external_identity:
+                        external_scanned = True
+                return original_scandir(path)
+
+            with mock.patch.object(os, "open", side_effect=open_and_swap), \
+                    mock.patch.object(os, "scandir", side_effect=guarded_scandir):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while monitoring"):
+                    sound_release.start_playtest_mutation_watch(root)
+            self.assertTrue(swapped)
+            self.assertFalse(external_scanned)
+
     def test_directory_install_is_atomic_and_never_replaces(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-playtest-install-") as temporary:
             parent = Path(temporary)
