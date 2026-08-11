@@ -919,6 +919,7 @@ class SourceManifestTests(unittest.TestCase):
         for contract in toolchain["tools"].values():
             self.assertRegex(contract["installed_path"], r"^/")
             self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual("/bin/sh", toolchain["tools"]["opusinfo"]["version_command"][0])
 
     def test_toolchain_rejects_path_shadowing(self) -> None:
         toolchain = sound_release.checked_playtest_toolchain()

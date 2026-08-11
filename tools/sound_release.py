@@ -1767,11 +1767,18 @@ def verify_toolchain(
         installed_path = contract.get("installed_path")
         installed_sha256 = contract.get("installed_sha256")
         installed = Path(installed_path) if isinstance(installed_path, str) else None
-        if strict_playtest and (
-            installed is None
-            or Path(executable).resolve() != installed.resolve()
-        ):
-            raise ReleaseError(f"required tool is not the pinned executable: {name}")
+        if strict_playtest:
+            if installed is None:
+                raise ReleaseError(f"required tool is not the pinned executable: {name}")
+            command_path = Path(command[0])
+            if command_path.is_absolute():
+                expected_executable = command_path.resolve()
+            elif command_path.name == installed.name:
+                expected_executable = installed.resolve()
+            else:
+                raise ReleaseError(f"required tool is not the pinned executable: {name}")
+            if Path(executable).resolve() != expected_executable:
+                raise ReleaseError(f"required tool is not the pinned executable: {name}")
         version_command = list(command)
         if strict_playtest and installed is not None and Path(version_command[0]).name == installed.name:
             version_command[0] = str(installed)
