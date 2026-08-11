@@ -36,7 +36,7 @@ any unresolved finding publishes an explicit
 archive.
 
 Approvals are immutable-input contracts: license reviews bind source, notice,
-and SPDX hashes, while Vorbis quality reviews additionally bind the exact
+and SPDX hashes, while required quality reviews additionally bind the exact
 toolchain, evidence artifact, and generated output. Versioned JSON Schemas in
 [`schemas/`](schemas/) define the checked and packaged manifest interfaces.
 
@@ -63,8 +63,8 @@ python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
 
 The command requires a clean Git checkout and the separate pinned playtest
 audio toolchain; released-runtime inputs remain unchanged. It
-copies all 196 Vorbis inputs byte-for-byte, deterministically renders the 143
-MIDI/tracker inputs to Opus, and stages every payload at its existing legacy
+copies all 189 Vorbis inputs byte-for-byte, deterministically renders the 150
+FLAC/MIDI inputs to Opus, and stages every payload at its existing legacy
 logical path. The canonical manifest records the source and actual payload
 codecs, so content-based SDL3_mixer decoding is required where a legacy
 extension names the authored format.

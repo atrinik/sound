@@ -29,8 +29,9 @@
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
     "gitObject": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
     "logicalPath": {"type": "string", "pattern": "^(background|effects)/(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\\.(mid|mod|s3m|xm|ogg)$"},
-    "source": {"type": "object", "additionalProperties": false, "required": ["sha256", "codec", "container"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "codec": {"enum": ["midi", "mod", "s3m", "xm", "vorbis"]}, "container": {"type": "string", "minLength": 1}}},
+    "sourcePath": {"type": "string", "pattern": "^(background|effects)/(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\\.(flac|mid|mod|s3m|xm|ogg)$"},
+    "source": {"type": "object", "additionalProperties": false, "required": ["sha256", "codec", "container"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "codec": {"enum": ["flac", "midi", "mod", "s3m", "xm", "vorbis"]}, "container": {"type": "string", "minLength": 1}}},
     "output": {"type": "object", "additionalProperties": false, "required": ["sha256", "size_bytes", "codec", "container", "sample_rate", "channels", "duration_seconds"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1}, "codec": {"enum": ["vorbis", "opus"]}, "container": {"const": "ogg"}, "sample_rate": {"type": "integer", "minimum": 1}, "channels": {"enum": [1, 2]}, "duration_seconds": {"type": "number", "exclusiveMinimum": 0}}},
-    "asset": {"type": "object", "additionalProperties": false, "required": ["logical_path", "source_path", "mapping", "source", "output"], "properties": {"logical_path": {"$ref": "#/$defs/logicalPath"}, "source_path": {"$ref": "#/$defs/logicalPath"}, "mapping": {"enum": ["copy", "render-opus"]}, "source": {"$ref": "#/$defs/source"}, "output": {"$ref": "#/$defs/output"}}}
+    "asset": {"type": "object", "additionalProperties": false, "required": ["logical_path", "source_path", "mapping", "source", "output"], "properties": {"logical_path": {"$ref": "#/$defs/logicalPath"}, "source_path": {"$ref": "#/$defs/sourcePath"}, "mapping": {"enum": ["copy", "render-opus"]}, "source": {"$ref": "#/$defs/source"}, "output": {"$ref": "#/$defs/output"}}}
   }
 }

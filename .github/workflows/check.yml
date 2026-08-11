@@ -144,8 +144,8 @@ jobs:
           root = Path("build/playtest-a")
           manifest = json.loads((root / "playtest-manifest.json").read_text())
           assert manifest["logical_path_count"] == 339
-          assert manifest["copied_vorbis_count"] == 196
-          assert manifest["converted_opus_count"] == 143
+          assert manifest["copied_vorbis_count"] == 189
+          assert manifest["converted_opus_count"] == 150
           assets = {asset["logical_path"]: asset for asset in manifest["assets"]}
           assert assets["background/fireside.mid"]["output"]["codec"] == "opus"
           assert assets["background/tutorialisland.mid"]["output"]["codec"] == "opus"
