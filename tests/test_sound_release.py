@@ -673,6 +673,27 @@ class SourceManifestTests(unittest.TestCase):
             self.manifest,
             sound_release.checked_schema("source-assets-v1.schema.json"),
         )
+        invalid_toolchain = copy.deepcopy(sound_release.checked_toolchain())
+        invalid_toolchain["tools"]["wildmidi"]["unexpected"] = True
+        with self.assertRaisesRegex(sound_release.ReleaseError, "unknown schema field"):
+            sound_release.validate_schema_instance(
+                invalid_toolchain,
+                sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+            )
+        both_renderers = copy.deepcopy(sound_release.checked_toolchain())
+        both_renderers["tools"]["timidity"] = copy.deepcopy(both_renderers["tools"]["wildmidi"])
+        with self.assertRaisesRegex(sound_release.ReleaseError, "oneOf"):
+            sound_release.validate_schema_instance(
+                both_renderers,
+                sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+            )
+        incomplete_probe = copy.deepcopy(sound_release.checked_toolchain())
+        del incomplete_probe["tools"]["sdl3_mixer_probe"]["installed_sha256"]
+        with self.assertRaisesRegex(sound_release.ReleaseError, "dependent field"):
+            sound_release.validate_schema_instance(
+                incomplete_probe,
+                sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+            )
 
     def test_released_review_source_tree_remains_reconstructable(self) -> None:
         snapshot, git_backed = sound_release.review_snapshot_manifest({
@@ -1394,6 +1415,40 @@ class PlaytestTreeTests(unittest.TestCase):
             payload.symlink_to(external)
             with self.assertRaisesRegex(sound_release.ReleaseError, "symlink|changed"):
                 context.__exit__(None, None, None)
+
+    def test_verification_snapshot_rejects_whole_root_replacement(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-root-swap-") as temporary:
+            parent = Path(temporary)
+            root = parent / "tree"
+            moved = parent / "verified-tree"
+            root.mkdir()
+            (root / "payload").write_bytes(b"verified")
+            context = sound_release.stable_playtest_snapshot(root)
+            snapshot = context.__enter__()
+            self.assertEqual(b"verified", (snapshot / "payload").read_bytes())
+            root.rename(moved)
+            root.mkdir()
+            (root / "payload").write_bytes(b"replacement")
+            with self.assertRaisesRegex(sound_release.ReleaseError, "root changed"):
+                context.__exit__(None, None, None)
+
+    def test_directory_install_is_atomic_and_never_replaces(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-install-") as temporary:
+            parent = Path(temporary)
+            staging = parent / "staging"
+            destination = parent / "destination"
+            staging.mkdir()
+            destination.mkdir()
+            with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
+                sound_release.install_directory_noreplace(staging, destination)
+            self.assertTrue(staging.is_dir())
+            self.assertTrue(destination.is_dir())
+
+            destination.rmdir()
+            destination.symlink_to(parent / "missing", target_is_directory=True)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
+                sound_release.install_directory_noreplace(staging, destination)
+            self.assertTrue(destination.is_symlink())
 
     def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
         asset = next(

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import ctypes
 import dataclasses
 import errno
 import filecmp
@@ -161,7 +162,14 @@ def validate_schema_instance(instance: object, schema: dict[str, object], *, roo
                 pass
         if matches != 1:
             raise ReleaseError(f"schema oneOf mismatch at {location}")
-        return
+    negated = schema.get("not")
+    if isinstance(negated, dict):
+        try:
+            validate_schema_instance(instance, negated, root=root, location=location)
+        except ReleaseError:
+            pass
+        else:
+            raise ReleaseError(f"schema not mismatch at {location}")
     if "const" in schema and instance != schema["const"]:
         raise ReleaseError(f"schema const mismatch at {location}")
     if isinstance(schema.get("enum"), list) and instance not in schema["enum"]:
@@ -175,6 +183,15 @@ def validate_schema_instance(instance: object, schema: dict[str, object], *, roo
         required = schema.get("required", [])
         if isinstance(required, list) and any(key not in instance for key in required):
             raise ReleaseError(f"schema required field missing at {location}")
+        dependent_required = schema.get("dependentRequired", {})
+        if not isinstance(dependent_required, dict):
+            raise ReleaseError(f"invalid dependentRequired at {location}")
+        for key, dependencies in dependent_required.items():
+            if key in instance and (
+                not isinstance(dependencies, list)
+                or any(dependency not in instance for dependency in dependencies)
+            ):
+                raise ReleaseError(f"schema dependent field missing at {location}.{key}")
         properties = schema.get("properties", {})
         if not isinstance(properties, dict):
             raise ReleaseError(f"invalid schema properties at {location}")
@@ -2195,6 +2212,7 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
         root_descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     except OSError as exc:
         raise ReleaseError(f"playtest tree is not a safe directory: {root}") from exc
+    original_root = os.fstat(root_descriptor)
     descriptors: dict[str, tuple[int, os.stat_result, str]] = {}
     try:
         files = _playtest_files(root)
@@ -2209,6 +2227,16 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                     shutil.copyfileobj(source, output)
                 descriptors[relative] = (descriptor, metadata, sha256(destination))
             yield snapshot
+            try:
+                current_root = os.stat(root, follow_symlinks=False)
+            except OSError as exc:
+                raise ReleaseError("playtest tree root changed during verification") from exc
+            if (
+                not stat.S_ISDIR(current_root.st_mode)
+                or (current_root.st_dev, current_root.st_ino)
+                != (original_root.st_dev, original_root.st_ino)
+            ):
+                raise ReleaseError("playtest tree root changed during verification")
             try:
                 current_files = _playtest_files(root)
             except OSError as exc:
@@ -2390,6 +2418,31 @@ def verify_playtest_tree(
     return manifest_value
 
 
+def install_directory_noreplace(staging: Path, destination: Path) -> None:
+    """Atomically install a directory without replacing any existing entry."""
+    try:
+        renameat2 = ctypes.CDLL(None, use_errno=True).renameat2
+    except AttributeError as exc:
+        raise ReleaseError("atomic no-replace directory installation is unavailable") from exc
+    renameat2.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p, ctypes.c_uint]
+    renameat2.restype = ctypes.c_int
+    result = renameat2(
+        -100,
+        os.fsencode(staging),
+        -100,
+        os.fsencode(destination),
+        1,  # RENAME_NOREPLACE
+    )
+    if result == 0:
+        return
+    error = ctypes.get_errno()
+    if error in {errno.EEXIST, errno.ENOTEMPTY}:
+        raise ReleaseError(f"playtest output appeared concurrently: {destination}")
+    if error in {errno.ENOSYS, errno.EINVAL}:
+        raise ReleaseError("atomic no-replace directory installation is unavailable")
+    raise OSError(error, os.strerror(error), str(destination))
+
+
 def _build_playtest_tree_anchored(output_directory: Path) -> None:
     with playtest_output_lock(output_directory):
         source_commit, source_tree = clean_source_coordinates()
@@ -2492,12 +2545,7 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
                 raise ReleaseError("playtest generation inputs changed while building")
             if output_directory.exists():
                 raise ReleaseError(f"playtest output appeared concurrently: {output_directory}")
-            try:
-                staging.rename(output_directory)
-            except OSError as exc:
-                if exc.errno in {errno.EEXIST, errno.ENOTEMPTY}:
-                    raise ReleaseError(f"playtest output appeared concurrently: {output_directory}") from exc
-                raise
+            install_directory_noreplace(staging, output_directory)
 
 
 def build_playtest_tree(output_directory: Path) -> Path:
