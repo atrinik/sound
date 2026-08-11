@@ -642,6 +642,24 @@ def exact_git_environment() -> dict[str, str]:
     return environment
 
 
+def require_selected_git_worktree(environment: dict[str, str]) -> None:
+    """Bind Git metadata operations to the selected checkout directory."""
+    top_level_value = run(
+        ["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"],
+        capture=True,
+        env=environment,
+    ).stdout.strip()
+    try:
+        expected_root = ROOT.stat()
+        reported_root = Path(top_level_value).stat()
+    except OSError as exc:
+        raise SourceIntegrityError("cannot establish the selected Git worktree root") from exc
+    if (expected_root.st_dev, expected_root.st_ino) != (
+        reported_root.st_dev, reported_root.st_ino,
+    ):
+        raise SourceIntegrityError("Git worktree root differs from the selected sound checkout")
+
+
 def ensure_exact_tracked_tree(commit: str) -> None:
     """Reject hidden index flags and bind every tracked byte/mode to a tree."""
     environment = exact_git_environment()
@@ -713,20 +731,7 @@ def clean_source_coordinates() -> tuple[str, str]:
     """Return immutable coordinates for a clean, Git-backed local checkout."""
     try:
         environment = exact_git_environment()
-        top_level_value = run(
-            ["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"],
-            capture=True,
-            env=environment,
-        ).stdout.strip()
-        try:
-            expected_root = ROOT.stat()
-            reported_root = Path(top_level_value).stat()
-        except OSError as exc:
-            raise SourceIntegrityError("cannot establish the selected Git worktree root") from exc
-        if (expected_root.st_dev, expected_root.st_ino) != (
-            reported_root.st_dev, reported_root.st_ino,
-        ):
-            raise SourceIntegrityError("Git worktree root differs from the selected sound checkout")
+        require_selected_git_worktree(environment)
         graft_path_value = run(
             ["git", "-C", str(ROOT), "rev-parse", "--git-path", "info/grafts"],
             capture=True,
@@ -2492,9 +2497,11 @@ def convert_playtest_asset(
 
 
 @contextlib.contextmanager
-def playtest_root_lock(output: Path) -> Iterator[None]:
+def playtest_root_lock(_output: Path) -> Iterator[None]:
     """Hold the Git-admin reader lease shared with wrapper worktree cleanup."""
     try:
+        environment = exact_git_environment()
+        require_selected_git_worktree(environment)
         raw_lock = run(
             [
                 "git",
@@ -2506,8 +2513,9 @@ def playtest_root_lock(output: Path) -> Iterator[None]:
                 PLAYTEST_ROOT_LOCK_NAME,
             ],
             capture=True,
+            env=environment,
         ).stdout.strip()
-    except subprocess.CalledProcessError as exc:
+    except (ReleaseError, SourceIntegrityError) as exc:
         raise ReleaseError("playtest root lock requires Git worktree metadata") from exc
     lock = Path(raw_lock)
     if not raw_lock or not lock.is_absolute() or not lock.parent.is_dir():
@@ -3760,8 +3768,9 @@ def command_build_playtest_tree(arguments: argparse.Namespace) -> None:
 
 def command_verify_playtest_tree(arguments: argparse.Namespace) -> None:
     output = Path(arguments.output_directory)
-    with playtest_verification_lock(output):
-        manifest = verify_playtest_tree(output)
+    with anchored_playtest_output(output, create_parents=False) as (anchored, _lexical):
+        with playtest_verification_lock(anchored):
+            manifest = verify_playtest_tree(anchored, require_build_path=False)
     print(
         f"verified {manifest['logical_path_count']} playtest paths; "
         f"tree SHA-256: {manifest['output_tree_sha256']}"

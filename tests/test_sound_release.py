@@ -1887,7 +1887,8 @@ class PlaytestTreeTests(unittest.TestCase):
             lock.write_text("abandoned\n", encoding="utf-8")
             root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
             result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
-            with mock.patch.object(sound_release, "run", return_value=result):
+            with mock.patch.object(sound_release, "require_selected_git_worktree"), \
+                    mock.patch.object(sound_release, "run", return_value=result):
                 with sound_release.playtest_output_lock(output):
                     with self.assertRaisesRegex(sound_release.ReleaseError, "active build lock"):
                         with sound_release.playtest_output_lock(output):
@@ -1906,7 +1907,8 @@ class PlaytestTreeTests(unittest.TestCase):
             try:
                 fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
-                with mock.patch.object(sound_release, "run", return_value=result):
+                with mock.patch.object(sound_release, "require_selected_git_worktree"), \
+                        mock.patch.object(sound_release, "run", return_value=result):
                     with self.assertRaisesRegex(
                         sound_release.ReleaseError, "cache root is being removed"
                     ):
@@ -1927,7 +1929,8 @@ class PlaytestTreeTests(unittest.TestCase):
             result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
             try:
                 fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                with mock.patch.object(sound_release, "run", return_value=result):
+                with mock.patch.object(sound_release, "require_selected_git_worktree"), \
+                        mock.patch.object(sound_release, "run", return_value=result):
                     with self.assertRaisesRegex(
                         sound_release.ReleaseError, "output is being removed"
                     ):
@@ -1935,6 +1938,48 @@ class PlaytestTreeTests(unittest.TestCase):
                             self.fail("verifier acquired an output under removal")
             finally:
                 os.close(descriptor)
+
+    def test_root_lock_uses_exact_git_environment_and_selected_checkout(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-root-lock-") as temporary:
+            lock = Path(temporary) / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            responses = [
+                subprocess.CompletedProcess([], 0, stdout=f"{ROOT}\n"),
+                subprocess.CompletedProcess([], 0, stdout=f"{lock}\n"),
+            ]
+            with mock.patch.dict(os.environ, {"GIT_DIR": "/tmp/false-git-dir"}), \
+                    mock.patch.object(sound_release, "run", side_effect=responses) as execute:
+                with sound_release.playtest_root_lock(ROOT / "build" / "tree"):
+                    pass
+            for call in execute.call_args_list:
+                environment = call.kwargs["env"]
+                self.assertNotIn("GIT_DIR", environment)
+                self.assertEqual("1", environment["GIT_NO_REPLACE_OBJECTS"])
+
+    def test_verify_command_rejects_unanchored_paths_without_lock_side_effects(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-outside-") as temporary:
+            output = Path(temporary) / "outside-tree"
+            lock = output.parent / ".outside-tree.build.lock"
+            with self.assertRaisesRegex(sound_release.ReleaseError, "must be below"):
+                sound_release.command_verify_playtest_tree(
+                    mock.Mock(output_directory=str(output))
+                )
+            self.assertFalse(lock.exists())
+
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-anchor-", dir=build_root) as local, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-outside-") as external:
+            parent = Path(local) / "redirected"
+            parent.symlink_to(external, target_is_directory=True)
+            output = parent / "tree"
+            redirected_lock = Path(external) / ".tree.build.lock"
+            with self.assertRaisesRegex(
+                sound_release.ReleaseError, "ignored local build state|ancestry"
+            ):
+                sound_release.command_verify_playtest_tree(
+                    mock.Mock(output_directory=str(output))
+                )
+            self.assertFalse(redirected_lock.exists())
 
     def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
         asset = next(
