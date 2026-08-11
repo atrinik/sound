@@ -2591,7 +2591,6 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
                 staging,
                 require_build_path=False,
                 reproduce_conversions=True,
-                _trusted_snapshot=True,
             )
             if clean_source_coordinates() != (source_commit, source_tree):
                 raise ReleaseError("sound checkout changed while building the playtest tree")
