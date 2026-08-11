@@ -773,7 +773,9 @@ def quality_review_bundle_contract(
             raise ReleaseError(f"critical-listening result has a stale evidence path: {logical_path}")
         bundle_assets.append({
             "logical_path": logical_path,
-            "source_path": (PurePosixPath("sources") / PurePosixPath(logical_path)).as_posix(),
+            "source_path": (
+                PurePosixPath("sources") / PurePosixPath(str(current["source_path"]))
+            ).as_posix(),
             "source_sha256": review["source_sha256"],
             "candidate_path": (candidate_root / str(current["generated_path"])).as_posix(),
             "output_sha256": review["output_sha256"],
