@@ -71,8 +71,8 @@ are loopable and effects are one-shot. A generated output must pass `opusinfo`,
 fully decode through FFmpeg and the pinned SDL3_mixer Opus backend, contain
 nonzero PCM, match the expected decoded length, remain within the documented
 2.5-second tracker-duration tolerance, and report no clipping. MIDI event
-timelines are informational because TiMidity can ignore trailing non-audio
-events and adds instrument release tails; its rendered PCM EOF is authoritative
+timelines are informational because synthesized notes can outlast their MIDI
+events through WildMIDI's instrument release tails; rendered PCM EOF is authoritative
 and must still match the decoded Opus output within 0.1 seconds. Fixture tracks also
 execute device-free seek, stop, loop, decoded-channel, and short-effect
 natural-EOF transitions through SDL3_mixer. The

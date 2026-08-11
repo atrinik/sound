@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import dataclasses
+import errno
 import filecmp
 import gzip
 import hashlib
@@ -514,6 +515,57 @@ def checked_playtest_output(path: Path) -> Path:
     return resolved
 
 
+@contextlib.contextmanager
+def anchored_playtest_output(path: Path, *, create_parents: bool) -> Iterator[tuple[Path, Path]]:
+    """Retain no-follow directory handles for every output ancestor."""
+    requested = path if path.is_absolute() else Path.cwd() / path
+    lexical = Path(os.path.normpath(requested))
+    build_path = ROOT / "build"
+    try:
+        relative = lexical.relative_to(build_path)
+    except ValueError as exc:
+        raise ReleaseError(f"playtest output must be below {build_path}") from exc
+    if not relative.parts or any(part in {"", ".", ".."} for part in relative.parts):
+        raise ReleaseError("playtest output must be a directory below build/, not build/ itself")
+    try:
+        run(
+            ["git", "-C", str(ROOT), "check-ignore", "-q", "--", lexical.relative_to(ROOT).as_posix()],
+            capture=True,
+        )
+    except (ValueError, ReleaseError) as exc:
+        raise ReleaseError(f"playtest output is not ignored local build state: {lexical}") from exc
+    try:
+        build_path.mkdir(exist_ok=True)
+        descriptor = os.open(build_path, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except (FileExistsError, NotADirectoryError, OSError) as exc:
+        raise ReleaseError(f"playtest build root is not a safe directory: {build_path}") from exc
+    descriptors = [descriptor]
+    try:
+        for part in relative.parts[:-1]:
+            if create_parents:
+                try:
+                    os.mkdir(part, mode=0o755, dir_fd=descriptor)
+                except FileExistsError:
+                    pass
+            try:
+                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=descriptor)
+            except OSError as exc:
+                raise ReleaseError(f"playtest output ancestry is not a safe directory: {lexical.parent}") from exc
+            descriptors.append(child)
+            descriptor = child
+        parent = Path(f"/proc/self/fd/{descriptor}")
+        yield parent / relative.name, lexical
+        ancestry = [build_path, *(build_path.joinpath(*relative.parts[:index]) for index in range(1, len(relative.parts)))]
+        for candidate, opened in zip(ancestry, descriptors, strict=True):
+            expected = os.fstat(opened)
+            current = os.stat(candidate, follow_symlinks=False)
+            if not stat.S_ISDIR(current.st_mode) or (current.st_dev, current.st_ino) != (expected.st_dev, expected.st_ino):
+                raise ReleaseError("playtest output ancestry changed during operation")
+    finally:
+        for opened in reversed(descriptors):
+            os.close(opened)
+
+
 def measured_tracker_duration(path: Path) -> float:
     completed = run(["openmpt123", "--info", str(path)], capture=True)
     match = re.search(r"^Duration\.\.\.: (?:(\d+):)?(\d+):(\d+(?:\.\d+)?)$", completed.stdout + completed.stderr, re.MULTILINE)
@@ -639,7 +691,7 @@ def quality_review_input_sha256(assets: list[dict[str, object]]) -> str:
 def archived_repository_tree(source_tree: str) -> Iterator[Path]:
     try:
         archive = subprocess.run(
-            ["git", "archive", "--format=tar", source_tree],
+            ["git", "-C", str(ROOT), "archive", "--format=tar", source_tree],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -679,7 +731,7 @@ def archived_repository_tree(source_tree: str) -> Iterator[Path]:
             destination = root / relative
             try:
                 payload = subprocess.run(
-                    ["git", "show", f"{source_tree}:{relative}"],
+                    ["git", "-C", str(ROOT), "show", f"{source_tree}:{relative}"],
                     check=True,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
@@ -731,7 +783,7 @@ def review_snapshot_manifest(result: dict[str, object]) -> tuple[dict[str, objec
         if not isinstance(snapshot, dict):
             raise ReleaseError("critical-listening source tree has an invalid source manifest")
         with archived_repository_tree(source_tree) as snapshot_root, repository_root(snapshot_root):
-            expected = build_source_manifest()
+            expected = build_source_manifest(allow_historical_toolchain=True)
         if canonical_json(snapshot) != canonical_json(expected):
             raise ReleaseError("critical-listening source tree has a non-canonical source manifest")
         return snapshot, True
@@ -1004,8 +1056,8 @@ def published_quality_review(review: dict[str, object]) -> dict[str, object]:
     return {**review, "evidence": published_evidence}
 
 
-def build_source_manifest() -> dict[str, object]:
-    toolchain = checked_toolchain()
+def build_source_manifest(*, allow_historical_toolchain: bool = False) -> dict[str, object]:
+    toolchain = checked_toolchain(allow_historical=allow_historical_toolchain)
     budget = toolchain["quality_budget"]
     assert isinstance(budget, dict)
     sample_rate = int(budget["sample_rate"])
@@ -1046,7 +1098,11 @@ def build_source_manifest() -> dict[str, object]:
         bitrate = int(budget["mono_bitrate_kbps"] if channels == 1 else budget["stereo_music_bitrate_kbps"])
         render_recipes = {
             "wildmidi": ["wildmidi", "-c", "{instrument_config}", "-r", str(sample_rate), "-o", "{output}", "{input}"],
-            "timidity": ["timidity", "-c", "{instrument_config}", "-EFreverb=d", "-EFchorus=d", "-EFdelay=d", "-EFresamp=l", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"],
+            "timidity": (
+                ["timidity", "-c", "{instrument_config}", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"]
+                if allow_historical_toolchain
+                else ["timidity", "-c", "{instrument_config}", "-EFreverb=d", "-EFchorus=d", "-EFdelay=d", "-EFresamp=l", "-Ow", "-s", str(sample_rate), "-o", "{output}", "{input}"]
+            ),
             "openmpt123": ["openmpt123", "--quiet", "--batch", "--samplerate", str(sample_rate), "--channels", "2", "--no-float", "--dither", "0", "--force", "--output", "{output}", "--", "{input}"],
             "ffmpeg": ["ffmpeg", "-nostdin", "-v", "error", "-i", "{input}", "-map_metadata", "-1", "-ar", str(sample_rate), "-c:a", "pcm_s16le", "-y", "{output}"],
         }
@@ -1233,7 +1289,7 @@ def checked_manifest() -> dict[str, object]:
     return value
 
 
-def checked_toolchain() -> dict[str, object]:
+def checked_toolchain(*, allow_historical: bool = False) -> dict[str, object]:
     toolchain_schema = checked_schema("audio-toolchain-v1.schema.json")
     value = read_json(TOOLCHAIN)
     if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "apt_snapshot", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != "../schemas/audio-toolchain-v1.schema.json" or value.get("schema_version") != 1:
@@ -1264,11 +1320,14 @@ def checked_toolchain() -> dict[str, object]:
         raise ReleaseError("quality-budget contract drifted from the validated deterministic recipe")
     if not isinstance(value.get("duration_tolerance_seconds"), (int, float)) or not 0 < float(value["duration_tolerance_seconds"]) <= 5:
         raise ReleaseError("duration tolerance must be a positive bounded number")
-    tools_schema = toolchain_schema.get("properties", {}).get("tools", {})  # type: ignore[union-attr]
-    required = set(tools_schema.get("required", [])) if isinstance(tools_schema, dict) else set()
     tools = value.get("tools")
-    if not isinstance(tools, dict) or set(tools) != required:
-        raise ReleaseError(f"toolchain must define exactly: {', '.join(sorted(required))}")
+    current_tools = {"ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
+    historical_tools = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
+    allowed_tools = {frozenset(current_tools)}
+    if allow_historical:
+        allowed_tools.add(frozenset(historical_tools))
+    if not isinstance(tools, dict) or frozenset(tools) not in allowed_tools:
+        raise ReleaseError(f"toolchain must define exactly: {', '.join(sorted(current_tools))}")
     bank = value.get("instrument_bank")
     if not isinstance(bank, dict) or not bank.get("recording_distribution_permission"):
         raise ReleaseError("instrument bank must record permission to distribute rendered recordings")
@@ -1330,9 +1389,16 @@ def checked_toolchain() -> dict[str, object]:
     if (
         not isinstance(probe_source, str)
         or not isinstance(probe_sha256, str)
-        or not isinstance(probe_installed, str)
-        or not probe_installed.startswith("/")
-        or not re.fullmatch(r"[0-9a-f]{64}", str(probe_installed_sha256 or ""))
+        or ((probe_installed is None) != (probe_installed_sha256 is None))
+        or (
+            probe_installed is not None
+            and (
+                not isinstance(probe_installed, str)
+                or not probe_installed.startswith("/")
+                or not re.fullmatch(r"[0-9a-f]{64}", str(probe_installed_sha256 or ""))
+            )
+        )
+        or (not allow_historical and probe_installed is None)
     ):
         raise ReleaseError("SDL3_mixer probe must pin its source and installed binary")
     probe_path = ROOT / probe_source
@@ -1344,19 +1410,24 @@ def checked_toolchain() -> dict[str, object]:
         seed_source = ROOT / str(deterministic_seed["source_path"])
         if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
             raise ReleaseError("TiMidity deterministic seed source does not match its pinned SHA-256")
+    if allow_historical:
+        # Historical review trees were already validated by their own pinned
+        # Dockerfile contract. Reconstruct their canonical source manifest with
+        # the version-1 tool shape, without applying today's stronger image pins.
+        return value
     dockerfile = (ROOT / "tools" / "audio" / "Dockerfile").read_text(encoding="utf-8")
     required_literals = [
         str(build_image["image"]),
         str(value["apt_snapshot"]),
         str(debian_source["url"]), str(debian_source["sha256"]), str(bank["upstream_archive_sha256"]),
         *(str(contract[field]) for contract in license_texts.values() if str(contract["installed_path"]).startswith("/opt/") for field in ("source_url", "sha256")),
-        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "wildmidi", "openmpt123", "opusenc"}),
+        *(str(contract["package"]).split("=", 1)[1] for name, contract in tools.items() if name in {"ffmpeg", "timidity", "wildmidi", "openmpt123", "opusenc"}),
         *(
             str(contract[field]) for name, contract in tools.items()
             if name != "sdl3_mixer_probe" and isinstance(contract, dict) and isinstance(contract.get("source_path"), str)
             for field in ("source_path", "source_sha256", "installed_path", "installed_sha256")
         ),
-        probe_installed, str(probe_installed_sha256),
+        *([str(probe_installed), str(probe_installed_sha256)] if probe_installed is not None else []),
         *(
             [str(deterministic_seed["installed_path"]), str(deterministic_seed["installed_sha256"])]
             if isinstance(deterministic_seed, dict) else []
@@ -2091,13 +2162,93 @@ def _playtest_files(root: Path) -> set[str]:
     return files
 
 
+def _open_regular_beneath(root_descriptor: int, relative: str) -> int:
+    """Open a regular file beneath a retained root without following symlinks."""
+    parts = PurePosixPath(relative).parts
+    if not parts or PurePosixPath(relative).is_absolute() or ".." in parts:
+        raise ReleaseError(f"unsafe playtest-tree path: {relative}")
+    directory = os.dup(root_descriptor)
+    try:
+        for part in parts[:-1]:
+            child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+            os.close(directory)
+            directory = child
+        descriptor = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory)
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            os.close(descriptor)
+            raise ReleaseError(f"playtest tree contains a non-regular entry: {relative}")
+        return descriptor
+    except OSError as exc:
+        raise ReleaseError(f"playtest tree changed or contains a symlink: {relative}") from exc
+    finally:
+        os.close(directory)
+
+
+@contextlib.contextmanager
+def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
+    """Copy a tree from retained no-follow fds and reject concurrent replacement."""
+    try:
+        root_descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    except OSError as exc:
+        raise ReleaseError(f"playtest tree is not a safe directory: {root}") from exc
+    descriptors: dict[str, tuple[int, os.stat_result]] = {}
+    try:
+        files = _playtest_files(root)
+        with tempfile.TemporaryDirectory(prefix="atrinik-sound-playtest-verify-tree-") as temporary:
+            snapshot = Path(temporary)
+            for relative in sorted(files):
+                descriptor = _open_regular_beneath(root_descriptor, relative)
+                metadata = os.fstat(descriptor)
+                descriptors[relative] = (descriptor, metadata)
+                destination = snapshot / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with os.fdopen(os.dup(descriptor), "rb") as source, destination.open("wb") as output:
+                    shutil.copyfileobj(source, output)
+            yield snapshot
+            if _playtest_files(root) != files:
+                raise ReleaseError("playtest tree changed during verification")
+            for relative, (descriptor, original) in descriptors.items():
+                current_descriptor = _open_regular_beneath(root_descriptor, relative)
+                try:
+                    current = os.fstat(current_descriptor)
+                finally:
+                    os.close(current_descriptor)
+                retained = os.fstat(descriptor)
+                identity = lambda value: (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns)
+                if identity(current) != identity(original) or identity(retained) != identity(original):
+                    raise ReleaseError(f"playtest tree changed during verification: {relative}")
+    finally:
+        for descriptor, _metadata in descriptors.values():
+            os.close(descriptor)
+        os.close(root_descriptor)
+
+
 def verify_playtest_tree(
     root: Path,
     *,
     require_build_path: bool = True,
     reproduce_conversions: bool = True,
+    _trusted_snapshot: bool = False,
 ) -> dict[str, object]:
-    root = checked_playtest_output(root) if require_build_path else root.resolve()
+    if not _trusted_snapshot:
+        if require_build_path:
+            with anchored_playtest_output(root, create_parents=False) as (anchored, _lexical):
+                with stable_playtest_snapshot(anchored) as snapshot:
+                    return verify_playtest_tree(
+                        snapshot,
+                        require_build_path=False,
+                        reproduce_conversions=reproduce_conversions,
+                        _trusted_snapshot=True,
+                    )
+        with stable_playtest_snapshot(root) as snapshot:
+            return verify_playtest_tree(
+                snapshot,
+                require_build_path=False,
+                reproduce_conversions=reproduce_conversions,
+                _trusted_snapshot=True,
+            )
+    root = root.resolve()
     if root.is_symlink() or not root.is_dir():
         raise ReleaseError(f"playtest tree is not a regular directory: {root}")
     source_commit, source_tree = clean_source_coordinates()
@@ -2227,20 +2378,19 @@ def verify_playtest_tree(
     return manifest_value
 
 
-def build_playtest_tree(output_directory: Path) -> Path:
-    output_directory = checked_playtest_output(output_directory)
-    output_directory.parent.mkdir(parents=True, exist_ok=True)
-    if output_directory.parent.is_symlink():
-        raise ReleaseError("playtest output parent must not be a symlink")
+def _build_playtest_tree_anchored(output_directory: Path) -> None:
     with playtest_output_lock(output_directory):
         source_commit, source_tree = clean_source_coordinates()
         source_manifest = checked_manifest()
         blockers = validate_manifest(source_manifest, verify_tracked=True)
         toolchain = checked_toolchain()
         versions = verify_toolchain(toolchain)
+        source_manifest_sha256 = sha256(SOURCE_MANIFEST)
+        toolchain_sha256 = sha256(TOOLCHAIN)
+        schema_sha256 = sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json")
         if output_directory.exists():
-            verify_playtest_tree(output_directory)
-            return output_directory
+            verify_playtest_tree(output_directory, require_build_path=False)
+            return
         assets = source_manifest["assets"]
         assert isinstance(assets, list)
         with tempfile.TemporaryDirectory(prefix=f".{output_directory.name}.staging-", dir=output_directory.parent) as temporary:
@@ -2297,9 +2447,9 @@ def build_playtest_tree(output_directory: Path) -> Path:
                 "publishable": False,
                 "source_commit": source_commit,
                 "source_tree": source_tree,
-                "source_manifest_sha256": sha256(SOURCE_MANIFEST),
-                "toolchain_sha256": sha256(TOOLCHAIN),
-                "schema_sha256": sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json"),
+                "source_manifest_sha256": source_manifest_sha256,
+                "toolchain_sha256": toolchain_sha256,
+                "schema_sha256": schema_sha256,
                 "tool_versions": versions,
                 "marker_sha256": hashlib.sha256(marker_payload).hexdigest(),
                 "blocker_report_sha256": hashlib.sha256(blockers_payload).hexdigest(),
@@ -2312,13 +2462,36 @@ def build_playtest_tree(output_directory: Path) -> Path:
             }
             validate_playtest_manifest(playtest_manifest)
             (staging / PLAYTEST_MANIFEST_NAME).write_bytes(canonical_json(playtest_manifest))
-            verify_playtest_tree(staging, require_build_path=False, reproduce_conversions=False)
+            verify_playtest_tree(
+                staging,
+                require_build_path=False,
+                reproduce_conversions=True,
+                _trusted_snapshot=True,
+            )
             if clean_source_coordinates() != (source_commit, source_tree):
                 raise ReleaseError("sound checkout changed while building the playtest tree")
+            if (
+                sha256(SOURCE_MANIFEST) != source_manifest_sha256
+                or sha256(TOOLCHAIN) != toolchain_sha256
+                or sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json") != schema_sha256
+                or canonical_json(checked_toolchain()) != canonical_json(toolchain)
+                or verify_toolchain(toolchain) != versions
+            ):
+                raise ReleaseError("playtest generation inputs changed while building")
             if output_directory.exists():
                 raise ReleaseError(f"playtest output appeared concurrently: {output_directory}")
-            staging.rename(output_directory)
-    return output_directory
+            try:
+                staging.rename(output_directory)
+            except OSError as exc:
+                if exc.errno in {errno.EEXIST, errno.ENOTEMPTY}:
+                    raise ReleaseError(f"playtest output appeared concurrently: {output_directory}") from exc
+                raise
+
+
+def build_playtest_tree(output_directory: Path) -> Path:
+    with anchored_playtest_output(output_directory, create_parents=True) as (anchored, lexical):
+        _build_playtest_tree_anchored(anchored)
+        return lexical
 
 
 def write_checksums(output_directory: Path) -> None:

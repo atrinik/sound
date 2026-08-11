@@ -431,7 +431,7 @@ class SourceManifestTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
         publisher = (ROOT / "tools" / "build-release-assets.sh").read_text(encoding="utf-8")
         self.assertRegex(workflow, r"(?m)^  issues: read$")
-        self.assertEqual(2, workflow.count("fetch-depth: 0"))
+        self.assertEqual(3, workflow.count("fetch-depth: 0"))
         self.assertIn("--env GH_TOKEN", publisher)
         reviews = {"background/example.ogg": {"evidence": {
             "artifact_locator": "evidence/review.json",
@@ -653,6 +653,34 @@ class SourceManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
             sound_release.validate_manifest(drifted, compare_generated=False)
 
+    def test_version_one_schemas_accept_released_and_current_renderer_shapes(self) -> None:
+        for manifest_name, schema_name in (
+            ("audio-toolchain.json", "audio-toolchain-v1.schema.json"),
+            ("source-assets.json", "source-assets-v1.schema.json"),
+        ):
+            released = json.loads(subprocess.run(
+                ["git", "-C", str(ROOT), "show", f"acb29ba:manifests/{manifest_name}"],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout)
+            sound_release.validate_schema_instance(released, sound_release.checked_schema(schema_name))
+        sound_release.validate_schema_instance(
+            sound_release.checked_toolchain(),
+            sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+        )
+        sound_release.validate_schema_instance(
+            self.manifest,
+            sound_release.checked_schema("source-assets-v1.schema.json"),
+        )
+
+    def test_released_review_source_tree_remains_reconstructable(self) -> None:
+        snapshot, git_backed = sound_release.review_snapshot_manifest({
+            "source_tree": "bdd4d06a4a1b705f07e3bd086c4af018d7e35d1d",
+        })
+        self.assertTrue(git_backed)
+        self.assertEqual(339, snapshot["audio_source_count"])
+
     def test_current_source_asset_is_runtime_schema_compatible(self) -> None:
         toolchain = sound_release.checked_toolchain()
         logical_path = "background/crystal_falls.ogg"
@@ -724,6 +752,13 @@ class SourceManifestTests(unittest.TestCase):
             "assets": [asset],
         }
         sound_release.validate_runtime_manifest(runtime_manifest)
+        legacy_runtime = copy.deepcopy(runtime_manifest)
+        legacy_runtime["tool_versions"]["timidity"] = legacy_runtime["tool_versions"].pop("wildmidi")
+        legacy_runtime["assets"][0]["render"]["renderer"] = "timidity"
+        sound_release.validate_schema_instance(
+            legacy_runtime,
+            sound_release.checked_schema("runtime-manifest-v1.schema.json"),
+        )
 
     def test_playtest_manifest_maps_the_complete_current_corpus(self) -> None:
         assets = []
@@ -1323,6 +1358,42 @@ class PlaytestTreeTests(unittest.TestCase):
         with mock.patch.object(sound_release, "run", return_value=completed):
             with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
                 sound_release.clean_source_coordinates()
+
+    def test_output_ancestor_swap_stays_anchored_and_is_rejected(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-anchor-", dir=build_root) as temporary, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-outside-") as outside_temporary:
+            container = Path(temporary)
+            parent = container / "parent"
+            moved = container / "retained-parent"
+            parent.mkdir()
+            context = sound_release.anchored_playtest_output(parent / "tree", create_parents=True)
+            anchored, _lexical = context.__enter__()
+            parent.rename(moved)
+            parent.symlink_to(Path(outside_temporary), target_is_directory=True)
+            anchored.mkdir()
+            self.assertTrue((moved / "tree").is_dir())
+            self.assertFalse((Path(outside_temporary) / "tree").exists())
+            with self.assertRaisesRegex(sound_release.ReleaseError, "ancestry changed"):
+                context.__exit__(None, None, None)
+
+    def test_verification_snapshot_rejects_a_payload_symlink_swap(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-snapshot-") as temporary, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-external-") as external_temporary:
+            root = Path(temporary)
+            payload = root / "effects" / "sound.ogg"
+            payload.parent.mkdir()
+            payload.write_bytes(b"payload")
+            external = Path(external_temporary) / "sound.ogg"
+            external.write_bytes(b"payload")
+            context = sound_release.stable_playtest_snapshot(root)
+            snapshot = context.__enter__()
+            self.assertEqual(b"payload", (snapshot / "effects" / "sound.ogg").read_bytes())
+            payload.unlink()
+            payload.symlink_to(external)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "symlink|changed"):
+                context.__exit__(None, None, None)
 
     def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
         asset = next(
