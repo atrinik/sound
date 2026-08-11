@@ -8,6 +8,7 @@ import contextlib
 import ctypes
 import dataclasses
 import errno
+import fcntl
 import filecmp
 import gzip
 import hashlib
@@ -92,6 +93,16 @@ class SourceMetadata:
     duration_seconds: float
     sample_rate: int | None
     channels: int | None
+
+
+@dataclasses.dataclass(frozen=True)
+class PlaytestSnapshotGuard:
+    path: Path
+    mutation_descriptor: int
+    root_watch_descriptor: int
+
+    def reject_mutations(self) -> None:
+        reject_playtest_mutations(self.mutation_descriptor)
 
 
 def sha256(path: Path) -> str:
@@ -2149,23 +2160,28 @@ def convert_playtest_asset(
 def playtest_output_lock(output: Path) -> Iterator[None]:
     lock = output.parent / f".{output.name}.build.lock"
     try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
-    except FileExistsError as exc:
-        raise ReleaseError(f"playtest output has an active or stale build lock: {lock}") from exc
-    owned = os.fstat(descriptor)
+        descriptor = os.open(lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    except OSError as exc:
+        raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}") from exc
     try:
+        metadata = os.fstat(descriptor)
+        if (
+            not stat.S_ISREG(metadata.st_mode)
+            or metadata.st_uid != os.geteuid()
+            or metadata.st_nlink != 1
+        ):
+            raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}")
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise ReleaseError(f"playtest output has an active build lock: {lock}") from exc
+        os.fchmod(descriptor, 0o600)
+        os.ftruncate(descriptor, 0)
         os.write(descriptor, b"atrinik-sound-playtest-tree-v1\n")
         os.fsync(descriptor)
         yield
     finally:
         os.close(descriptor)
-        try:
-            current = lock.stat(follow_symlinks=False)
-        except FileNotFoundError:
-            pass
-        else:
-            if (current.st_dev, current.st_ino) == (owned.st_dev, owned.st_ino):
-                lock.unlink()
 
 
 def _playtest_files(root: Path) -> set[str]:
@@ -2205,7 +2221,7 @@ def _open_regular_beneath(root_descriptor: int, relative: str) -> int:
         os.close(directory)
 
 
-def start_playtest_mutation_watch(root: Path) -> int:
+def start_playtest_mutation_watch(root: Path) -> tuple[int, int]:
     """Watch every existing tree entry for writes or namespace mutations."""
     library = ctypes.CDLL(None, use_errno=True)
     try:
@@ -2240,14 +2256,18 @@ def start_playtest_mutation_watch(root: Path) -> int:
         os.close(descriptor)
         raise ReleaseError(f"cannot anchor playtest mutation monitoring: {root}") from exc
     try:
-        def watch(path: str, label: str) -> None:
-            if add_watch(descriptor, os.fsencode(path), mutation_mask) < 0:
+        def watch(path: str, label: str) -> int:
+            watch_descriptor = add_watch(descriptor, os.fsencode(path), mutation_mask)
+            if watch_descriptor < 0:
                 error = ctypes.get_errno()
                 raise ReleaseError(
                     f"cannot monitor playtest tree entry {label}: {os.strerror(error)}"
                 )
-        def watch_tree(directory_descriptor: int, label: PurePosixPath) -> None:
-            watch(f"/proc/self/fd/{directory_descriptor}/.", label.as_posix())
+            return watch_descriptor
+        def watch_tree(directory_descriptor: int, label: PurePosixPath) -> int:
+            directory_watch = watch(
+                f"/proc/self/fd/{directory_descriptor}/.", label.as_posix(),
+            )
             try:
                 entries = list(os.scandir(directory_descriptor))
             except OSError as exc:
@@ -2274,10 +2294,11 @@ def start_playtest_mutation_watch(root: Path) -> int:
                         f"/proc/self/fd/{directory_descriptor}/{entry.name}",
                         child_label.as_posix(),
                     )
+            return directory_watch
 
-        watch_tree(root_directory, PurePosixPath("."))
+        root_watch_descriptor = watch_tree(root_directory, PurePosixPath("."))
         reject_playtest_mutations(descriptor)
-        return descriptor
+        return descriptor, root_watch_descriptor
     except Exception:
         os.close(descriptor)
         raise
@@ -2285,18 +2306,33 @@ def start_playtest_mutation_watch(root: Path) -> int:
         os.close(root_directory)
 
 
-def reject_playtest_mutations(descriptor: int) -> None:
+def reject_playtest_mutations(
+    descriptor: int, *, allowed_root_move_watch: int | None = None,
+) -> None:
     """Drain the inotify queue at the verification linearization point."""
     try:
         events = os.read(descriptor, 1024 * 1024)
     except BlockingIOError:
         return
-    if events:
+    offset = 0
+    while offset < len(events):
+        watch_descriptor, mask, _cookie, name_length = struct.unpack_from(
+            "iIII", events, offset,
+        )
+        offset += 16 + name_length
+        if (
+            allowed_root_move_watch is not None
+            and watch_descriptor == allowed_root_move_watch
+            and mask == 0x00000800  # IN_MOVE_SELF from the intentional install
+        ):
+            continue
         raise ReleaseError("playtest tree changed during verification")
 
 
 @contextlib.contextmanager
-def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
+def stable_playtest_snapshot(
+    root: Path, *, root_location: list[Path] | None = None,
+) -> Iterator[PlaytestSnapshotGuard]:
     """Copy a tree from retained no-follow fds and reject concurrent replacement."""
     try:
         root_descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
@@ -2304,7 +2340,7 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
         raise ReleaseError(f"playtest tree is not a safe directory: {root}") from exc
     original_root = os.fstat(root_descriptor)
     try:
-        mutation_descriptor = start_playtest_mutation_watch(root)
+        mutation_descriptor, root_watch_descriptor = start_playtest_mutation_watch(root)
     except Exception:
         os.close(root_descriptor)
         raise
@@ -2321,9 +2357,12 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                 with os.fdopen(os.dup(descriptor), "rb") as source, destination.open("wb") as output:
                     shutil.copyfileobj(source, output)
                 descriptors[relative] = (descriptor, metadata, sha256(destination))
-            yield snapshot
+            yield PlaytestSnapshotGuard(
+                snapshot, mutation_descriptor, root_watch_descriptor,
+            )
+            current_root_path = root if root_location is None else root_location[0]
             try:
-                current_files = _playtest_files(root)
+                current_files = _playtest_files(current_root_path)
             except OSError as exc:
                 raise ReleaseError("playtest tree changed during verification") from exc
             if current_files != files:
@@ -2344,7 +2383,7 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                 if retained_sha256 != expected_sha256:
                     raise ReleaseError(f"playtest tree changed during verification: {relative}")
             try:
-                current_root = os.stat(root, follow_symlinks=False)
+                current_root = os.stat(current_root_path, follow_symlinks=False)
             except OSError as exc:
                 raise ReleaseError("playtest tree root changed during verification") from exc
             if (
@@ -2353,7 +2392,12 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                 != (original_root.st_dev, original_root.st_ino)
             ):
                 raise ReleaseError("playtest tree root changed during verification")
-            reject_playtest_mutations(mutation_descriptor)
+            reject_playtest_mutations(
+                mutation_descriptor,
+                allowed_root_move_watch=(
+                    root_watch_descriptor if current_root_path != root else None
+                ),
+            )
     finally:
         for descriptor, _metadata, _digest in descriptors.values():
             os.close(descriptor)
@@ -2373,14 +2417,14 @@ def verify_playtest_tree(
             with anchored_playtest_output(root, create_parents=False) as (anchored, _lexical):
                 with stable_playtest_snapshot(anchored) as snapshot:
                     return verify_playtest_tree(
-                        snapshot,
+                        snapshot.path,
                         require_build_path=False,
                         reproduce_conversions=reproduce_conversions,
                         _trusted_snapshot=True,
                     )
         with stable_playtest_snapshot(root) as snapshot:
             return verify_playtest_tree(
-                snapshot,
+                snapshot.path,
                 require_build_path=False,
                 reproduce_conversions=reproduce_conversions,
                 _trusted_snapshot=True,
@@ -2624,24 +2668,31 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
             }
             validate_playtest_manifest(playtest_manifest)
             (staging / PLAYTEST_MANIFEST_NAME).write_bytes(canonical_json(playtest_manifest))
-            verify_playtest_tree(
-                staging,
-                require_build_path=False,
-                reproduce_conversions=True,
-            )
-            if clean_source_coordinates() != (source_commit, source_tree):
-                raise ReleaseError("sound checkout changed while building the playtest tree")
-            if (
-                sha256(SOURCE_MANIFEST) != source_manifest_sha256
-                or sha256(TOOLCHAIN) != toolchain_sha256
-                or sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json") != schema_sha256
-                or canonical_json(checked_toolchain()) != canonical_json(toolchain)
-                or verify_toolchain(toolchain) != versions
-            ):
-                raise ReleaseError("playtest generation inputs changed while building")
-            if output_directory.exists():
-                raise ReleaseError(f"playtest output appeared concurrently: {output_directory}")
-            install_directory_noreplace(staging, output_directory)
+            root_location = [staging]
+            with stable_playtest_snapshot(
+                staging, root_location=root_location,
+            ) as verified:
+                verify_playtest_tree(
+                    verified.path,
+                    require_build_path=False,
+                    reproduce_conversions=True,
+                    _trusted_snapshot=True,
+                )
+                if clean_source_coordinates() != (source_commit, source_tree):
+                    raise ReleaseError("sound checkout changed while building the playtest tree")
+                if (
+                    sha256(SOURCE_MANIFEST) != source_manifest_sha256
+                    or sha256(TOOLCHAIN) != toolchain_sha256
+                    or sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json") != schema_sha256
+                    or canonical_json(checked_toolchain()) != canonical_json(toolchain)
+                    or verify_toolchain(toolchain) != versions
+                ):
+                    raise ReleaseError("playtest generation inputs changed while building")
+                verified.reject_mutations()
+                if output_directory.exists():
+                    raise ReleaseError(f"playtest output appeared concurrently: {output_directory}")
+                install_directory_noreplace(staging, output_directory)
+                root_location[0] = output_directory
 
 
 def build_playtest_tree(output_directory: Path) -> Path:

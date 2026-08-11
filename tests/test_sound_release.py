@@ -1409,7 +1409,7 @@ class PlaytestTreeTests(unittest.TestCase):
             external = Path(external_temporary) / "sound.ogg"
             external.write_bytes(b"payload")
             context = sound_release.stable_playtest_snapshot(root)
-            snapshot = context.__enter__()
+            snapshot = context.__enter__().path
             self.assertEqual(b"payload", (snapshot / "effects" / "sound.ogg").read_bytes())
             payload.unlink()
             payload.symlink_to(external)
@@ -1424,7 +1424,7 @@ class PlaytestTreeTests(unittest.TestCase):
             root.mkdir()
             (root / "payload").write_bytes(b"verified")
             context = sound_release.stable_playtest_snapshot(root)
-            snapshot = context.__enter__()
+            snapshot = context.__enter__().path
             self.assertEqual(b"verified", (snapshot / "payload").read_bytes())
             root.rename(moved)
             root.mkdir()
@@ -1557,6 +1557,19 @@ class PlaytestTreeTests(unittest.TestCase):
                 sound_release.install_directory_noreplace(staging, destination)
             self.assertTrue(destination.is_symlink())
 
+    def test_build_lock_rejects_contention_and_recovers_after_abandonment(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-lock-") as temporary:
+            parent = Path(temporary)
+            output = parent / "tree"
+            lock = parent / ".tree.build.lock"
+            lock.write_text("abandoned\n", encoding="utf-8")
+            with sound_release.playtest_output_lock(output):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "active build lock"):
+                    with sound_release.playtest_output_lock(output):
+                        self.fail("contended lock unexpectedly acquired")
+            with sound_release.playtest_output_lock(output):
+                self.assertTrue(lock.is_file())
+
     def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
         asset = next(
             item for item in self.source_manifest["assets"]
@@ -1631,6 +1644,27 @@ class PlaytestTreeTests(unittest.TestCase):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
                     sound_release.build_playtest_tree(collided)
             self.assertTrue(collided.is_dir())
+
+            mutated = parent / "mutated-after-verification"
+            calls = 0
+
+            def mutate_verified_staging() -> tuple[str, str]:
+                nonlocal calls
+                calls += 1
+                if calls == 3:
+                    staging = next(
+                        candidate for candidate in parent.iterdir()
+                        if candidate.name.startswith(".mutated-after-verification.staging-")
+                    )
+                    (staging / sound_release.PLAYTEST_MARKER_NAME).write_text(
+                        "{}\n", encoding="utf-8",
+                    )
+                return "b" * 40, "c" * 40
+
+            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=mutate_verified_staging), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
+                    sound_release.build_playtest_tree(mutated)
+            self.assertFalse(mutated.exists())
 
     def test_verifier_rejects_control_payload_and_closure_tampering(self) -> None:
         build_root = ROOT / "build"
