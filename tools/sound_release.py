@@ -1746,7 +1746,10 @@ def verify_toolchain(
     toolchain: dict[str, object], *, strict_playtest: bool = False,
 ) -> dict[str, str]:
     if strict_playtest:
-        for name in ("ATRINIK_INSTRUMENT_CONFIG", "LD_LIBRARY_PATH", "LD_PRELOAD"):
+        for name in (
+            "ATRINIK_INSTRUMENT_CONFIG", "DPKG_ADMINDIR", "DPKG_ROOT",
+            "LD_LIBRARY_PATH", "LD_PRELOAD",
+        ):
             if os.environ.get(name):
                 raise ReleaseError(f"pinned toolchain rejects environment override: {name}")
     versions: dict[str, str] = {}

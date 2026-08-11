@@ -919,7 +919,23 @@ class SourceManifestTests(unittest.TestCase):
         for contract in toolchain["tools"].values():
             self.assertRegex(contract["installed_path"], r"^/")
             self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
-        self.assertEqual("/bin/sh", toolchain["tools"]["opusinfo"]["version_command"][0])
+        opusinfo_command = toolchain["tools"]["opusinfo"]["version_command"]
+        self.assertEqual("/bin/sh", opusinfo_command[0])
+        self.assertIn("/usr/bin/dpkg-query", opusinfo_command[2])
+        with tempfile.TemporaryDirectory(prefix="test-playtest-nested-path-") as temporary:
+            shadow = Path(temporary) / "dpkg-query"
+            marker = Path(temporary) / "invoked"
+            shadow.write_text(
+                '#!/bin/sh\nprintf invoked > "$SHADOW_MARKER"\n',
+                encoding="utf-8",
+            )
+            shadow.chmod(0o755)
+            probe = list(opusinfo_command)
+            probe[2] = probe[2].replace("test -x /usr/bin/opusinfo && ", "")
+            environment = dict(os.environ)
+            environment.update({"PATH": temporary, "SHADOW_MARKER": str(marker)})
+            subprocess.run(probe, env=environment, check=False, capture_output=True)
+            self.assertFalse(marker.exists())
 
     def test_toolchain_rejects_path_shadowing(self) -> None:
         toolchain = sound_release.checked_playtest_toolchain()
@@ -928,6 +944,9 @@ class SourceManifestTests(unittest.TestCase):
                 sound_release.verify_toolchain(toolchain, strict_playtest=True)
         with mock.patch.dict(sound_release.os.environ, {"LD_PRELOAD": "/tmp/shadow.so"}):
             with self.assertRaisesRegex(sound_release.ReleaseError, "LD_PRELOAD"):
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
+        with mock.patch.dict(sound_release.os.environ, {"DPKG_ADMINDIR": "/tmp/shadow-dpkg"}):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "DPKG_ADMINDIR"):
                 sound_release.verify_toolchain(toolchain, strict_playtest=True)
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
