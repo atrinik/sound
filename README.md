@@ -50,3 +50,30 @@ coordinates:
 
 See [the runtime release contract](docs/runtime-release.md) for build,
 determinism, quality, validation, and consumer details.
+
+## Local Classic playtest tree
+
+Source-building Classic playtesters can opt into a complete, local-only tree
+without weakening the released-runtime gates:
+
+```sh
+python3 tools/sound_release.py build-playtest-tree build/classic-playtest
+python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
+```
+
+The command requires a clean Git checkout and the separate pinned playtest
+audio toolchain; released-runtime inputs remain unchanged. It
+copies all 189 Vorbis inputs byte-for-byte, deterministically renders the 150
+FLAC/MIDI inputs to Opus, and stages every payload at its existing legacy
+logical path. The canonical manifest records the source and actual payload
+codecs, so content-based SDL3_mixer decoding is required where a legacy
+extension names the authored format.
+
+The resulting directory remains below ignored `build/` state. Its marker and
+manifest declare `playtest_only: true` and `publishable: false`; it is not an
+archive, release input, cache, package, container layer, or provenance or
+listening approval. An existing verified tree is reused, while an invalid,
+stale, dirty, or concurrently changing input fails without replacing it.
+
+`tools/audio/playtest.Dockerfile` builds the required local environment without
+changing the released-runtime `tools/audio/Dockerfile` contract.
