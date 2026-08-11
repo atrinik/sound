@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import copy
+import fcntl
 import importlib.util
 import io
 import json
@@ -212,6 +213,76 @@ class SourceManifestTests(unittest.TestCase):
         self.assertNotIn("background/fuego.ogg", self.assets)
         self.assertNotIn("background/toroia.s3m", self.assets)
         self.assertFalse((ROOT / "background" / "durations").exists())
+
+    def test_midi_duration_uses_rendered_pcm_eof(self) -> None:
+        midi = {
+            "logical_path": "background/example.mid",
+            "render": {"renderer": "wildmidi"},
+            "source": {"duration_seconds": 114.6},
+        }
+        sound_release.validate_conversion_durations(midi, 97.04, 97.04, 2.5)
+        tracker = copy.deepcopy(midi)
+        tracker["logical_path"] = "background/example.mod"
+        tracker["render"]["renderer"] = "openmpt123"
+        with self.assertRaisesRegex(sound_release.ReleaseError, "duration outside"):
+            sound_release.validate_conversion_durations(tracker, 97.04, 97.04, 2.5)
+        with self.assertRaisesRegex(sound_release.ReleaseError, "truncated or extended tail"):
+            sound_release.validate_conversion_durations(midi, 97.2, 97.04, 2.5)
+
+    def test_midi_recipe_uses_pinned_wildmidi(self) -> None:
+        runtime_midi = [
+            asset for asset in self.assets.values()
+            if asset["render"]["renderer"] == "timidity"
+        ]
+        self.assertEqual(122, len(runtime_midi))
+        playtest = sound_release.playtest_assets(
+            self.manifest, sound_release.checked_playtest_toolchain(),
+        )
+        midi_assets = [
+            asset for asset in playtest
+            if asset["render"]["renderer"] == "wildmidi"
+        ]
+        self.assertEqual(122, len(midi_assets))
+        for asset in midi_assets:
+            recipe = asset["render"]["recipe"]
+            self.assertEqual("wildmidi", recipe[0])
+            self.assertIn("{instrument_config}", recipe)
+            self.assertIn("48000", recipe)
+
+    def test_renderer_command_paths_are_stable_and_relative(self) -> None:
+        asset = next(
+            item for item in sound_release.playtest_assets(
+                self.manifest, sound_release.checked_playtest_toolchain(),
+            )
+            if item["logical_path"] == "background/burnt_forest.mid"
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "source" / "background" / "burnt_forest.mid"
+            source.parent.mkdir(parents=True)
+            source.write_bytes(b"fixture")
+            config = root / "instrument.cfg"
+            config.write_text("fixture\n", encoding="utf-8")
+            toolchain = {
+                "instrument_bank": {"installed_config": str(config)},
+                "tools": {"wildmidi": {"installed_path": "/usr/local/bin/atrinik-wildmidi-render"}},
+            }
+            with mock.patch.object(sound_release, "run") as run:
+                sound_release.render_source(
+                    asset,
+                    root / "rendered.wav",
+                    toolchain,
+                    source_root=root / "source",
+                    command_root=root,
+                )
+            self.assertEqual(1, run.call_count)
+            command = run.call_args.args[0]
+            self.assertEqual("/usr/local/bin/atrinik-wildmidi-render", command[0])
+            self.assertIn("source/background/burnt_forest.mid", command)
+            self.assertIn("rendered.wav", command)
+            self.assertNotIn(str(source), command)
+            self.assertNotIn(str(root / "rendered.wav"), command)
+            self.assertEqual(root, run.call_args.kwargs["cwd"])
 
     def test_license_findings_fail_closed(self) -> None:
         replaced = self.assets["background/aa_arofl.xm"]
@@ -470,7 +541,15 @@ class SourceManifestTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
         publisher = (ROOT / "tools" / "build-release-assets.sh").read_text(encoding="utf-8")
         self.assertRegex(workflow, r"(?m)^  issues: read$")
-        self.assertEqual(2, workflow.count("fetch-depth: 0"))
+        self.assertEqual(3, workflow.count("fetch-depth: 0"))
+        asset_job, runtime_job, playtest_job = (
+            workflow.split("\n  runtime-fixtures:\n", 1)[0],
+            workflow.split("\n  runtime-fixtures:\n", 1)[1].split("\n  playtest-tree:\n", 1)[0],
+            workflow.split("\n  playtest-tree:\n", 1)[1],
+        )
+        self.assertIn("--file tools/audio/Dockerfile", asset_job)
+        self.assertIn("--file tools/audio/Dockerfile", runtime_job)
+        self.assertIn("--file tools/audio/playtest.Dockerfile", playtest_job)
         self.assertIn("--env GH_TOKEN", publisher)
         reviews = {"background/example.ogg": {"evidence": {
             "artifact_locator": "evidence/review.json",
@@ -680,7 +759,9 @@ class SourceManifestTests(unittest.TestCase):
     def test_project_schemas_are_versioned_and_unknown_fields_fail(self) -> None:
         for name in (
             "source-assets-v1.schema.json", "runtime-manifest-v1.schema.json",
-            "audio-toolchain-v1.schema.json", "fixture-plan-v1.schema.json",
+            "playtest-manifest-v1.schema.json",
+            "audio-toolchain-v1.schema.json", "playtest-audio-toolchain-v1.schema.json",
+            "fixture-plan-v1.schema.json",
             "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json",
             "critical-listening-review-v1.schema.json", "license-reviews-v1.schema.json",
             "license-reviews-v2.schema.json",
@@ -695,6 +776,82 @@ class SourceManifestTests(unittest.TestCase):
         drifted["unexpected"] = True
         with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
             sound_release.validate_manifest(drifted, compare_generated=False)
+
+    def test_runtime_and_playtest_toolchain_schemas_are_isolated(self) -> None:
+        for relative in (
+            "manifests/audio-toolchain.json",
+            "manifests/license-reviews.json",
+            "manifests/source-assets.json",
+            "manifests/source-replacements.json",
+            "manifests/tracker-durations.json",
+            "schemas/audio-toolchain-v1.schema.json",
+            "schemas/critical-listening-review-v1.schema.json",
+            "schemas/runtime-manifest-v1.schema.json",
+            "schemas/source-assets-v1.schema.json",
+            "schemas/source-replacements-v1.schema.json",
+            "schemas/vorbis-quality-reviews-v2.schema.json",
+            "tools/audio/Dockerfile",
+        ):
+            released = subprocess.run(
+                ["git", "-C", str(ROOT), "show", f"50ec0c0:{relative}"],
+                check=True,
+                capture_output=True,
+            ).stdout
+            self.assertEqual(released, (ROOT / relative).read_bytes(), relative)
+        for manifest_name, schema_name in (
+            ("audio-toolchain.json", "audio-toolchain-v1.schema.json"),
+            ("source-assets.json", "source-assets-v1.schema.json"),
+        ):
+            released = json.loads(subprocess.run(
+                ["git", "-C", str(ROOT), "show", f"50ec0c0:manifests/{manifest_name}"],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout)
+            sound_release.validate_schema_instance(released, sound_release.checked_schema(schema_name))
+        sound_release.validate_schema_instance(
+            sound_release.checked_toolchain(),
+            sound_release.checked_schema("audio-toolchain-v1.schema.json"),
+        )
+        sound_release.validate_schema_instance(
+            self.manifest,
+            sound_release.checked_schema("source-assets-v1.schema.json"),
+        )
+        playtest_toolchain = sound_release.checked_playtest_toolchain()
+        sound_release.validate_schema_instance(
+            playtest_toolchain,
+            sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
+        )
+        invalid_toolchain = copy.deepcopy(playtest_toolchain)
+        invalid_toolchain["tools"]["wildmidi"]["unexpected"] = True
+        with self.assertRaisesRegex(sound_release.ReleaseError, "unknown schema field"):
+            sound_release.validate_schema_instance(
+                invalid_toolchain,
+                sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
+            )
+        for missing, present in (("source_sha256", "source_path"), ("source_path", "source_sha256")):
+            incomplete_source = copy.deepcopy(playtest_toolchain)
+            del incomplete_source["tools"]["wildmidi"][missing]
+            self.assertIn(present, incomplete_source["tools"]["wildmidi"])
+            with self.assertRaisesRegex(sound_release.ReleaseError, "dependent field"):
+                sound_release.validate_schema_instance(
+                    incomplete_source,
+                    sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
+                )
+        incomplete_probe = copy.deepcopy(playtest_toolchain)
+        del incomplete_probe["tools"]["sdl3_mixer_probe"]["installed_sha256"]
+        with self.assertRaisesRegex(sound_release.ReleaseError, "dependent field"):
+            sound_release.validate_schema_instance(
+                incomplete_probe,
+                sound_release.checked_schema("playtest-audio-toolchain-v1.schema.json"),
+            )
+
+    def test_released_review_source_tree_remains_reconstructable(self) -> None:
+        snapshot, git_backed = sound_release.review_snapshot_manifest({
+            "source_tree": "bdd4d06a4a1b705f07e3bd086c4af018d7e35d1d",
+        })
+        self.assertTrue(git_backed)
+        self.assertEqual(339, snapshot["audio_source_count"])
 
     def test_current_source_asset_is_runtime_schema_compatible(self) -> None:
         toolchain = sound_release.checked_toolchain()
@@ -767,6 +924,96 @@ class SourceManifestTests(unittest.TestCase):
             "assets": [asset],
         }
         sound_release.validate_runtime_manifest(runtime_manifest)
+        self.assertEqual(
+            122,
+            sum(
+                item["render"]["renderer"] == "timidity"
+                for item in self.manifest["assets"]
+            ),
+        )
+
+    def test_playtest_manifest_maps_the_complete_current_corpus(self) -> None:
+        assets = []
+        for source_asset in self.manifest["assets"]:
+            source = source_asset["source"]
+            copied = source["codec"] == "vorbis"
+            assets.append({
+                "logical_path": source_asset["logical_path"],
+                "source_path": source_asset["source_path"],
+                "mapping": "copy" if copied else "render-opus",
+                "source": {
+                    "sha256": source["sha256"],
+                    "codec": source["codec"],
+                    "container": source["container"],
+                },
+                "output": {
+                    "sha256": source["sha256"] if copied else "a" * 64,
+                    "size_bytes": 1,
+                    "codec": "vorbis" if copied else "opus",
+                    "container": "ogg",
+                    "sample_rate": source["sample_rate"] or 48000,
+                    "channels": source["channels"] or source_asset["render"]["channels"],
+                    "duration_seconds": source["duration_seconds"],
+                },
+            })
+        manifest = {
+            "$schema": "schemas/playtest-manifest-v1.schema.json",
+            "schema_version": 1,
+            "playtest_only": True,
+            "publishable": False,
+            "source_commit": "b" * 40,
+            "source_tree": "c" * 40,
+            "source_manifest_sha256": "d" * 64,
+            "toolchain_sha256": "e" * 64,
+            "schema_sha256": "3" * 64,
+            "tool_versions": {
+                name: "test" for name in
+                ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            },
+            "marker_sha256": "f" * 64,
+            "blocker_report_sha256": "1" * 64,
+            "blocker_count": 465,
+            "logical_path_count": len(assets),
+            "copied_vorbis_count": sum(asset["mapping"] == "copy" for asset in assets),
+            "converted_opus_count": sum(asset["mapping"] == "render-opus" for asset in assets),
+            "output_tree_sha256": "2" * 64,
+            "assets": assets,
+        }
+        sound_release.validate_playtest_manifest(manifest)
+        self.assertEqual((339, 189, 150), (
+            manifest["logical_path_count"], manifest["copied_vorbis_count"],
+            manifest["converted_opus_count"],
+        ))
+        by_path = {asset["logical_path"]: asset for asset in assets}
+        self.assertEqual(("midi", "opus", "render-opus"), (
+            by_path["background/fireside.mid"]["source"]["codec"],
+            by_path["background/fireside.mid"]["output"]["codec"],
+            by_path["background/fireside.mid"]["mapping"],
+        ))
+        self.assertEqual("copy", by_path["background/intro.ogg"]["mapping"])
+        self.assertEqual(
+            (
+                "background/replacements/monster-rpg2/beach_atmosphere.flac",
+                "flac", "opus", "render-opus",
+            ),
+            (
+                by_path["background/rain.s3m"]["source_path"],
+                by_path["background/rain.s3m"]["source"]["codec"],
+                by_path["background/rain.s3m"]["output"]["codec"],
+                by_path["background/rain.s3m"]["mapping"],
+            ),
+        )
+        with self.assertRaisesRegex(sound_release.ReleaseError, "runtime manifest"):
+            sound_release.validate_runtime_manifest(manifest)
+        for publisher in ("tools/build-release-assets.sh", "tools/package-release.sh"):
+            self.assertNotIn(
+                "build-playtest-tree",
+                (ROOT / publisher).read_text(encoding="utf-8"),
+            )
+        tampered = copy.deepcopy(manifest)
+        tampered["assets"][0]["output"]["codec"] = "opus"
+        with self.assertRaisesRegex(sound_release.ReleaseError, "codec mapping"):
+            sound_release.validate_playtest_manifest(tampered)
 
     def test_vorbis_midi_and_flac_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
@@ -787,7 +1034,7 @@ class SourceManifestTests(unittest.TestCase):
         self.assertEqual(flac, bounded)
 
     def test_toolchain_is_pinned_and_records_instrument_output_permission(self) -> None:
-        toolchain = sound_release.checked_toolchain()
+        toolchain = sound_release.checked_playtest_toolchain()
         self.assertRegex(toolchain["apt_snapshot"], r"snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z$")
         self.assertRegex(toolchain["build_image"]["image"], r"@sha256:[0-9a-f]{64}$")
         self.assertTrue(toolchain["instrument_bank"]["recording_distribution_permission"])
@@ -798,9 +1045,41 @@ class SourceManifestTests(unittest.TestCase):
         )
         for contract in toolchain["tools"].values():
             self.assertTrue(contract["version_pattern"])
-        for name, contract in toolchain["tools"].items():
-            if name != "sdl3_mixer_probe":
-                self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
+        for contract in toolchain["tools"].values():
+            self.assertRegex(contract["installed_path"], r"^/")
+            self.assertRegex(contract["installed_sha256"], r"^[0-9a-f]{64}$")
+        opusinfo_command = toolchain["tools"]["opusinfo"]["version_command"]
+        self.assertEqual("/bin/sh", opusinfo_command[0])
+        self.assertIn("/usr/bin/dpkg-query", opusinfo_command[2])
+        with tempfile.TemporaryDirectory(prefix="test-playtest-nested-path-") as temporary:
+            shadow = Path(temporary) / "dpkg-query"
+            marker = Path(temporary) / "invoked"
+            shadow.write_text(
+                '#!/bin/sh\nprintf invoked > "$SHADOW_MARKER"\n',
+                encoding="utf-8",
+            )
+            shadow.chmod(0o755)
+            probe = list(opusinfo_command)
+            probe[2] = probe[2].replace("test -x /usr/bin/opusinfo && ", "")
+            environment = dict(os.environ)
+            environment.update({"PATH": temporary, "SHADOW_MARKER": str(marker)})
+            subprocess.run(probe, env=environment, check=False, capture_output=True)
+            self.assertFalse(marker.exists())
+
+    def test_toolchain_rejects_path_shadowing(self) -> None:
+        toolchain = sound_release.checked_playtest_toolchain()
+        with mock.patch.object(sound_release.shutil, "which", return_value="/tmp/shadow/ffmpeg"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "pinned executable"):
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
+        with mock.patch.dict(sound_release.os.environ, {"LD_PRELOAD": "/tmp/shadow.so"}):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "LD_PRELOAD"):
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
+        with mock.patch.dict(sound_release.os.environ, {"LD_AUDIT": "/tmp/shadow-audit.so"}):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "LD_AUDIT"):
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
+        with mock.patch.dict(sound_release.os.environ, {"DPKG_ADMINDIR": "/tmp/shadow-dpkg"}):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "DPKG_ADMINDIR"):
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -1271,6 +1550,681 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                     sound_release.verify_review_bundle_candidates(
                         root, {logical_path: bundled}, {logical_path: {}},
                     )
+
+
+class PlaytestTreeTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.source_manifest = sound_release.checked_manifest()
+        cls.source_asset = next(
+            asset for asset in cls.source_manifest["assets"]
+            if asset["logical_path"] == "effects/campfire.ogg"
+        )
+
+    def test_dirty_playtest_source_is_rejected(self) -> None:
+        completed = lambda output: type("Completed", (), {"stdout": output})()
+        responses = [
+            completed(f"{ROOT}\n"),
+            completed(f"{ROOT / '.git' / 'info' / 'grafts'}\n"),
+            completed(" M effects/campfire.ogg\n"),
+            completed(f"{'b' * 40}\n"),
+            completed(f"{'c' * 40}\n"),
+            completed(" M effects/campfire.ogg\n"),
+            completed(f"{'b' * 40}\n"),
+        ]
+        with mock.patch.object(sound_release, "run", side_effect=responses), \
+                mock.patch.object(sound_release, "ensure_exact_tracked_tree"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
+                sound_release.clean_source_coordinates()
+
+    def test_hidden_tracked_modifications_are_rejected(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-exact-git-") as temporary:
+            root = Path(temporary)
+            tracked = root / "tracked"
+            tracked.write_text("committed\n", encoding="utf-8")
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "add", "tracked"], check=True)
+            subprocess.run(
+                [
+                    "git", "-C", str(root), "-c", "user.name=Test",
+                    "-c", "user.email=test@example.invalid", "commit", "-qm", "base",
+                ],
+                check=True,
+            )
+            for flag in ("--assume-unchanged", "--skip-worktree"):
+                subprocess.run(
+                    ["git", "-C", str(root), "update-index", flag, "tracked"],
+                    check=True,
+                )
+                tracked.write_text(f"hidden by {flag}\n", encoding="utf-8")
+                with mock.patch.object(sound_release, "ROOT", root):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "hidden index flag"):
+                        sound_release.clean_source_coordinates()
+                reset_flag = (
+                    "--no-assume-unchanged"
+                    if flag == "--assume-unchanged" else "--no-skip-worktree"
+                )
+                subprocess.run(
+                    ["git", "-C", str(root), "update-index", reset_flag, "tracked"],
+                    check=True,
+                )
+                tracked.write_text("committed\n", encoding="utf-8")
+
+    def test_source_coordinates_ignore_replace_refs_and_reject_grafts(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-git-objects-") as temporary:
+            root = Path(temporary)
+            tracked = root / "tracked"
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            tracked.write_text("first\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "tracked"], check=True)
+            commit = [
+                "git", "-C", str(root), "-c", "user.name=Test",
+                "-c", "user.email=test@example.invalid", "commit", "-qm",
+            ]
+            subprocess.run([*commit, "first"], check=True)
+            first = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True, capture_output=True, text=True,
+            ).stdout.strip()
+            tracked.write_text("second\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(root), "add", "tracked"], check=True)
+            subprocess.run([*commit, "second"], check=True)
+            second = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", "HEAD"],
+                check=True, capture_output=True, text=True,
+            ).stdout.strip()
+            subprocess.run(["git", "-C", str(root), "replace", second, first], check=True)
+            exact_environment = dict(os.environ)
+            exact_environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+            second_tree = subprocess.run(
+                ["git", "-C", str(root), "rev-parse", f"{second}^{{tree}}"],
+                check=True, capture_output=True, text=True, env=exact_environment,
+            ).stdout.strip()
+            with mock.patch.object(sound_release, "ROOT", root):
+                self.assertEqual((second, second_tree), sound_release.clean_source_coordinates())
+
+                with tempfile.TemporaryDirectory(prefix="test-playtest-false-git-") as false_temporary:
+                    false_root = Path(false_temporary)
+                    false_tracked = false_root / "tracked"
+                    subprocess.run(["git", "init", "-q", str(false_root)], check=True)
+                    false_tracked.write_text("fabricated\n", encoding="utf-8")
+                    subprocess.run(
+                        ["git", "-C", str(false_root), "add", "tracked"], check=True,
+                    )
+                    false_commit = [
+                        "git", "-C", str(false_root), "-c", "user.name=Test",
+                        "-c", "user.email=test@example.invalid", "commit", "-qm",
+                    ]
+                    subprocess.run([*false_commit, "fabricated"], check=True)
+                    overrides = {
+                        "GIT_DIR": str(false_root / ".git"),
+                        "GIT_WORK_TREE": str(false_root),
+                        "GIT_INDEX_FILE": str(false_root / ".git" / "index"),
+                        "GIT_CONFIG_COUNT": "1",
+                        "GIT_CONFIG_KEY_0": "core.worktree",
+                        "GIT_CONFIG_VALUE_0": str(false_root),
+                    }
+                    with mock.patch.dict(os.environ, overrides):
+                        self.assertEqual(
+                            (second, second_tree),
+                            sound_release.clean_source_coordinates(),
+                        )
+
+                with tempfile.TemporaryDirectory(prefix="test-playtest-core-worktree-") as redirected_temporary:
+                    redirected_root = Path(redirected_temporary)
+                    (redirected_root / "tracked").write_text("second\n", encoding="utf-8")
+                    subprocess.run(
+                        [
+                            "git", "-C", str(root), "config", "core.worktree",
+                            str(redirected_root),
+                        ],
+                        check=True,
+                    )
+                    try:
+                        with self.assertRaisesRegex(sound_release.ReleaseError, "worktree root"):
+                            sound_release.clean_source_coordinates()
+                    finally:
+                        subprocess.run(
+                            [
+                                "git", "--git-dir", str(root / ".git"),
+                                "config", "--unset", "core.worktree",
+                            ],
+                            check=True,
+                        )
+
+                fsmonitor = root / ".git" / "malicious-fsmonitor"
+                fsmonitor_marker = root / ".git" / "fsmonitor-executed"
+                fsmonitor.write_text(
+                    "#!/bin/sh\nprintf touched > "
+                    f"'{fsmonitor_marker}'\nprintf '\\0'\n",
+                    encoding="utf-8",
+                )
+                fsmonitor.chmod(0o755)
+                subprocess.run(
+                    ["git", "-C", str(root), "config", "core.fsmonitor", str(fsmonitor)],
+                    check=True,
+                )
+                try:
+                    self.assertEqual(
+                        (second, second_tree), sound_release.clean_source_coordinates()
+                    )
+                    self.assertFalse(fsmonitor_marker.exists())
+                finally:
+                    subprocess.run(
+                        ["git", "-C", str(root), "config", "--unset", "core.fsmonitor"],
+                        check=True,
+                    )
+
+                git_directory = subprocess.run(
+                    ["git", "-C", str(root), "rev-parse", "--git-dir"],
+                    check=True, capture_output=True, text=True,
+                ).stdout.strip()
+                graft_path = root / git_directory / "info" / "grafts"
+                graft_path.parent.mkdir(parents=True, exist_ok=True)
+                graft_path.write_text(f"{second} {first}\n", encoding="ascii")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "grafts"):
+                    sound_release.clean_source_coordinates()
+
+    def test_output_ancestor_swap_stays_anchored_and_is_rejected(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-anchor-", dir=build_root) as temporary, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-outside-") as outside_temporary:
+            container = Path(temporary)
+            parent = container / "parent"
+            moved = container / "retained-parent"
+            parent.mkdir()
+            context = sound_release.anchored_playtest_output(parent / "tree", create_parents=True)
+            anchored, _lexical = context.__enter__()
+            parent.rename(moved)
+            parent.symlink_to(Path(outside_temporary), target_is_directory=True)
+            anchored.mkdir()
+            self.assertTrue((moved / "tree").is_dir())
+            self.assertFalse((Path(outside_temporary) / "tree").exists())
+            with self.assertRaisesRegex(sound_release.ReleaseError, "ancestry changed"):
+                context.__exit__(None, None, None)
+
+    def test_verification_snapshot_rejects_a_payload_symlink_swap(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-snapshot-") as temporary, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-external-") as external_temporary:
+            root = Path(temporary)
+            payload = root / "effects" / "sound.ogg"
+            payload.parent.mkdir()
+            payload.write_bytes(b"payload")
+            external = Path(external_temporary) / "sound.ogg"
+            external.write_bytes(b"payload")
+            context = sound_release.stable_playtest_snapshot(root)
+            snapshot = context.__enter__().path
+            self.assertEqual(b"payload", (snapshot / "effects" / "sound.ogg").read_bytes())
+            payload.unlink()
+            payload.symlink_to(external)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "symlink|changed"):
+                context.__exit__(None, None, None)
+
+    def test_verification_snapshot_rejects_whole_root_replacement(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-root-swap-") as temporary:
+            parent = Path(temporary)
+            root = parent / "tree"
+            moved = parent / "verified-tree"
+            root.mkdir()
+            (root / "payload").write_bytes(b"verified")
+            context = sound_release.stable_playtest_snapshot(root)
+            snapshot = context.__enter__().path
+            self.assertEqual(b"verified", (snapshot / "payload").read_bytes())
+            root.rename(moved)
+            root.mkdir()
+            (root / "payload").write_bytes(b"replacement")
+            with self.assertRaisesRegex(sound_release.ReleaseError, "root changed"):
+                context.__exit__(None, None, None)
+
+    def test_verification_snapshot_rechecks_root_after_final_enumeration(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-final-root-swap-") as temporary:
+            parent = Path(temporary)
+            root = parent / "tree"
+            moved = parent / "verified-tree"
+            root.mkdir()
+            (root / "payload").write_bytes(b"verified")
+            original_files = sound_release._playtest_files
+            calls = 0
+
+            def enumerate_and_swap(candidate: Path) -> set[str]:
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    root.rename(moved)
+                    root.mkdir()
+                    (root / "payload").write_bytes(b"replacement")
+                return original_files(candidate)
+
+            with mock.patch.object(sound_release, "_playtest_files", side_effect=enumerate_and_swap):
+                context = sound_release.stable_playtest_snapshot(root)
+                context.__enter__()
+                with self.assertRaisesRegex(sound_release.ReleaseError, "root changed"):
+                    context.__exit__(None, None, None)
+
+    def test_verification_snapshot_monitors_late_payload_replacement(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-late-payload-") as temporary:
+            root = Path(temporary)
+            first = root / "a"
+            first.write_bytes(b"verified-a")
+            (root / "b").write_bytes(b"verified-b")
+            original_open = sound_release._open_regular_beneath
+            calls = 0
+
+            def open_and_swap(root_descriptor: int, relative: str) -> int:
+                nonlocal calls
+                calls += 1
+                if calls == 4:
+                    first.unlink()
+                    first.write_bytes(b"replacement-a")
+                return original_open(root_descriptor, relative)
+
+            with mock.patch.object(sound_release, "_open_regular_beneath", side_effect=open_and_swap):
+                context = sound_release.stable_playtest_snapshot(root)
+                context.__enter__()
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
+                    context.__exit__(None, None, None)
+
+    def test_mutation_watch_rejects_setup_time_namespace_changes(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-watch-setup-") as temporary:
+            root = Path(temporary)
+            (root / "existing").write_bytes(b"payload")
+            original_scandir = os.scandir
+            created = False
+
+            def scandir_and_create(path: Path) -> os.ScandirIterator[str]:
+                nonlocal created
+                if not created:
+                    created = True
+                    late = root / "late"
+                    late.mkdir()
+                    (late / "payload").write_bytes(b"payload")
+                return original_scandir(path)
+
+            with mock.patch.object(os, "scandir", side_effect=scandir_and_create):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
+                    sound_release.start_playtest_mutation_watch(root)
+
+    def test_mutation_watch_never_traverses_a_swapped_directory_symlink(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-watch-swap-") as temporary, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-watch-external-") as external_temporary:
+            root = Path(temporary)
+            child = root / "child"
+            moved = root / "moved-child"
+            child.mkdir()
+            (child / "payload").write_bytes(b"payload")
+            external = Path(external_temporary)
+            (external / "outside").write_bytes(b"outside")
+            external_identity = (external.stat().st_dev, external.stat().st_ino)
+            original_open = os.open
+            original_scandir = os.scandir
+            swapped = False
+            external_scanned = False
+
+            def open_and_swap(path: object, flags: int, mode: int = 0o777, *, dir_fd: int | None = None) -> int:
+                nonlocal swapped
+                if path == "child" and dir_fd is not None and not swapped:
+                    swapped = True
+                    child.rename(moved)
+                    child.symlink_to(external, target_is_directory=True)
+                return original_open(path, flags, mode, dir_fd=dir_fd)
+
+            def guarded_scandir(path: object) -> os.ScandirIterator[str]:
+                nonlocal external_scanned
+                if isinstance(path, int):
+                    metadata = os.fstat(path)
+                    if (metadata.st_dev, metadata.st_ino) == external_identity:
+                        external_scanned = True
+                return original_scandir(path)
+
+            with mock.patch.object(os, "open", side_effect=open_and_swap), \
+                    mock.patch.object(os, "scandir", side_effect=guarded_scandir):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while monitoring"):
+                    sound_release.start_playtest_mutation_watch(root)
+            self.assertTrue(swapped)
+            self.assertFalse(external_scanned)
+
+    def test_directory_install_is_atomic_and_never_replaces(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-install-") as temporary:
+            parent = Path(temporary)
+            staging = parent / "staging"
+            destination = parent / "destination"
+            staging.mkdir()
+            destination.mkdir()
+            with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
+                sound_release.install_directory_noreplace(staging, destination)
+            self.assertTrue(staging.is_dir())
+            self.assertTrue(destination.is_dir())
+
+            destination.rmdir()
+            destination.symlink_to(parent / "missing", target_is_directory=True)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
+                sound_release.install_directory_noreplace(staging, destination)
+            self.assertTrue(destination.is_symlink())
+
+    def test_build_lock_rejects_contention_and_recovers_after_abandonment(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-lock-") as temporary:
+            parent = Path(temporary)
+            output = parent / "tree"
+            lock = parent / ".tree.build.lock"
+            lock.write_text("abandoned\n", encoding="utf-8")
+            root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
+            with mock.patch.object(sound_release, "require_selected_git_worktree"), \
+                    mock.patch.object(sound_release, "run", return_value=result):
+                with sound_release.playtest_output_lock(output):
+                    with self.assertRaisesRegex(sound_release.ReleaseError, "active build lock"):
+                        with sound_release.playtest_output_lock(output):
+                            self.fail("contended lock unexpectedly acquired")
+                with sound_release.playtest_output_lock(output):
+                    self.assertTrue(lock.is_file())
+
+    def test_root_lock_excludes_build_during_cache_removal(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-root-lock-") as temporary:
+            parent = Path(temporary)
+            output = parent / "tree"
+            root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            descriptor = os.open(
+                root_lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600
+            )
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
+                with mock.patch.object(sound_release, "require_selected_git_worktree"), \
+                        mock.patch.object(sound_release, "run", return_value=result):
+                    with self.assertRaisesRegex(
+                        sound_release.ReleaseError, "cache root is being removed"
+                    ):
+                        with sound_release.playtest_output_lock(output):
+                            self.fail("build acquired a root under removal")
+            finally:
+                os.close(descriptor)
+
+    def test_output_lock_excludes_verifier_during_cache_removal(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-verify-lock-") as temporary:
+            parent = Path(temporary)
+            output = parent / "tree"
+            output_lock = parent / ".tree.build.lock"
+            descriptor = os.open(
+                output_lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600
+            )
+            root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                with mock.patch.object(sound_release, "require_selected_git_worktree"), \
+                        mock.patch.object(sound_release, "run", return_value=result):
+                    with self.assertRaisesRegex(
+                        sound_release.ReleaseError, "output is being removed"
+                    ):
+                        with sound_release.playtest_verification_lock(output):
+                            self.fail("verifier acquired an output under removal")
+            finally:
+                os.close(descriptor)
+
+    def test_root_lock_uses_exact_git_environment_and_selected_checkout(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-root-lock-") as temporary:
+            lock = Path(temporary) / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            responses = [
+                subprocess.CompletedProcess([], 0, stdout=f"{ROOT}\n"),
+                subprocess.CompletedProcess([], 0, stdout=f"{lock}\n"),
+            ]
+            with mock.patch.dict(os.environ, {"GIT_DIR": "/tmp/false-git-dir"}), \
+                    mock.patch.object(sound_release, "run", side_effect=responses) as execute:
+                with sound_release.playtest_root_lock(ROOT / "build" / "tree"):
+                    pass
+            for call in execute.call_args_list:
+                environment = call.kwargs["env"]
+                self.assertNotIn("GIT_DIR", environment)
+                self.assertEqual("1", environment["GIT_NO_REPLACE_OBJECTS"])
+
+    def test_verify_command_rejects_unanchored_paths_without_lock_side_effects(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-outside-") as temporary:
+            output = Path(temporary) / "outside-tree"
+            lock = output.parent / ".outside-tree.build.lock"
+            with self.assertRaisesRegex(sound_release.ReleaseError, "must be below"):
+                sound_release.command_verify_playtest_tree(
+                    mock.Mock(output_directory=str(output))
+                )
+            self.assertFalse(lock.exists())
+
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-anchor-", dir=build_root) as local, \
+                tempfile.TemporaryDirectory(prefix="test-playtest-outside-") as external:
+            parent = Path(local) / "redirected"
+            parent.symlink_to(external, target_is_directory=True)
+            output = parent / "tree"
+            redirected_lock = Path(external) / ".tree.build.lock"
+            with self.assertRaisesRegex(
+                sound_release.ReleaseError, "ignored local build state|ancestry"
+            ):
+                sound_release.command_verify_playtest_tree(
+                    mock.Mock(output_directory=str(output))
+                )
+            self.assertFalse(redirected_lock.exists())
+
+    def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
+        asset = next(
+            item for item in self.source_manifest["assets"]
+            if item["logical_path"] == "background/fireside.mid"
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            def mutate_snapshot(
+                _asset: dict[str, object], _output: Path, _toolchain: dict[str, object],
+                *, source_root: Path | None = None,
+            ) -> dict[str, object]:
+                assert source_root is not None
+                (source_root / asset["source_path"]).write_bytes(b"changed during conversion")
+                return {}
+
+            with mock.patch.object(sound_release, "convert_asset", side_effect=mutate_snapshot):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "snapshot changed"):
+                    sound_release.convert_playtest_asset(asset, Path(temporary), {})
+
+    def test_builds_are_deterministic_and_a_source_race_is_not_installed(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        source_manifest = {
+            "audio_source_count": 1,
+            "assets": [self.source_asset],
+        }
+        versions = {
+            name: "test" for name in
+            ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+        }
+        toolchain = {"quality_budget": {"sample_rate": 48000}}
+        with tempfile.TemporaryDirectory(prefix="test-playtest-build-", dir=build_root) as temporary:
+            parent = Path(temporary)
+            patches = (
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
+                mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
+                mock.patch.object(sound_release, "validate_manifest", return_value=[]),
+                mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain),
+                mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
+                mock.patch.object(sound_release, "run_sdl_probe"),
+            )
+            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+                first = sound_release.build_playtest_tree(parent / "first")
+                second = sound_release.build_playtest_tree(parent / "second")
+            first_manifest = (first / sound_release.PLAYTEST_MANIFEST_NAME).read_bytes()
+            second_manifest = (second / sound_release.PLAYTEST_MANIFEST_NAME).read_bytes()
+            self.assertEqual(first_manifest, second_manifest)
+            self.assertEqual(
+                json.loads(first_manifest)["output_tree_sha256"],
+                json.loads(second_manifest)["output_tree_sha256"],
+            )
+
+            raced = parent / "raced"
+            coordinates = mock.patch.object(
+                sound_release,
+                "clean_source_coordinates",
+                side_effect=[("b" * 40, "c" * 40), ("b" * 40, "c" * 40), ("d" * 40, "e" * 40)],
+            )
+            with coordinates, mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while verifying"):
+                    sound_release.build_playtest_tree(raced)
+            self.assertFalse(raced.exists())
+
+            collided = parent / "collided"
+            calls = 0
+            def create_destination() -> tuple[str, str]:
+                nonlocal calls
+                calls += 1
+                if calls == 3:
+                    collided.mkdir()
+                return "b" * 40, "c" * 40
+            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=create_destination), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "appeared concurrently"):
+                    sound_release.build_playtest_tree(collided)
+            self.assertTrue(collided.is_dir())
+
+            mutated = parent / "mutated-after-verification"
+            calls = 0
+
+            def mutate_verified_staging() -> tuple[str, str]:
+                nonlocal calls
+                calls += 1
+                if calls == 3:
+                    staging = next(
+                        candidate for candidate in parent.iterdir()
+                        if candidate.name.startswith(".mutated-after-verification.staging-")
+                    )
+                    (staging / sound_release.PLAYTEST_MARKER_NAME).write_text(
+                        "{}\n", encoding="utf-8",
+                    )
+                return "b" * 40, "c" * 40
+
+            with mock.patch.object(sound_release, "clean_source_coordinates", side_effect=mutate_verified_staging), mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), mock.patch.object(sound_release, "validate_manifest", return_value=[]), mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain), mock.patch.object(sound_release, "verify_toolchain", return_value=versions), mock.patch.object(sound_release, "run_sdl_probe"):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
+                    sound_release.build_playtest_tree(mutated)
+            self.assertFalse(mutated.exists())
+
+    def test_verifier_rejects_control_payload_and_closure_tampering(self) -> None:
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-tree-", dir=build_root) as temporary:
+            root = Path(temporary)
+            logical_path = self.source_asset["logical_path"]
+            payload = root / logical_path
+            payload.parent.mkdir(parents=True)
+            shutil.copyfile(ROOT / self.source_asset["source_path"], payload)
+            source = self.source_asset["source"]
+            output_asset = sound_release.playtest_output_record(
+                self.source_asset,
+                payload,
+                codec="vorbis",
+                container="ogg",
+                sample_rate=source["sample_rate"],
+                channels=source["channels"],
+                duration_seconds=source["duration_seconds"],
+            )
+            source_manifest = {
+                "audio_source_count": 1,
+                "assets": [self.source_asset],
+            }
+            versions = {
+                name: "test" for name in
+                ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            }
+            toolchain = {"quality_budget": {"sample_rate": 48000}}
+            marker = sound_release.canonical_json(sound_release.PLAYTEST_MARKER)
+            blockers = sound_release.canonical_json(
+                sound_release.blocker_report(source_manifest, []),
+            )
+            manifest = {
+                "$schema": "schemas/playtest-manifest-v1.schema.json",
+                "schema_version": 1,
+                "playtest_only": True,
+                "publishable": False,
+                "source_commit": "b" * 40,
+                "source_tree": "c" * 40,
+                "source_manifest_sha256": sound_release.sha256(sound_release.SOURCE_MANIFEST),
+                "toolchain_sha256": sound_release.sha256(sound_release.PLAYTEST_TOOLCHAIN),
+                "schema_sha256": sound_release.sha256(
+                    sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
+                ),
+                "tool_versions": versions,
+                "marker_sha256": hashlib.sha256(marker).hexdigest(),
+                "blocker_report_sha256": hashlib.sha256(blockers).hexdigest(),
+                "blocker_count": 0,
+                "logical_path_count": 1,
+                "copied_vorbis_count": 1,
+                "converted_opus_count": 0,
+                "output_tree_sha256": sound_release.logical_tree_sha256(root, [logical_path]),
+                "assets": [output_asset],
+            }
+            marker_path = root / sound_release.PLAYTEST_MARKER_NAME
+            blockers_path = root / sound_release.PLAYTEST_BLOCKERS_NAME
+            manifest_path = root / sound_release.PLAYTEST_MANIFEST_NAME
+            schema_path = root / "schemas" / "playtest-manifest-v1.schema.json"
+            marker_path.write_bytes(marker)
+            blockers_path.write_bytes(blockers)
+            schema_path.parent.mkdir()
+            shutil.copyfile(
+                sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
+                schema_path,
+            )
+            manifest_path.write_bytes(sound_release.canonical_json(manifest))
+            patches = (
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
+                mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
+                mock.patch.object(sound_release, "validate_manifest", return_value=[]),
+                mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain),
+                mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
+                mock.patch.object(sound_release, "run_sdl_probe"),
+            )
+            with patches[0] as coordinates, patches[1], patches[2], patches[3], patches[4], patches[5] as probe:
+                sound_release.verify_playtest_tree(root)
+                probe.assert_called_once()
+                self.assertEqual(
+                    round(source["duration_seconds"] * 48000),
+                    probe.call_args.kwargs["expected_frames"],
+                )
+                self.assertTrue(probe.call_args.kwargs["strict_playtest"])
+
+                marker_path.write_text("{}\n", encoding="utf-8")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "marker"):
+                    sound_release.verify_playtest_tree(root)
+                marker_path.write_bytes(marker)
+
+                blockers_path.write_text("{}\n", encoding="utf-8")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "blocker report"):
+                    sound_release.verify_playtest_tree(root)
+                blockers_path.write_bytes(blockers)
+
+                schema_payload = schema_path.read_bytes()
+                schema_path.write_text("{}\n", encoding="utf-8")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "schema"):
+                    sound_release.verify_playtest_tree(root)
+                schema_path.write_bytes(schema_payload)
+
+                original_payload = payload.read_bytes()
+                payload.write_bytes(b"tampered")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "payload hash"):
+                    sound_release.verify_playtest_tree(root)
+                payload.write_bytes(original_payload)
+
+                changed_manifest = copy.deepcopy(manifest)
+                changed_manifest["source_commit"] = "d" * 40
+                manifest_path.write_bytes(sound_release.canonical_json(changed_manifest))
+                with self.assertRaisesRegex(sound_release.ReleaseError, "source_commit"):
+                    sound_release.verify_playtest_tree(root)
+                manifest_path.write_bytes(sound_release.canonical_json(manifest))
+
+                coordinates.side_effect = [
+                    ("b" * 40, "c" * 40),
+                    ("d" * 40, "c" * 40),
+                ]
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed while verifying"):
+                    sound_release.verify_playtest_tree(root)
+                coordinates.side_effect = None
+                coordinates.return_value = ("b" * 40, "c" * 40)
+
+                extra = root / "unexpected"
+                extra.write_bytes(b"extra")
+                with self.assertRaisesRegex(sound_release.ReleaseError, "unexpected files"):
+                    sound_release.verify_playtest_tree(root)
 
 
 class DeterministicArchiveTests(unittest.TestCase):

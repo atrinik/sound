@@ -292,3 +292,50 @@ belong to `atrinik/classic#44`. Replacement client integration is not yet
 available; boundaries `atrinik/atrinik#266`, `#269`, and `#270` still delimit
 replacement build, scenario, and runtime integration. This repository therefore
 uses owner-native validation rather than substituting the Classic stack.
+
+## Nonpublishing Classic compatibility tree
+
+The separate `build-playtest-tree` command exists only for local source-built
+Classic playtesting. It does not call, bypass, or change `build-runtime`: the
+465 release blockers and the zero-finding released-runtime publisher remain
+fail closed.
+
+The builder accepts only a directory below the selected checkout's ignored
+`build/` root and requires a clean Git-backed source tree. It snapshots the
+exact commit and tree, validates the unchanged authoritative runtime source
+manifest plus the separate playtest-only WildMIDI toolchain, copies the 189
+existing Vorbis files byte-for-byte, and converts only
+the 150 FLAC/MIDI files to deterministic Opus. All bytes are staged at
+their 339 legacy logical paths. `playtest-manifest.json` records both the source
+codec and actual output codec for each path, the source manifest, toolchain,
+marker, blocker-report, payload hashes, and the complete logical payload-tree
+digest. `.atrinik-playtest-tree.json` independently fixes
+`playtest_only: true` and `publishable: false`.
+
+Before accepting a new directory, the builder verifies exact path closure,
+regular-file and hash integrity, canonical control files, deterministic codec
+mappings, and content-based SDL3_mixer decoding of all 339 staged paths, then
+rechecks the clean source commit and tree. A standalone verification reproduces
+every converted output with the pinned toolchain before decoding the complete
+tree. A pre-existing exact tree is verified and reused; no failed or concurrent
+build replaces it. Both public commands hold a shared
+`atrinik-playtest-builds.lock` lease in this exact worktree's Git admin
+directory. Its `atrinik-sound-playtest-builds-v1` marker proves participation;
+workspace cleanup must hold the exclusive side while removing the
+worktree, closing the producer-start race without serializing independent
+exact-input builds. Verification additionally holds a shared per-output lease,
+so cleanup cannot remove the exact tree while its public verifier reads it.
+
+```sh
+python3 tools/sound_release.py build-playtest-tree build/classic-playtest
+python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
+```
+
+The tree must never be archived, uploaded, cached, released, packaged, installed,
+or embedded in an image. Its blocker report preserves every unresolved release
+finding, and its marker is intentionally incompatible with the released-runtime
+manifest schema. The runtime manifest, toolchain, renderer recipes, schemas, and
+`tools/audio/Dockerfile` publisher environment remain byte-for-byte unchanged
+from the release baseline; `tools/audio/playtest.Dockerfile` owns the local
+WildMIDI environment. Local
+playback provides no license, provenance, or critical-listening evidence.
