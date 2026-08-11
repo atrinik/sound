@@ -558,7 +558,10 @@ def anchored_playtest_output(path: Path, *, create_parents: bool) -> Iterator[tu
         ancestry = [build_path, *(build_path.joinpath(*relative.parts[:index]) for index in range(1, len(relative.parts)))]
         for candidate, opened in zip(ancestry, descriptors, strict=True):
             expected = os.fstat(opened)
-            current = os.stat(candidate, follow_symlinks=False)
+            try:
+                current = os.stat(candidate, follow_symlinks=False)
+            except OSError as exc:
+                raise ReleaseError("playtest output ancestry changed during operation") from exc
             if not stat.S_ISDIR(current.st_mode) or (current.st_dev, current.st_ino) != (expected.st_dev, expected.st_ino):
                 raise ReleaseError("playtest output ancestry changed during operation")
     finally:
@@ -2192,7 +2195,7 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
         root_descriptor = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     except OSError as exc:
         raise ReleaseError(f"playtest tree is not a safe directory: {root}") from exc
-    descriptors: dict[str, tuple[int, os.stat_result]] = {}
+    descriptors: dict[str, tuple[int, os.stat_result, str]] = {}
     try:
         files = _playtest_files(root)
         with tempfile.TemporaryDirectory(prefix="atrinik-sound-playtest-verify-tree-") as temporary:
@@ -2200,15 +2203,19 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
             for relative in sorted(files):
                 descriptor = _open_regular_beneath(root_descriptor, relative)
                 metadata = os.fstat(descriptor)
-                descriptors[relative] = (descriptor, metadata)
                 destination = snapshot / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 with os.fdopen(os.dup(descriptor), "rb") as source, destination.open("wb") as output:
                     shutil.copyfileobj(source, output)
+                descriptors[relative] = (descriptor, metadata, sha256(destination))
             yield snapshot
-            if _playtest_files(root) != files:
+            try:
+                current_files = _playtest_files(root)
+            except OSError as exc:
+                raise ReleaseError("playtest tree changed during verification") from exc
+            if current_files != files:
                 raise ReleaseError("playtest tree changed during verification")
-            for relative, (descriptor, original) in descriptors.items():
+            for relative, (descriptor, original, expected_sha256) in descriptors.items():
                 current_descriptor = _open_regular_beneath(root_descriptor, relative)
                 try:
                     current = os.fstat(current_descriptor)
@@ -2218,8 +2225,13 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                 identity = lambda value: (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns)
                 if identity(current) != identity(original) or identity(retained) != identity(original):
                     raise ReleaseError(f"playtest tree changed during verification: {relative}")
+                os.lseek(descriptor, 0, os.SEEK_SET)
+                with os.fdopen(os.dup(descriptor), "rb") as retained_file:
+                    retained_sha256 = hashlib.file_digest(retained_file, "sha256").hexdigest()
+                if retained_sha256 != expected_sha256:
+                    raise ReleaseError(f"playtest tree changed during verification: {relative}")
     finally:
-        for descriptor, _metadata in descriptors.values():
+        for descriptor, _metadata, _digest in descriptors.values():
             os.close(descriptor)
         os.close(root_descriptor)
 
