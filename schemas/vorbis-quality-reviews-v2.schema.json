@@ -9,7 +9,7 @@
     "reviews": {"type": "array", "items": {"type": "object", "additionalProperties": false,
       "required": ["logical_path", "status", "source_sha256", "toolchain_sha256", "output_sha256", "reviewed_by", "reviewed_at", "evidence"],
       "properties": {
-        "logical_path": {"type": "string", "pattern": "^(background|effects)/.+\\.(flac|it|mid|mod|ogg|s3m|xm)$"}, "status": {"const": "passed"},
+        "logical_path": {"type": "string", "pattern": "^(background|effects)/.+\\.(flac|mid|mod|ogg|s3m|xm)$"}, "status": {"const": "passed"},
         "source_sha256": {"$ref": "#/$defs/sha256"}, "toolchain_sha256": {"$ref": "#/$defs/sha256"}, "output_sha256": {"$ref": "#/$defs/sha256"},
         "reviewed_by": {"type": "string", "pattern": "^(?!.*--)[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$"},
         "reviewed_at": {"type": "string", "format": "date-time"},

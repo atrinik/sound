@@ -15,7 +15,7 @@ Nooskewl / troutsneeze - https://opengameart.org/content/42-monster-rpg-2-music-
     infanita.mod (logical key preserved; source: background/replacements/monster-rpg2/moon.flac; role: extended atmosphere)
     insper.mid (logical key preserved; source: background/replacements/monster-rpg2/tutorial.flac; role: gentle determination)
     lively.mid (logical key preserved; source: background/replacements/monster-rpg2/happtroll.flac; role: lively town)
-    love.mid (logical key preserved; source: background/replacements/monster-rpg2/Flowey.flac; role: melodic scene)
+    love.mid (logical key preserved; source: background/replacements/monster-rpg2/flowey.flac; archive member: Flowey.flac; role: melodic scene)
     rain.s3m (logical key preserved; source: background/replacements/monster-rpg2/beach_atmosphere.flac; role: environmental ambience)
     rend.s3m (logical key preserved; source: background/replacements/monster-rpg2/seaside_repaired.flac; role: waterside transition)
     restful_town.mid (logical key preserved; source: background/replacements/monster-rpg2/farmer.flac; role: pastoral town)

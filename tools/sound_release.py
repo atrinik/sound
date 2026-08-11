@@ -437,7 +437,8 @@ def ogg_vorbis_metadata(path: Path) -> SourceMetadata:
 
 
 def flac_metadata(path: Path) -> SourceMetadata:
-    data = path.read_bytes()
+    with path.open("rb") as stream:
+        data = stream.read(42)
     if len(data) < 42 or data[:4] != b"fLaC":
         raise ReleaseError(f"invalid FLAC source: {path.relative_to(ROOT)}")
     block_type = data[4] & 0x7F
@@ -2459,7 +2460,7 @@ def parser() -> argparse.ArgumentParser:
     build = commands.add_parser("build-runtime", help="build the full or fixture Opus archive")
     build.add_argument("tag")
     build.add_argument("output_directory")
-    build.add_argument("--fixtures", action="store_true", help="build the six-format CI fixture archive")
+    build.add_argument("--fixtures", action="store_true", help="build the six-asset CI fixture archive")
     build.set_defaults(function=command_build)
     candidate = commands.add_parser("build-review-candidate", help="build one license-approved non-publishing quality-review candidate")
     candidate.add_argument("logical_path")

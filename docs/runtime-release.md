@@ -202,7 +202,7 @@ review and GitHub attestation identity inside their existing evidence notes,
 without mutating the published v1 schema contract. Failed verdicts
 intentionally remain blocked.
 
-Build the pinned conversion environment and the six-format fixture archive:
+Build the pinned conversion environment and the six-asset, three-codec fixture archive:
 
 ```sh
 docker build --file tools/audio/Dockerfile --tag atrinik-sound-audio .
@@ -231,7 +231,7 @@ cmp build/fixture-a/atrinik-sound-fixture-0.0.0.tar.gz \
   build/fixture-b/atrinik-sound-fixture-0.0.0.tar.gz
 ```
 
-The fixture plan covers MIDI, MOD, S3M, XM, Vorbis music, an effect,
+The fixture plan covers FLAC, MIDI, Vorbis music, an effect,
 mono/stereo, loop, seek, stop, and short-effect cases. The asset pipeline proves
 decode, media, and device-free SDL3_mixer control invariants.
 `atrinik/classic#44` owns matching interactive client playback assertions; the

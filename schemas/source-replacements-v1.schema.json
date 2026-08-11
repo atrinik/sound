@@ -16,7 +16,7 @@
         "required": ["logical_path", "source_path", "replaced_source_sha256", "transformation_notes"],
         "properties": {
           "logical_path": {"$ref": "#/$defs/logicalPath"},
-          "source_path": {"type": "string", "pattern": "^(background|effects)/replacements/(?:[a-z0-9][a-z0-9_.-]*/)*[A-Za-z0-9][A-Za-z0-9_.-]*\\.(flac|mid|mod|s3m|xm|ogg)$"},
+          "source_path": {"type": "string", "pattern": "^(background|effects)/replacements/(?:[a-z0-9][a-z0-9_.-]*/)*[a-z0-9][a-z0-9_.-]*\\.(flac|mid|mod|s3m|xm|ogg)$"},
           "replaced_source_sha256": {"$ref": "#/$defs/sha256"},
           "transformation_notes": {"type": "string", "minLength": 1}
         }
