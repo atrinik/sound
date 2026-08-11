@@ -1746,11 +1746,10 @@ def verify_toolchain(
     toolchain: dict[str, object], *, strict_playtest: bool = False,
 ) -> dict[str, str]:
     if strict_playtest:
-        for name in (
-            "ATRINIK_INSTRUMENT_CONFIG", "DPKG_ADMINDIR", "DPKG_ROOT",
-            "LD_LIBRARY_PATH", "LD_PRELOAD",
-        ):
-            if os.environ.get(name):
+        forbidden_names = {"ATRINIK_INSTRUMENT_CONFIG", "DPKG_ADMINDIR", "DPKG_ROOT"}
+        forbidden_prefixes = ("GLIBC_", "LD_", "MALLOC_")
+        for name, value in os.environ.items():
+            if value and (name in forbidden_names or name.startswith(forbidden_prefixes)):
                 raise ReleaseError(f"pinned toolchain rejects environment override: {name}")
     versions: dict[str, str] = {}
     tools = toolchain["tools"]
@@ -2715,6 +2714,7 @@ def verify_playtest_tree(
             behaviors=(),
             expected_channels=int(output["channels"]),
             toolchain=toolchain,
+            strict_playtest=True,
         )
 
     logical_paths = sorted(expected_by_path)

@@ -945,6 +945,9 @@ class SourceManifestTests(unittest.TestCase):
         with mock.patch.dict(sound_release.os.environ, {"LD_PRELOAD": "/tmp/shadow.so"}):
             with self.assertRaisesRegex(sound_release.ReleaseError, "LD_PRELOAD"):
                 sound_release.verify_toolchain(toolchain, strict_playtest=True)
+        with mock.patch.dict(sound_release.os.environ, {"LD_AUDIT": "/tmp/shadow-audit.so"}):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "LD_AUDIT"):
+                sound_release.verify_toolchain(toolchain, strict_playtest=True)
         with mock.patch.dict(sound_release.os.environ, {"DPKG_ADMINDIR": "/tmp/shadow-dpkg"}):
             with self.assertRaisesRegex(sound_release.ReleaseError, "DPKG_ADMINDIR"):
                 sound_release.verify_toolchain(toolchain, strict_playtest=True)
@@ -1933,6 +1936,7 @@ class PlaytestTreeTests(unittest.TestCase):
                     round(source["duration_seconds"] * 48000),
                     probe.call_args.kwargs["expected_frames"],
                 )
+                self.assertTrue(probe.call_args.kwargs["strict_playtest"])
 
                 marker_path.write_text("{}\n", encoding="utf-8")
                 with self.assertRaisesRegex(sound_release.ReleaseError, "marker"):
