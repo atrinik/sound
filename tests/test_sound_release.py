@@ -174,6 +174,37 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "predecessor"):
                 sound_release.checked_source_replacements()
 
+    def test_predecessor_hashes_ignore_git_replacement_refs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
+            subprocess.run(["git", "config", "user.name", "Sound Test"], cwd=repository, check=True)
+            subprocess.run(["git", "config", "user.email", "sound-test@example.invalid"], cwd=repository, check=True)
+            source = repository / "background" / "legacy.mid"
+            source.parent.mkdir()
+            source.write_bytes(b"immutable predecessor bytes")
+            subprocess.run(["git", "add", "background/legacy.mid"], cwd=repository, check=True)
+            subprocess.run(["git", "commit", "--quiet", "-m", "old"], cwd=repository, check=True)
+            old_commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=repository, check=True,
+                text=True, capture_output=True,
+            ).stdout.strip()
+            source.write_bytes(b"substituted bytes")
+            subprocess.run(["git", "commit", "--quiet", "-am", "replacement"], cwd=repository, check=True)
+            replacement_commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=repository, check=True,
+                text=True, capture_output=True,
+            ).stdout.strip()
+            subprocess.run(["git", "replace", old_commit, replacement_commit], cwd=repository, check=True)
+
+            hashes = sound_release.archived_source_hashes(
+                old_commit, ("background/legacy.mid",), str(repository),
+            )
+            self.assertEqual(
+                hashlib.sha256(b"immutable predecessor bytes").hexdigest(),
+                hashes["background/legacy.mid"],
+            )
+
     def test_duration_drift_is_reconciled(self) -> None:
         restful = self.assets["background/restful_town.mid"]["source"]
         self.assertGreater(restful["duration_seconds"], 0)

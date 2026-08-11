@@ -28,6 +28,7 @@ from typing import Iterator
 
 
 ROOT = Path(__file__).resolve().parents[1]
+GIT_REPOSITORY = ROOT
 SOURCE_MANIFEST = ROOT / "manifests" / "source-assets.json"
 TOOLCHAIN = ROOT / "manifests" / "audio-toolchain.json"
 FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
@@ -231,11 +232,27 @@ def discover_sources() -> list[Path]:
 
 
 @functools.cache
-def archived_source_hashes(commit: str, logical_paths: tuple[str, ...]) -> dict[str, str]:
+def archived_source_hashes(
+    commit: str, logical_paths: tuple[str, ...], repository: str,
+) -> dict[str, str]:
+    environment = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1"}
     try:
+        object_type = subprocess.run(
+            ["git", "cat-file", "-t", commit],
+            check=True,
+            cwd=repository,
+            env=environment,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stdout.strip()
+        if object_type != "commit":
+            raise ReleaseError("replacement predecessor coordinate is not a commit")
         archive = subprocess.run(
             ["git", "archive", "--format=tar", commit, "--", *logical_paths],
             check=True,
+            cwd=repository,
+            env=environment,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         ).stdout
@@ -295,6 +312,7 @@ def checked_source_replacements() -> dict[str, dict[str, object]]:
     if git_metadata_available():
         predecessor_hashes = archived_source_hashes(
             str(value["replaced_source_commit"]), tuple(sorted(logical_paths)),
+            str(GIT_REPOSITORY),
         )
         for replacement in replacements.values():
             logical_path = str(replacement["logical_path"])
