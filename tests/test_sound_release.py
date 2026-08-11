@@ -1457,6 +1457,29 @@ class PlaytestTreeTests(unittest.TestCase):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "root changed"):
                     context.__exit__(None, None, None)
 
+    def test_verification_snapshot_monitors_late_payload_replacement(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-late-payload-") as temporary:
+            root = Path(temporary)
+            first = root / "a"
+            first.write_bytes(b"verified-a")
+            (root / "b").write_bytes(b"verified-b")
+            original_open = sound_release._open_regular_beneath
+            calls = 0
+
+            def open_and_swap(root_descriptor: int, relative: str) -> int:
+                nonlocal calls
+                calls += 1
+                if calls == 4:
+                    first.unlink()
+                    first.write_bytes(b"replacement-a")
+                return original_open(root_descriptor, relative)
+
+            with mock.patch.object(sound_release, "_open_regular_beneath", side_effect=open_and_swap):
+                context = sound_release.stable_playtest_snapshot(root)
+                context.__enter__()
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
+                    context.__exit__(None, None, None)
+
     def test_directory_install_is_atomic_and_never_replaces(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-playtest-install-") as temporary:
             parent = Path(temporary)

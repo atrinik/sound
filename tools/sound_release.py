@@ -2205,6 +2205,59 @@ def _open_regular_beneath(root_descriptor: int, relative: str) -> int:
         os.close(directory)
 
 
+def start_playtest_mutation_watch(root: Path) -> int:
+    """Watch every existing tree entry for writes or namespace mutations."""
+    library = ctypes.CDLL(None, use_errno=True)
+    try:
+        initialize = library.inotify_init1
+        add_watch = library.inotify_add_watch
+    except AttributeError as exc:
+        raise ReleaseError("playtest mutation monitoring is unavailable") from exc
+    initialize.argtypes = [ctypes.c_int]
+    initialize.restype = ctypes.c_int
+    add_watch.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_uint32]
+    add_watch.restype = ctypes.c_int
+    descriptor = initialize(os.O_CLOEXEC | os.O_NONBLOCK)
+    if descriptor < 0:
+        error = ctypes.get_errno()
+        raise ReleaseError(f"cannot initialize playtest mutation monitoring: {os.strerror(error)}")
+    mutation_mask = (
+        0x00000002  # IN_MODIFY
+        | 0x00000004  # IN_ATTRIB
+        | 0x00000008  # IN_CLOSE_WRITE
+        | 0x00000040  # IN_MOVED_FROM
+        | 0x00000080  # IN_MOVED_TO
+        | 0x00000100  # IN_CREATE
+        | 0x00000200  # IN_DELETE
+        | 0x00000400  # IN_DELETE_SELF
+        | 0x00000800  # IN_MOVE_SELF
+        | 0x00002000  # IN_UNMOUNT
+    )
+    try:
+        entries = [root, *root.rglob("*")]
+        for entry in entries:
+            if add_watch(descriptor, os.fsencode(entry), mutation_mask) < 0:
+                error = ctypes.get_errno()
+                raise ReleaseError(
+                    f"cannot monitor playtest tree entry {entry.relative_to(root) if entry != root else '.'}: "
+                    f"{os.strerror(error)}"
+                )
+        return descriptor
+    except Exception:
+        os.close(descriptor)
+        raise
+
+
+def reject_playtest_mutations(descriptor: int) -> None:
+    """Drain the inotify queue at the verification linearization point."""
+    try:
+        events = os.read(descriptor, 1024 * 1024)
+    except BlockingIOError:
+        return
+    if events:
+        raise ReleaseError("playtest tree changed during verification")
+
+
 @contextlib.contextmanager
 def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
     """Copy a tree from retained no-follow fds and reject concurrent replacement."""
@@ -2213,6 +2266,11 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
     except OSError as exc:
         raise ReleaseError(f"playtest tree is not a safe directory: {root}") from exc
     original_root = os.fstat(root_descriptor)
+    try:
+        mutation_descriptor = start_playtest_mutation_watch(root)
+    except Exception:
+        os.close(root_descriptor)
+        raise
     descriptors: dict[str, tuple[int, os.stat_result, str]] = {}
     try:
         files = _playtest_files(root)
@@ -2258,10 +2316,12 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                 != (original_root.st_dev, original_root.st_ino)
             ):
                 raise ReleaseError("playtest tree root changed during verification")
+            reject_playtest_mutations(mutation_descriptor)
     finally:
         for descriptor, _metadata, _digest in descriptors.values():
             os.close(descriptor)
         os.close(root_descriptor)
+        os.close(mutation_descriptor)
 
 
 def verify_playtest_tree(
