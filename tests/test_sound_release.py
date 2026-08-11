@@ -1505,6 +1505,28 @@ class PlaytestTreeTests(unittest.TestCase):
                             sound_release.clean_source_coordinates(),
                         )
 
+                with tempfile.TemporaryDirectory(prefix="test-playtest-core-worktree-") as redirected_temporary:
+                    redirected_root = Path(redirected_temporary)
+                    (redirected_root / "tracked").write_text("second\n", encoding="utf-8")
+                    subprocess.run(
+                        [
+                            "git", "-C", str(root), "config", "core.worktree",
+                            str(redirected_root),
+                        ],
+                        check=True,
+                    )
+                    try:
+                        with self.assertRaisesRegex(sound_release.ReleaseError, "worktree root"):
+                            sound_release.clean_source_coordinates()
+                    finally:
+                        subprocess.run(
+                            [
+                                "git", "--git-dir", str(root / ".git"),
+                                "config", "--unset", "core.worktree",
+                            ],
+                            check=True,
+                        )
+
                 git_directory = subprocess.run(
                     ["git", "-C", str(root), "rev-parse", "--git-dir"],
                     check=True, capture_output=True, text=True,

@@ -569,6 +569,20 @@ def clean_source_coordinates() -> tuple[str, str]:
     """Return immutable coordinates for a clean, Git-backed local checkout."""
     try:
         environment = exact_git_environment()
+        top_level_value = run(
+            ["git", "-C", str(ROOT), "rev-parse", "--show-toplevel"],
+            capture=True,
+            env=environment,
+        ).stdout.strip()
+        try:
+            expected_root = ROOT.stat()
+            reported_root = Path(top_level_value).stat()
+        except OSError as exc:
+            raise SourceIntegrityError("cannot establish the selected Git worktree root") from exc
+        if (expected_root.st_dev, expected_root.st_ino) != (
+            reported_root.st_dev, reported_root.st_ino,
+        ):
+            raise SourceIntegrityError("Git worktree root differs from the selected sound checkout")
         graft_path_value = run(
             ["git", "-C", str(ROOT), "rev-parse", "--git-path", "info/grafts"],
             capture=True,
