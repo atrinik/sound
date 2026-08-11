@@ -1480,6 +1480,26 @@ class PlaytestTreeTests(unittest.TestCase):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
                     context.__exit__(None, None, None)
 
+    def test_mutation_watch_rejects_setup_time_namespace_changes(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-watch-setup-") as temporary:
+            root = Path(temporary)
+            (root / "existing").write_bytes(b"payload")
+            original_scandir = os.scandir
+            created = False
+
+            def scandir_and_create(path: Path) -> os.ScandirIterator[str]:
+                nonlocal created
+                if not created:
+                    created = True
+                    late = root / "late"
+                    late.mkdir()
+                    (late / "payload").write_bytes(b"payload")
+                return original_scandir(path)
+
+            with mock.patch.object(os, "scandir", side_effect=scandir_and_create):
+                with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
+                    sound_release.start_playtest_mutation_watch(root)
+
     def test_directory_install_is_atomic_and_never_replaces(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-playtest-install-") as temporary:
             parent = Path(temporary)

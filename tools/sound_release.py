@@ -2232,16 +2232,31 @@ def start_playtest_mutation_watch(root: Path) -> int:
         | 0x00000400  # IN_DELETE_SELF
         | 0x00000800  # IN_MOVE_SELF
         | 0x00002000  # IN_UNMOUNT
+        | 0x02000000  # IN_DONT_FOLLOW
     )
     try:
-        entries = [root, *root.rglob("*")]
-        for entry in entries:
+        def watch(entry: Path) -> None:
             if add_watch(descriptor, os.fsencode(entry), mutation_mask) < 0:
                 error = ctypes.get_errno()
                 raise ReleaseError(
                     f"cannot monitor playtest tree entry {entry.relative_to(root) if entry != root else '.'}: "
                     f"{os.strerror(error)}"
                 )
+        def watch_tree(directory: Path) -> None:
+            watch(directory)
+            try:
+                entries = list(os.scandir(directory))
+            except OSError as exc:
+                raise ReleaseError(f"cannot enumerate playtest tree for mutation monitoring: {directory}") from exc
+            for entry in entries:
+                path = Path(entry.path)
+                if entry.is_dir(follow_symlinks=False):
+                    watch_tree(path)
+                else:
+                    watch(path)
+
+        watch_tree(root)
+        reject_playtest_mutations(descriptor)
         return descriptor
     except Exception:
         os.close(descriptor)
