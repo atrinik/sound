@@ -123,6 +123,7 @@ jobs:
         run: |
           for output in playtest-a playtest-b; do
             docker run --rm --platform linux/amd64 \
+              --network none \
               --user "$(id -u):$(id -g)" \
               --volume "$PWD:/workspaces/sound" \
               --workdir /workspaces/sound \
@@ -131,6 +132,7 @@ jobs:
           done
           cmp build/playtest-a/playtest-manifest.json build/playtest-b/playtest-manifest.json
           docker run --rm --platform linux/amd64 \
+            --network none \
             --user "$(id -u):$(id -g)" \
             --volume "$PWD:/workspaces/sound" \
             --workdir /workspaces/sound \
