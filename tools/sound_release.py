@@ -615,37 +615,6 @@ def clean_source_coordinates() -> tuple[str, str]:
     return commit, tree
 
 
-def checked_playtest_output(path: Path) -> Path:
-    """Require playtest output to stay below this checkout's ignored build root."""
-    build_path = ROOT / "build"
-    if build_path.is_symlink():
-        raise ReleaseError(f"playtest build root must not be a symlink: {build_path}")
-    build_root = build_path.resolve()
-    if path.is_symlink():
-        raise ReleaseError(f"playtest output must not be a symlink: {path}")
-    resolved = path.resolve()
-    try:
-        relative = resolved.relative_to(build_root)
-    except ValueError as exc:
-        raise ReleaseError(f"playtest output must be below {build_root}") from exc
-    if not relative.parts:
-        raise ReleaseError("playtest output must be a directory below build/, not build/ itself")
-    candidate = build_path
-    for part in relative.parts[:-1]:
-        candidate /= part
-        if candidate.is_symlink():
-            raise ReleaseError(f"playtest output ancestry must not contain a symlink: {candidate}")
-    try:
-        repository_relative = resolved.relative_to(ROOT.resolve())
-        run(
-            ["git", "-C", str(ROOT), "check-ignore", "-q", "--", repository_relative.as_posix()],
-            capture=True,
-        )
-    except ReleaseError as exc:
-        raise ReleaseError(f"playtest output is not ignored local build state: {resolved}") from exc
-    return resolved
-
-
 @contextlib.contextmanager
 def anchored_playtest_output(path: Path, *, create_parents: bool) -> Iterator[tuple[Path, Path]]:
     """Retain no-follow directory handles for every output ancestor."""

@@ -1405,19 +1405,6 @@ class PlaytestTreeTests(unittest.TestCase):
             if asset["logical_path"] == "effects/campfire.ogg"
         )
 
-    def test_output_must_stay_below_ignored_build_state(self) -> None:
-        with self.assertRaisesRegex(sound_release.ReleaseError, "below"):
-            sound_release.checked_playtest_output(ROOT.parent / "outside-playtest-tree")
-        with self.assertRaisesRegex(sound_release.ReleaseError, "not build"):
-            sound_release.checked_playtest_output(ROOT / "build")
-        with tempfile.TemporaryDirectory() as temporary:
-            fake_root = Path(temporary) / "sound"
-            fake_root.mkdir()
-            (fake_root / "build").symlink_to(Path(temporary) / "outside", target_is_directory=True)
-            with mock.patch.object(sound_release, "ROOT", fake_root):
-                with self.assertRaisesRegex(sound_release.ReleaseError, "build root.*symlink"):
-                    sound_release.checked_playtest_output(fake_root / "build" / "tree")
-
     def test_dirty_playtest_source_is_rejected(self) -> None:
         completed = type("Completed", (), {"stdout": " M effects/campfire.ogg\n"})()
         with mock.patch.object(sound_release, "run", return_value=completed), \
