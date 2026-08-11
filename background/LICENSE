@@ -1,14 +1,32 @@
-KQ - http://sourceforge.net/projects/kqlives/ - GPLv2:
-    aa_arofl.xm (Space station, ~underground cave full of light)
-    comeback.mod (Dungeon-like, slow, a bit eerie, ~abandoned temple of loki)
-    enfero.xm (Military, fort)
-    eranasp.mod (Dungeon)
-    infanita.mod (Mountain pass, ~cave, elven forest)
-    rain.s3m (Funeral, rainy, sad, ~temple dungeon, dark forest)
-    town.mod (Town music, ~castle outskirts (village))
-    waterworld.xm (Disco, water cave, happy place, ~valley)
-    walk.s3m (Boss fight)
-    rend.s3m (Victory music)
+Nooskewl / troutsneeze - https://opengameart.org/content/42-monster-rpg-2-music-tracks - CC0:
+    aa_arofl.xm (logical key preserved; source: background/replacements/monster-rpg2/castle.flac; role: exploration, castle)
+    amblight.xm (logical key preserved; source: background/replacements/monster-rpg2/moon2.flac; role: ambient)
+    betrayal_battle.ogg (logical key preserved; source: background/replacements/monster-rpg2/battle.flac; role: boss battle)
+    cave.xm (logical key preserved; source: background/replacements/monster-rpg2/underground.flac; role: cave)
+    cave2.ogg (logical key preserved; source: background/replacements/monster-rpg2/monastery.flac; role: cave interior)
+    cavern.xm (logical key preserved; source: background/replacements/monster-rpg2/keep.flac; role: dungeon)
+    cavern_boss.mod (logical key preserved; source: background/replacements/monster-rpg2/boss.flac; role: boss battle)
+    comeback.mod (logical key preserved; source: background/replacements/monster-rpg2/credits.flac; role: reflective dungeon)
+    creature_awakens.ogg (logical key preserved; source: background/replacements/monster-rpg2/final_boss.flac; role: dramatic boss battle)
+    desert.ogg (logical key preserved; source: background/replacements/monster-rpg2/burned_village.flac; role: desolate area)
+    enfero.xm (logical key preserved; source: background/replacements/monster-rpg2/title.flac; role: military theme)
+    eranasp.mod (logical key preserved; source: background/replacements/monster-rpg2/map.flac; role: exploration)
+    ice_frontier.s3m (logical key preserved; source: background/replacements/monster-rpg2/mountains.flac; role: mountain frontier)
+    infanita.mod (logical key preserved; source: background/replacements/monster-rpg2/moon.flac; role: extended atmosphere)
+    insper.mid (logical key preserved; source: background/replacements/monster-rpg2/tutorial.flac; role: gentle determination)
+    lively.mid (logical key preserved; source: background/replacements/monster-rpg2/happtroll.flac; role: lively town)
+    love.mid (logical key preserved; source: background/replacements/monster-rpg2/flowey.flac; archive member: Flowey.flac; role: melodic scene)
+    rain.s3m (logical key preserved; source: background/replacements/monster-rpg2/beach_atmosphere.flac; role: environmental ambience)
+    rend.s3m (logical key preserved; source: background/replacements/monster-rpg2/seaside_repaired.flac; role: waterside transition)
+    restful_town.mid (logical key preserved; source: background/replacements/monster-rpg2/farmer.flac; role: pastoral town)
+    rpg_battle.xm (logical key preserved; source: background/replacements/monster-rpg2/shmup2.flac; role: battle)
+    the_trail_2.ogg (logical key preserved; source: background/replacements/monster-rpg2/landing.flac; role: travel)
+    town.mod (logical key preserved; source: background/replacements/monster-rpg2/tivoli.flac; role: town)
+    town_folk.ogg (logical key preserved; source: background/replacements/monster-rpg2/jungle_shop.flac; role: peaceful shop)
+    venturing_dragons.ogg (logical key preserved; source: background/replacements/monster-rpg2/fortress.flac; role: dark adventure)
+    walk.s3m (logical key preserved; source: background/replacements/monster-rpg2/chase.flac; role: movement and pursuit)
+    waterworld.xm (logical key preserved; source: background/replacements/monster-rpg2/underwater.flac; role: underwater area)
+    wood.s3m (logical key preserved; source: background/replacements/monster-rpg2/forest.flac; role: forest battle)
 
 HyperNewbie - http://www.hypernewbie.com/ - Permission to use:
     campfire_tales.mid (Outside, campfire, night, tales, story telling, night forest, ~sleeping)
@@ -28,24 +46,8 @@ HyperNewbie - http://www.hypernewbie.com/ - Permission to use:
     lurking.mid (Thieves, slow)
     dead_silence.mid (Lurky, sneaky, dark passageway, hidden danger)
 
-Allacrost - http://allacrost.org/ - GPLv2:
-    betrayal_battle.ogg (Boss)
-    cave2.ogg (Cave)
-    desert.ogg (Desert, lonely place)
-    creature_awakens.ogg (Dungeon, boss fight)
-    town_folk.ogg (Town music, peaceful)
-    venturing_dragons.ogg (Very dark cave with wet floor, tunnels, dwarvish mines)
-
-FreeDink original MIDI files - https://www.gnu.org/software/freedink/doc/sounds/ - licensing unresolved:
-    insper.mid (Sad, determined)
-    lively.mid (Town music, lively place, battle)
-    love.mid (Wedding)
-
 Sylvain Beucler / GNU FreeDink - https://www.gnu.org/software/freedink/ - GPLv3+:
     piano.mid (Atrinik use: Reverie; supplied title: “Rêverie” by Claude Debussy 1890; replacement author: Sylvain Beucler; source: GNU FreeDink freedink-data-1.08.20190120 dink/Sound/105.mid; Copyright (C) 2008 Sylvain Beucler; Atrinik modification (2026-08-10): MIDI rendered to Opus)
-
-ZhayTee - http://www.zhaymusic.com/ - GPLv2:
-    the_trail_2.ogg (Quest, all alone, trek through something)
 
 Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL:
     adventurers_wish.ogg (Magic village)
@@ -62,15 +64,6 @@ Stendhal - http://arianne.sourceforge.net/game/stendhal.html - GPL:
     magical_tower.ogg (Atrinik use: magic, dark; author: Storyteller; source: arianne/stendhal data/music/the_magical_tower.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
     mystical_aura.ogg (Atrinik use: magic place, crystal, ice; author: Storyteller; source: arianne/stendhal data/music/mystical_aura.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
     new_hope.ogg (Atrinik use: church, pipe organ; author: Storyteller; source: arianne/stendhal data/music/new_hope.ogg at fcd8330db06034098f9b164aa67fed82f261ae59; Atrinik modification: Vorbis converted to Opus)
-
-Meritous - http://www.asceai.net/meritous/ - GPLv3:
-    amblight.xm (Techno, boss battle)
-    cavern_boss.mod (Boss)
-    ice_frontier.s3m (Snowy place, tower, icy mountain pass)
-    rpg_battle.xm (Boss fight)
-    cavern.xm (Ranch)
-    cave.xm (Cave)
-    wood.s3m (Retro, battle)
 
 Dung Truong - http://madmass.mype.fr/CBNA/yoyogames/res03/res03/Sounds/midi_dt/ - Freeware:
     allusion_world.mid (Town music)
@@ -226,6 +219,3 @@ Mike Koenig - CC-BY:
 bebeto - http://www.freesound.org/usersViewSingle.php?id=409 - CC Sampling Plus 1.0:
     travelling.ogg (Traveling, ships)
     jungle.ogg (Overworld, traveling, shop)
-
-Daniel "Lippy" Liptrot - CC-BY-SA 3.0:
-    restful_town.mid

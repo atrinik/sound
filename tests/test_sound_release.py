@@ -40,9 +40,9 @@ class SourceManifestTests(unittest.TestCase):
         blockers = sound_release.validate_manifest(self.manifest)
         self.assertEqual(339, self.manifest["audio_source_count"])
         self.assertEqual(339, len(self.assets))
-        self.assertEqual(472, len(blockers))
+        self.assertEqual(465, len(blockers))
         self.assertEqual(
-            {"license/provenance": 276, "quality-review": 196},
+            {"license/provenance": 248, "quality-review": 217},
             {
                 category: sum(finding["category"] == category for finding in blockers)
                 for category in {finding["category"] for finding in blockers}
@@ -60,7 +60,7 @@ class SourceManifestTests(unittest.TestCase):
         self.assertEqual(license_count, int(documented_license.group(1)))
         self.assertEqual(len(blockers), int(documented_total.group(1)))
         self.assertEqual(
-            {path.relative_to(ROOT).as_posix() for path in sound_release.discover_sources()},
+            {logical for logical, _path, _replacement in sound_release.source_coordinates()},
             set(self.assets),
         )
 
@@ -70,14 +70,14 @@ class SourceManifestTests(unittest.TestCase):
             codec = asset["source"]["codec"]
             counts[codec] = counts.get(codec, 0) + 1
         self.assertEqual(
-            {"midi": 126, "mod": 5, "s3m": 5, "xm": 7, "vorbis": 196},
+            {"flac": 28, "midi": 122, "vorbis": 189},
             counts,
         )
         fixture_codecs = {
             self.assets[path]["source"]["codec"]
             for path in sound_release.FIXTURE_PATHS
         }
-        self.assertEqual({"midi", "mod", "s3m", "xm", "vorbis"}, fixture_codecs)
+        self.assertEqual({"flac", "midi", "vorbis"}, fixture_codecs)
         self.assertTrue(any(path.startswith("effects/") for path in sound_release.FIXTURE_PATHS))
         plan = sound_release.checked_fixture_plan(self.manifest)
         represented = {
@@ -101,8 +101,8 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_source_hashes_and_sizes_are_exact(self) -> None:
         size = 0
-        for logical, asset in self.assets.items():
-            path = ROOT / logical
+        for asset in self.assets.values():
+            path = ROOT / asset["source_path"]
             size += path.stat().st_size
             self.assertEqual(sound_release.sha256(path), asset["source"]["sha256"])
         self.assertEqual(size, self.manifest["source_size_bytes"])
@@ -120,6 +120,91 @@ class SourceManifestTests(unittest.TestCase):
             path.unlink(missing_ok=True)
             directory.rmdir()
 
+    def test_replacement_ledger_preserves_logical_keys_and_fails_closed(self) -> None:
+        replacements = sound_release.checked_source_replacements()
+        self.assertEqual(28, len(replacements))
+        for source_path, replacement in replacements.items():
+            logical_path = replacement["logical_path"]
+            with self.subTest(logical_path=logical_path):
+                self.assertNotEqual(logical_path, source_path)
+                self.assertFalse((ROOT / logical_path).exists())
+                self.assertEqual(source_path, self.assets[logical_path]["source_path"])
+                self.assertRegex(replacement["replaced_source_sha256"], r"^[0-9a-f]{64}$")
+                self.assertEqual("flac", self.assets[logical_path]["source"]["codec"])
+
+        document = json.loads(sound_release.SOURCE_REPLACEMENTS.read_text())
+        duplicate = copy.deepcopy(document)
+        duplicate["replacements"][1]["logical_path"] = duplicate["replacements"][0]["logical_path"]
+        original_read_json = sound_release.read_json
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: duplicate if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "duplicate replacement logical path"):
+                sound_release.checked_source_replacements()
+
+        drifted = copy.deepcopy(document)
+        drifted["replacements"][0]["replaced_source_sha256"] = "0" * 64
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: drifted if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "removed-source hash mismatch"):
+                sound_release.checked_source_replacements()
+
+        invented = copy.deepcopy(document)
+        invented["replacements"][0]["logical_path"] = "background/invented.mid"
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: invented if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "predecessor"):
+                sound_release.checked_source_replacements()
+
+        wrong_commit = copy.deepcopy(document)
+        wrong_commit["replaced_source_commit"] = "0" * 40
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: wrong_commit if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "predecessor"):
+                sound_release.checked_source_replacements()
+
+    def test_predecessor_hashes_ignore_git_replacement_refs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            repository = Path(temporary)
+            subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
+            subprocess.run(["git", "config", "user.name", "Sound Test"], cwd=repository, check=True)
+            subprocess.run(["git", "config", "user.email", "sound-test@example.invalid"], cwd=repository, check=True)
+            source = repository / "background" / "legacy.mid"
+            source.parent.mkdir()
+            source.write_bytes(b"immutable predecessor bytes")
+            subprocess.run(["git", "add", "background/legacy.mid"], cwd=repository, check=True)
+            subprocess.run(["git", "commit", "--quiet", "-m", "old"], cwd=repository, check=True)
+            old_commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=repository, check=True,
+                text=True, capture_output=True,
+            ).stdout.strip()
+            source.write_bytes(b"substituted bytes")
+            subprocess.run(["git", "commit", "--quiet", "-am", "replacement"], cwd=repository, check=True)
+            replacement_commit = subprocess.run(
+                ["git", "rev-parse", "HEAD"], cwd=repository, check=True,
+                text=True, capture_output=True,
+            ).stdout.strip()
+            subprocess.run(["git", "replace", old_commit, replacement_commit], cwd=repository, check=True)
+
+            hashes = sound_release.archived_source_hashes(
+                old_commit, ("background/legacy.mid",), str(repository),
+            )
+            self.assertEqual(
+                hashlib.sha256(b"immutable predecessor bytes").hexdigest(),
+                hashes["background/legacy.mid"],
+            )
+
     def test_duration_drift_is_reconciled(self) -> None:
         restful = self.assets["background/restful_town.mid"]["source"]
         self.assertGreater(restful["duration_seconds"], 0)
@@ -129,8 +214,12 @@ class SourceManifestTests(unittest.TestCase):
         self.assertFalse((ROOT / "background" / "durations").exists())
 
     def test_license_findings_fail_closed(self) -> None:
-        self.assertEqual("blocked", self.assets["background/aa_arofl.xm"]["license"]["status"])
-        self.assertIn("per-asset license review", self.assets["background/aa_arofl.xm"]["license"]["blocking_finding"])
+        replaced = self.assets["background/aa_arofl.xm"]
+        self.assertEqual("allowed", replaced["license"]["status"])
+        self.assertEqual("CC0-1.0", replaced["license"]["spdx_expression"])
+        self.assertEqual("flac", replaced["source"]["codec"])
+        self.assertEqual("blocked", replaced["quality_review"]["status"])
+        self.assertIn("replacement source-to-Opus", replaced["quality_review"]["blocking_finding"])
         for logical in (
             "background/campfire_tales.mid",
             "background/thonkdonk.ogg",
@@ -167,8 +256,8 @@ class SourceManifestTests(unittest.TestCase):
                 contract["license_text_path"],
                 toolchain["license_texts"][contract["spdx_expression"]]["archive_path"],
             )
-        self.assertEqual(69, candidates)
-        self.assertEqual(63, allowed)
+        self.assertEqual(51, candidates)
+        self.assertEqual(91, allowed)
 
     def test_meritous_project_notice_does_not_approve_music(self) -> None:
         notice = {
@@ -366,9 +455,16 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_vorbis_quality_review_is_an_immutable_release_gate(self) -> None:
         vorbis = [asset for asset in self.assets.values() if asset["source"]["codec"] == "vorbis"]
-        self.assertEqual(196, len(vorbis))
+        self.assertEqual(189, len(vorbis))
         self.assertTrue(all(asset["quality_review"]["status"] == "blocked" for asset in vorbis))
         self.assertTrue(all(asset["quality_review"]["source_sha256"] == asset["source"]["sha256"] for asset in vorbis))
+        replacements = [
+            asset for asset in self.assets.values()
+            if "/replacements/" in asset["source_path"]
+        ]
+        self.assertEqual(28, len(replacements))
+        self.assertTrue(all(asset["quality_review"]["status"] == "blocked" for asset in replacements))
+        self.assertTrue(all("behavioral and critical-listening" in asset["quality_review"]["blocking_finding"] for asset in replacements))
 
     def test_validation_dispatches_live_attestations_with_ci_permission(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "check.yml").read_text(encoding="utf-8")
@@ -483,7 +579,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_and_encoding_contracts_detect_immutable_input_drift(self) -> None:
         reviewed = json.loads((ROOT / "manifests" / "license-reviews.json").read_text())
-        self.assertEqual(63, len(reviewed["reviews"]))
+        self.assertEqual(91, len(reviewed["reviews"]))
         drifted = copy.deepcopy(self.manifest)
         drifted["assets"][0]["encode"]["bitrate_kbps"] += 1
         with self.assertRaisesRegex(sound_release.ReleaseError, "stale"):
@@ -553,7 +649,7 @@ class SourceManifestTests(unittest.TestCase):
         ledger = json.loads(sound_release.TRACKER_DURATIONS.read_text())
         self.assertEqual(sound_release.sha256(sound_release.TOOLCHAIN), ledger["toolchain_sha256"])
         trackers = {entry["logical_path"]: entry for entry in ledger["entries"]}
-        self.assertEqual(17, len(trackers))
+        self.assertEqual(0, len(trackers))
         for logical, entry in trackers.items():
             self.assertEqual(sound_release.sha256(ROOT / logical), entry["source_sha256"])
             self.assertEqual(entry["duration_seconds"], self.assets[logical]["source"]["duration_seconds"])
@@ -562,7 +658,12 @@ class SourceManifestTests(unittest.TestCase):
         ledger = json.loads(sound_release.TRACKER_DURATIONS.read_text())
         original_read_json = sound_release.read_json
         duplicate = copy.deepcopy(ledger)
-        duplicate["entries"].append(copy.deepcopy(duplicate["entries"][0]))
+        duplicate_entry = {
+            "logical_path": "background/duplicate.mod",
+            "source_sha256": "0" * 64,
+            "duration_seconds": 1.0,
+        }
+        duplicate["entries"] = [duplicate_entry, copy.deepcopy(duplicate_entry)]
         with mock.patch.object(sound_release, "read_json", side_effect=lambda path: duplicate if path == sound_release.TRACKER_DURATIONS else original_read_json(path)):
             with self.assertRaisesRegex(sound_release.ReleaseError, "duplicate"):
                 sound_release.checked_tracker_durations()
@@ -583,7 +684,7 @@ class SourceManifestTests(unittest.TestCase):
             "vorbis-quality-reviews-v1.schema.json", "vorbis-quality-reviews-v2.schema.json",
             "critical-listening-review-v1.schema.json", "license-reviews-v1.schema.json",
             "license-reviews-v2.schema.json",
-            "tracker-durations-v1.schema.json",
+            "tracker-durations-v1.schema.json", "source-replacements-v1.schema.json",
         ):
             self.assertEqual(f"https://atrinik.org/schemas/sound/{name}", sound_release.checked_schema(name)["$id"])
         legacy_pattern = sound_release.checked_schema("vorbis-quality-reviews-v1.schema.json")["properties"]["reviews"]["items"]["properties"]["reviewed_by"]["pattern"]
@@ -667,13 +768,23 @@ class SourceManifestTests(unittest.TestCase):
         }
         sound_release.validate_runtime_manifest(runtime_manifest)
 
-    def test_vorbis_and_midi_metadata_are_parsed_without_legacy_sidecars(self) -> None:
+    def test_vorbis_midi_and_flac_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
-        midi = sound_release.midi_metadata(ROOT / "background" / "restful_town.mid")
+        midi = sound_release.midi_metadata(ROOT / "background" / "fireside.mid")
+        flac = sound_release.flac_metadata(ROOT / "background" / "replacements" / "monster-rpg2" / "castle.flac")
         self.assertIn(vorbis.channels, (1, 2))
         self.assertGreater(vorbis.sample_rate, 0)
         self.assertGreater(vorbis.duration_seconds, 0)
         self.assertGreater(midi.duration_seconds, 0)
+        self.assertEqual(2, flac.channels)
+        self.assertEqual(44100, flac.sample_rate)
+        self.assertEqual(138.24, flac.duration_seconds)
+        header = (ROOT / "background" / "replacements" / "monster-rpg2" / "castle.flac").read_bytes()[:42]
+        with mock.patch.object(Path, "open", autospec=True) as opened:
+            opened.return_value.__enter__.return_value.read.return_value = header
+            bounded = sound_release.flac_metadata(ROOT / "bounded.flac")
+            opened.return_value.__enter__.return_value.read.assert_called_once_with(42)
+        self.assertEqual(flac, bounded)
 
     def test_toolchain_is_pinned_and_records_instrument_output_permission(self) -> None:
         toolchain = sound_release.checked_toolchain()
@@ -693,7 +804,7 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_full_runtime_build_refuses_partial_corpus_before_tool_execution(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(sound_release.ReleaseError, "472 release findings"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "465 release findings"):
                 sound_release.build_runtime("v1.2.3", Path(temporary), fixtures=False)
 
     def test_full_runtime_build_rejects_dirty_release_input(self) -> None:
@@ -773,19 +884,19 @@ class SourceManifestTests(unittest.TestCase):
 
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            arguments = type("Arguments", (), {"logical_path": "background/aa_arofl.xm", "output_directory": temporary})()
+            arguments = type("Arguments", (), {"logical_path": "background/campfire_tales.mid", "output_directory": temporary})()
             with self.assertRaisesRegex(sound_release.ReleaseError, "passed per-asset license review"):
                 sound_release.command_build_review_candidate(arguments)
 
     @mock.patch.object(sound_release, "verify_review_bundle_candidates")
-    def test_review_bundle_is_self_contained_and_selects_only_eligible_vorbis(
+    def test_review_bundle_is_self_contained_and_selects_only_eligible_sources(
         self, _verify_candidates: mock.Mock,
     ) -> None:
         expected = {
-            "background/crystal_falls.ogg", "background/evil_temple.ogg",
-            "background/frankie.ogg", "background/hull_et_belle.ogg",
-            "background/lost_in_meadows.ogg", "background/running.ogg",
-            "background/sewer_rats.ogg",
+            logical_path for logical_path, asset in self.assets.items()
+            if logical_path.startswith("background/")
+            and asset["license"]["status"] == "allowed"
+            and asset["quality_review"]["status"] == "blocked"
         }
 
         def fake_convert(asset: dict[str, object], output_directory: Path, _toolchain: dict[str, object]) -> dict[str, object]:
@@ -839,7 +950,11 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                 source = output / asset["source_path"]
                 candidate = output / asset["candidate_path"]
                 evidence = output / asset["review_evidence_path"]
-                self.assertEqual(sound_release.sha256(ROOT / asset["logical_path"]), sound_release.sha256(source))
+                manifest_asset = self.assets[asset["logical_path"]]
+                self.assertEqual(
+                    sound_release.sha256(ROOT / manifest_asset["source_path"]),
+                    sound_release.sha256(source),
+                )
                 self.assertEqual(asset["output_sha256"], sound_release.sha256(candidate))
                 self.assertTrue(evidence.is_file())
                 self.assertEqual(0.0, asset["candidate_gain_db"])
