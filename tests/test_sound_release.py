@@ -780,11 +780,16 @@ class SourceManifestTests(unittest.TestCase):
     def test_runtime_and_playtest_toolchain_schemas_are_isolated(self) -> None:
         for relative in (
             "manifests/audio-toolchain.json",
+            "manifests/license-reviews.json",
             "manifests/source-assets.json",
+            "manifests/source-replacements.json",
             "manifests/tracker-durations.json",
             "schemas/audio-toolchain-v1.schema.json",
+            "schemas/critical-listening-review-v1.schema.json",
             "schemas/runtime-manifest-v1.schema.json",
             "schemas/source-assets-v1.schema.json",
+            "schemas/source-replacements-v1.schema.json",
+            "schemas/vorbis-quality-reviews-v2.schema.json",
             "tools/audio/Dockerfile",
         ):
             released = subprocess.run(
@@ -986,6 +991,18 @@ class SourceManifestTests(unittest.TestCase):
             by_path["background/fireside.mid"]["mapping"],
         ))
         self.assertEqual("copy", by_path["background/intro.ogg"]["mapping"])
+        self.assertEqual(
+            (
+                "background/replacements/monster-rpg2/beach_atmosphere.flac",
+                "flac", "opus", "render-opus",
+            ),
+            (
+                by_path["background/rain.s3m"]["source_path"],
+                by_path["background/rain.s3m"]["source"]["codec"],
+                by_path["background/rain.s3m"]["output"]["codec"],
+                by_path["background/rain.s3m"]["mapping"],
+            ),
+        )
         with self.assertRaisesRegex(sound_release.ReleaseError, "runtime manifest"):
             sound_release.validate_runtime_manifest(manifest)
         for publisher in ("tools/build-release-assets.sh", "tools/package-release.sh"):
