@@ -2411,6 +2411,32 @@ def playtest_output_lock(output: Path) -> Iterator[None]:
             os.close(descriptor)
 
 
+@contextlib.contextmanager
+def playtest_verification_lock(output: Path) -> Iterator[None]:
+    """Hold both leases needed to keep one verified output present."""
+    lock = output.parent / f".{output.name}.build.lock"
+    with playtest_root_lock(output):
+        try:
+            descriptor = os.open(lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        except OSError as exc:
+            raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}") from exc
+        try:
+            metadata = os.fstat(descriptor)
+            if (
+                not stat.S_ISREG(metadata.st_mode)
+                or metadata.st_uid != os.geteuid()
+                or metadata.st_nlink != 1
+            ):
+                raise ReleaseError(f"playtest output lock is not a safe regular file: {lock}")
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            except BlockingIOError as exc:
+                raise ReleaseError(f"playtest output is being removed: {lock}") from exc
+            yield
+        finally:
+            os.close(descriptor)
+
+
 def _playtest_files(root: Path) -> set[str]:
     files: set[str] = set()
     for path in root.rglob("*"):
@@ -3566,7 +3592,7 @@ def command_build_playtest_tree(arguments: argparse.Namespace) -> None:
 
 def command_verify_playtest_tree(arguments: argparse.Namespace) -> None:
     output = Path(arguments.output_directory)
-    with playtest_root_lock(output):
+    with playtest_verification_lock(output):
         manifest = verify_playtest_tree(output)
     print(
         f"verified {manifest['logical_path_count']} playtest paths; "

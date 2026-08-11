@@ -1783,6 +1783,27 @@ class PlaytestTreeTests(unittest.TestCase):
             finally:
                 os.close(descriptor)
 
+    def test_output_lock_excludes_verifier_during_cache_removal(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-verify-lock-") as temporary:
+            parent = Path(temporary)
+            output = parent / "tree"
+            output_lock = parent / ".tree.build.lock"
+            descriptor = os.open(
+                output_lock, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600
+            )
+            root_lock = parent / sound_release.PLAYTEST_ROOT_LOCK_NAME
+            result = subprocess.CompletedProcess([], 0, stdout=f"{root_lock}\n")
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                with mock.patch.object(sound_release, "run", return_value=result):
+                    with self.assertRaisesRegex(
+                        sound_release.ReleaseError, "output is being removed"
+                    ):
+                        with sound_release.playtest_verification_lock(output):
+                            self.fail("verifier acquired an output under removal")
+            finally:
+                os.close(descriptor)
+
     def test_conversion_rejects_a_changed_private_source_snapshot(self) -> None:
         asset = next(
             item for item in self.source_manifest["assets"]
