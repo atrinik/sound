@@ -7,6 +7,7 @@ import argparse
 import contextlib
 import dataclasses
 import filecmp
+import functools
 import gzip
 import hashlib
 import io
@@ -229,12 +230,41 @@ def discover_sources() -> list[Path]:
     return sorted(sources, key=lambda path: path.relative_to(ROOT).as_posix())
 
 
+@functools.cache
+def archived_source_hashes(commit: str, logical_paths: tuple[str, ...]) -> dict[str, str]:
+    try:
+        archive = subprocess.run(
+            ["git", "archive", "--format=tar", commit, "--", *logical_paths],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        detail = getattr(exc, "stderr", b"")
+        rendered = detail.decode("utf-8", errors="replace").strip() if isinstance(detail, bytes) else str(detail)
+        raise ReleaseError(f"cannot read replacement predecessor sources: {rendered}") from exc
+    hashes: dict[str, str] = {}
+    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as stream:
+        for member in stream.getmembers():
+            if member.isdir():
+                continue
+            if not member.isfile() or member.name not in logical_paths:
+                raise ReleaseError("replacement predecessor archive has an unexpected member")
+            source = stream.extractfile(member)
+            if source is None:
+                raise ReleaseError("replacement predecessor archive member cannot be read")
+            hashes[member.name] = hashlib.sha256(source.read()).hexdigest()
+    if set(hashes) != set(logical_paths):
+        raise ReleaseError("replacement predecessor archive does not cover every removed source")
+    return hashes
+
+
 def checked_source_replacements() -> dict[str, dict[str, object]]:
     schema = checked_schema("source-replacements-v1.schema.json")
     value = read_json(SOURCE_REPLACEMENTS)
     if (
         not isinstance(value, dict)
-        or set(value) != {"$schema", "schema_version", "replacements"}
+        or set(value) != {"$schema", "schema_version", "replaced_source_commit", "replacements"}
         or value.get("$schema") != "../schemas/source-replacements-v1.schema.json"
         or value.get("schema_version") != 1
         or not isinstance(value.get("replacements"), list)
@@ -257,8 +287,21 @@ def checked_source_replacements() -> dict[str, dict[str, object]]:
             raise ReleaseError(f"replacement source is missing or not a regular file: {source_path}")
         if legacy.exists():
             raise ReleaseError(f"replacement leaves legacy source present: {logical_path}")
-        replacements[source_path] = replacement
+        replacements[source_path] = {
+            **replacement,
+            "replaced_source_commit": value["replaced_source_commit"],
+        }
         logical_paths.add(logical_path)
+    if git_metadata_available():
+        predecessor_hashes = archived_source_hashes(
+            str(value["replaced_source_commit"]), tuple(sorted(logical_paths)),
+        )
+        for replacement in replacements.values():
+            logical_path = str(replacement["logical_path"])
+            if replacement["replaced_source_sha256"] != predecessor_hashes[logical_path]:
+                raise ReleaseError(f"replacement removed-source hash mismatch: {logical_path}")
+    elif os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") != "1":
+        raise ReleaseError("replacement predecessor hashes require Git metadata")
     return replacements
 
 
@@ -1067,6 +1110,10 @@ def build_source_manifest() -> dict[str, object]:
             },
             "transformation_notes": (
                 str(replacement["transformation_notes"])
+                + (
+                    f" Replaces {relative} at {replacement['replaced_source_commit']} "
+                    f"(SHA-256 {replacement['replaced_source_sha256']})."
+                )
                 if replacement is not None
                 else (
                     "second lossy generation from the only preserved Vorbis source; quality review required"

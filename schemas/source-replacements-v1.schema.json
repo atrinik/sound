@@ -4,10 +4,11 @@
   "title": "Atrinik authored source replacement ledger v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "schema_version", "replacements"],
+  "required": ["$schema", "schema_version", "replaced_source_commit", "replacements"],
   "properties": {
     "$schema": {"const": "../schemas/source-replacements-v1.schema.json"},
     "schema_version": {"const": 1},
+    "replaced_source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
     "replacements": {
       "type": "array",
       "items": {

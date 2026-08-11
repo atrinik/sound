@@ -1,6 +1,7 @@
 {
   "$schema": "../schemas/source-replacements-v1.schema.json",
   "schema_version": 1,
+  "replaced_source_commit": "acb29ba84c0d85d124c7b245c594c0fac1298c0c",
   "replacements": [
     {"logical_path":"background/aa_arofl.xm","source_path":"background/replacements/monster-rpg2/castle.flac","replaced_source_sha256":"1830756c232f101a43e4a302e228c671bfef0bb62fa2ef262eaec1e050fbb0e4","transformation_notes":"Nooskewl CC0 lossless replacement selected for the legacy Archons-of-Light exploration key; behavioral and loop review required."},
     {"logical_path":"background/amblight.xm","source_path":"background/replacements/monster-rpg2/moon2.flac","replaced_source_sha256":"294383e3ce555549851ca12b3f5d9e86835d4a549ad51eb8a664cc8ee124ef99","transformation_notes":"Nooskewl CC0 lossless replacement selected for the legacy ambient-light key; behavioral and loop review required."},

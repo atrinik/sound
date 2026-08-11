@@ -144,6 +144,36 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "duplicate replacement logical path"):
                 sound_release.checked_source_replacements()
 
+        drifted = copy.deepcopy(document)
+        drifted["replacements"][0]["replaced_source_sha256"] = "0" * 64
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: drifted if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "removed-source hash mismatch"):
+                sound_release.checked_source_replacements()
+
+        invented = copy.deepcopy(document)
+        invented["replacements"][0]["logical_path"] = "background/invented.mid"
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: invented if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "predecessor"):
+                sound_release.checked_source_replacements()
+
+        wrong_commit = copy.deepcopy(document)
+        wrong_commit["replaced_source_commit"] = "0" * 40
+        with mock.patch.object(
+            sound_release,
+            "read_json",
+            side_effect=lambda path: wrong_commit if path == sound_release.SOURCE_REPLACEMENTS else original_read_json(path),
+        ):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "predecessor"):
+                sound_release.checked_source_replacements()
+
     def test_duration_drift_is_reconciled(self) -> None:
         restful = self.assets["background/restful_town.mid"]["source"]
         self.assertGreater(restful["duration_seconds"], 0)
@@ -718,6 +748,12 @@ class SourceManifestTests(unittest.TestCase):
         self.assertEqual(2, flac.channels)
         self.assertEqual(44100, flac.sample_rate)
         self.assertEqual(138.24, flac.duration_seconds)
+        header = (ROOT / "background" / "replacements" / "monster-rpg2" / "castle.flac").read_bytes()[:42]
+        with mock.patch.object(Path, "open", autospec=True) as opened:
+            opened.return_value.__enter__.return_value.read.return_value = header
+            bounded = sound_release.flac_metadata(ROOT / "bounded.flac")
+            opened.return_value.__enter__.return_value.read.assert_called_once_with(42)
+        self.assertEqual(flac, bounded)
 
     def test_toolchain_is_pinned_and_records_instrument_output_permission(self) -> None:
         toolchain = sound_release.checked_toolchain()

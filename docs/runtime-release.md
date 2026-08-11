@@ -38,7 +38,8 @@ decisions, including the primary evidence hash and every supporting capture
 hash. Each artifact must remain Git-tracked, regular, and byte-exact, so an
 asset replacement or corrupted capture cannot inherit an approval.
 `manifests/source-replacements.json` binds each replacement's authored source
-path, removed source hash, stable logical key, and transformation note. A
+path, removed source hash and immutable predecessor commit, stable logical key,
+and transformation note. A
 replacement cannot coexist with the removed legacy file, silently change a
 lookup key, or bypass the independent behavioral and critical-listening gate.
 These manifests and the

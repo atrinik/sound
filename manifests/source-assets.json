@@ -4821,7 +4821,7 @@
         "sha256": "1e0ba8febcfa89e76bf90edc41124a203a4864ce568755c84f21ecb8e96b0fec"
       },
       "source_path": "background/replacements/monster-rpg2/battle.flac",
-      "transformation_notes": "Nooskewl CC0 lossless battle replacement selected for the legacy betrayal-battle key; behavioral and loop review required.; license review SHA-256: 0be3347b63a82045b81e02872ddbbe50b63fcf4584c4d786844cc1813ce62cbb"
+      "transformation_notes": "Nooskewl CC0 lossless battle replacement selected for the legacy betrayal-battle key; behavioral and loop review required. Replaces background/betrayal_battle.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 8e647aa03114c76bd38181dd33028b5c33fda94e97ff576d03af70fa5516a038).; license review SHA-256: 0be3347b63a82045b81e02872ddbbe50b63fcf4584c4d786844cc1813ce62cbb"
     },
     {
       "encode": {
@@ -4883,7 +4883,7 @@
         "sha256": "11e8d0e2de8a347770826093b80652ab21b37b19688e3a6b1edbb1fbf6a43e5e"
       },
       "source_path": "background/replacements/monster-rpg2/beach_atmosphere.flac",
-      "transformation_notes": "Nooskewl CC0 lossless environmental replacement selected for the legacy rain key; behavioral and loop review required.; license review SHA-256: 9e47fc29b9b47e842a22bdbe6dfa9edd4d0b195daf44842edbff33530c1085f0"
+      "transformation_notes": "Nooskewl CC0 lossless environmental replacement selected for the legacy rain key; behavioral and loop review required. Replaces background/rain.s3m at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 1d384070d989a8739799d7d3e689619edbe9834a2e1523a478db72eccd4116d2).; license review SHA-256: 9e47fc29b9b47e842a22bdbe6dfa9edd4d0b195daf44842edbff33530c1085f0"
     },
     {
       "encode": {
@@ -4945,7 +4945,7 @@
         "sha256": "1948e99947da627d80c036202ae3c29d0d7a72fb4ea2df43e1168297cf8181af"
       },
       "source_path": "background/replacements/monster-rpg2/boss.flac",
-      "transformation_notes": "Nooskewl CC0 lossless boss replacement selected for the legacy cavern-boss key; behavioral and loop review required.; license review SHA-256: 592ff2f88472f7fd139545eb5186ba932178e0fc228fbe6278194fa4a4113bd7"
+      "transformation_notes": "Nooskewl CC0 lossless boss replacement selected for the legacy cavern-boss key; behavioral and loop review required. Replaces background/cavern_boss.mod at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 adb2c499234890867e1b25fc5e30af83ffc2f94b4faffc2535feddde175c2812).; license review SHA-256: 592ff2f88472f7fd139545eb5186ba932178e0fc228fbe6278194fa4a4113bd7"
     },
     {
       "encode": {
@@ -5007,7 +5007,7 @@
         "sha256": "4e2d334eec895c2d76101130e400239ad106f3fba3fe6b0e4af938fa7f82e00b"
       },
       "source_path": "background/replacements/monster-rpg2/burned_village.flac",
-      "transformation_notes": "Nooskewl CC0 lossless desolate replacement selected for the legacy desert key; behavioral and loop review required.; license review SHA-256: 20d5dd412b3fdc90b8f16a154b717dae49e461fcafdefe2df1b476da76ecf740"
+      "transformation_notes": "Nooskewl CC0 lossless desolate replacement selected for the legacy desert key; behavioral and loop review required. Replaces background/desert.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 b87a5289e9aa3005120e41513ad7a99bfd21b82dc28ed88fd9316359d2c8c464).; license review SHA-256: 20d5dd412b3fdc90b8f16a154b717dae49e461fcafdefe2df1b476da76ecf740"
     },
     {
       "encode": {
@@ -5069,7 +5069,7 @@
         "sha256": "6b6aa527b6156a2b61faa4496e9ebb36ee4034d3229431266e098216fa6414d8"
       },
       "source_path": "background/replacements/monster-rpg2/castle.flac",
-      "transformation_notes": "Nooskewl CC0 lossless replacement selected for the legacy Archons-of-Light exploration key; behavioral and loop review required.; license review SHA-256: 109d760f0f8092323bf28c9f0a4aa4b3db8bfbd9004a1348135e8763232c78e6"
+      "transformation_notes": "Nooskewl CC0 lossless replacement selected for the legacy Archons-of-Light exploration key; behavioral and loop review required. Replaces background/aa_arofl.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 1830756c232f101a43e4a302e228c671bfef0bb62fa2ef262eaec1e050fbb0e4).; license review SHA-256: 109d760f0f8092323bf28c9f0a4aa4b3db8bfbd9004a1348135e8763232c78e6"
     },
     {
       "encode": {
@@ -5131,7 +5131,7 @@
         "sha256": "b12d8f547bf35fe86936d0435c4d13e8fc8463243c1fdfdf253ff7fb56cc265e"
       },
       "source_path": "background/replacements/monster-rpg2/chase.flac",
-      "transformation_notes": "Nooskewl CC0 lossless movement replacement selected for the legacy walk key; behavioral and loop review required.; license review SHA-256: a2eeff4af6abf3ab15880b901e962bf9cc8353bd85dffc8c7dced69d19027d2b"
+      "transformation_notes": "Nooskewl CC0 lossless movement replacement selected for the legacy walk key; behavioral and loop review required. Replaces background/walk.s3m at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 8de75898a0fa27bf8627208d0fd59756793b3b20f7abb4ad437423e04d885f9f).; license review SHA-256: a2eeff4af6abf3ab15880b901e962bf9cc8353bd85dffc8c7dced69d19027d2b"
     },
     {
       "encode": {
@@ -5193,7 +5193,7 @@
         "sha256": "7577be786a90259be87fa9a2eea1ac917b29f46888beaaa75e35da27de7823fe"
       },
       "source_path": "background/replacements/monster-rpg2/credits.flac",
-      "transformation_notes": "Nooskewl CC0 lossless reflective replacement selected for the legacy comeback key; behavioral and loop review required.; license review SHA-256: 1e1a09e2adcafb7eedea2d15ae8b4360dc4d468b3a98c9db2d52d45bcf8ad5bc"
+      "transformation_notes": "Nooskewl CC0 lossless reflective replacement selected for the legacy comeback key; behavioral and loop review required. Replaces background/comeback.mod at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 cce0f3f5e50610ad92d4204d25a8e3fb3cf219201ecf14b233af6d76e1c72a91).; license review SHA-256: 1e1a09e2adcafb7eedea2d15ae8b4360dc4d468b3a98c9db2d52d45bcf8ad5bc"
     },
     {
       "encode": {
@@ -5255,7 +5255,7 @@
         "sha256": "7c71c5ce582823d67ad3f3ed500991a292cf07d266d1111f11738bb230ebd665"
       },
       "source_path": "background/replacements/monster-rpg2/farmer.flac",
-      "transformation_notes": "Nooskewl CC0 lossless pastoral replacement selected for the legacy restful-town key; behavioral and loop review required.; license review SHA-256: 9ca774c40bcdbf7795fc937438b67e332dbedcdcad667957ce72918093b2edad"
+      "transformation_notes": "Nooskewl CC0 lossless pastoral replacement selected for the legacy restful-town key; behavioral and loop review required. Replaces background/restful_town.mid at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 4c8873fe3b1b0f65e7bc6a5c3c3c782239ec2bbaae45f6af2dbac7aefd3b0b1b).; license review SHA-256: 9ca774c40bcdbf7795fc937438b67e332dbedcdcad667957ce72918093b2edad"
     },
     {
       "encode": {
@@ -5317,7 +5317,7 @@
         "sha256": "00e6c1636671ae643200d847f63fd84ef73553ed7cc14705bbbfb8b8618f8445"
       },
       "source_path": "background/replacements/monster-rpg2/final_boss.flac",
-      "transformation_notes": "Nooskewl CC0 lossless dramatic replacement selected for the legacy creature-awakens key; behavioral and loop review required.; license review SHA-256: e23d3c91e76bc93f920cf6a995e2db776e505ba136310d32156c9bdaeab2fd45"
+      "transformation_notes": "Nooskewl CC0 lossless dramatic replacement selected for the legacy creature-awakens key; behavioral and loop review required. Replaces background/creature_awakens.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 015fb611c81ecd3a7dfd74f3a888287cdc898f19a0543bcdde239ab4bc2be251).; license review SHA-256: e23d3c91e76bc93f920cf6a995e2db776e505ba136310d32156c9bdaeab2fd45"
     },
     {
       "encode": {
@@ -5379,7 +5379,7 @@
         "sha256": "5089e252b7d3543c53ed9d8de81879f21529e679491ecee1fd560d082d31a326"
       },
       "source_path": "background/replacements/monster-rpg2/flowey.flac",
-      "transformation_notes": "Nooskewl CC0 lossless melodic replacement selected for the legacy love key; behavioral and loop review required.; license review SHA-256: 8fadd398b312fafa64ce3a48a986464c4ae89fa2665f596ee2e37669774535a0"
+      "transformation_notes": "Nooskewl CC0 lossless melodic replacement selected for the legacy love key; behavioral and loop review required. Replaces background/love.mid at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 b5aa92dfe42a2da9820e5ccea05cd1c5b64b5a71e1f71afaab24ae0542d65db0).; license review SHA-256: 8fadd398b312fafa64ce3a48a986464c4ae89fa2665f596ee2e37669774535a0"
     },
     {
       "encode": {
@@ -5441,7 +5441,7 @@
         "sha256": "bea7cf71e2179237eaeae98f20faad787831205a923a038031e8d5202f429bde"
       },
       "source_path": "background/replacements/monster-rpg2/forest.flac",
-      "transformation_notes": "Nooskewl CC0 lossless forest replacement selected for the legacy wood key; behavioral and loop review required.; license review SHA-256: 772f4d2b5eadcd056e2260dea3d26c4e527b56064622c1c77c301932fba915e1"
+      "transformation_notes": "Nooskewl CC0 lossless forest replacement selected for the legacy wood key; behavioral and loop review required. Replaces background/wood.s3m at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 c2290e3175b3baf6eb3aea3cc912fe44f1b6bd7d6838d9c3c4a0f804e0b3ebaf).; license review SHA-256: 772f4d2b5eadcd056e2260dea3d26c4e527b56064622c1c77c301932fba915e1"
     },
     {
       "encode": {
@@ -5503,7 +5503,7 @@
         "sha256": "09aac1e350cf142dbc4c9392366eb8d28de015c122a49329e94494fbb6150c5f"
       },
       "source_path": "background/replacements/monster-rpg2/fortress.flac",
-      "transformation_notes": "Nooskewl CC0 lossless adventure replacement selected for the legacy venturing-dragons key; behavioral and loop review required.; license review SHA-256: b97a9ac8e7eb7088df8b1a4aa459a3b0862cb9f73da9eb64f2e1ef0096352109"
+      "transformation_notes": "Nooskewl CC0 lossless adventure replacement selected for the legacy venturing-dragons key; behavioral and loop review required. Replaces background/venturing_dragons.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 ea7aa1bedc36225e0027a10abb1e2fc21835059f9fb9969cfe0cc0d7de09e5b4).; license review SHA-256: b97a9ac8e7eb7088df8b1a4aa459a3b0862cb9f73da9eb64f2e1ef0096352109"
     },
     {
       "encode": {
@@ -5565,7 +5565,7 @@
         "sha256": "d6e78768767a33e970be920544c720faf4240cd2ad09b96a6b1fb9154d48a006"
       },
       "source_path": "background/replacements/monster-rpg2/happtroll.flac",
-      "transformation_notes": "Nooskewl CC0 lossless upbeat replacement selected for the legacy lively key; behavioral and loop review required.; license review SHA-256: ba4c2e54d9e479dd8aa070f2c89b04ce297a667d8c2c1cec7e49d8d8b0332e70"
+      "transformation_notes": "Nooskewl CC0 lossless upbeat replacement selected for the legacy lively key; behavioral and loop review required. Replaces background/lively.mid at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 8fc6aae4b07fe0d03eabe100708f8582e0af5f2eab436c91833f5ea813b836dd).; license review SHA-256: ba4c2e54d9e479dd8aa070f2c89b04ce297a667d8c2c1cec7e49d8d8b0332e70"
     },
     {
       "encode": {
@@ -5627,7 +5627,7 @@
         "sha256": "15d3960384459b4ce43c8eaba9a7084eaa696fe5f99103698568588ec121b20d"
       },
       "source_path": "background/replacements/monster-rpg2/jungle_shop.flac",
-      "transformation_notes": "Nooskewl CC0 lossless shop replacement selected for the legacy town-folk key; behavioral and loop review required.; license review SHA-256: 929e54728f0dcbd0776f6dc20f4279a1db8987ff3ce24bd89734169867a03c93"
+      "transformation_notes": "Nooskewl CC0 lossless shop replacement selected for the legacy town-folk key; behavioral and loop review required. Replaces background/town_folk.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 0752297cca21295d30b1eb48820ea881b46bb9f5ed82d7ad3c8d78212d97e704).; license review SHA-256: 929e54728f0dcbd0776f6dc20f4279a1db8987ff3ce24bd89734169867a03c93"
     },
     {
       "encode": {
@@ -5689,7 +5689,7 @@
         "sha256": "7b83c82db266aa4c3f40d9d64990aeedead7662e342fe69fd605311c565e3af7"
       },
       "source_path": "background/replacements/monster-rpg2/keep.flac",
-      "transformation_notes": "Nooskewl CC0 lossless dungeon replacement selected for the legacy cavern key; behavioral and loop review required.; license review SHA-256: ab65cc181fe79bbd2ded4fefc76cd16e6f593a414d7b88ddacdaf56398b69602"
+      "transformation_notes": "Nooskewl CC0 lossless dungeon replacement selected for the legacy cavern key; behavioral and loop review required. Replaces background/cavern.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 5908870e3c5d43a9419c0dce3eeef253afa96a7909c8e08ee11ab2f50cbc6f57).; license review SHA-256: ab65cc181fe79bbd2ded4fefc76cd16e6f593a414d7b88ddacdaf56398b69602"
     },
     {
       "encode": {
@@ -5751,7 +5751,7 @@
         "sha256": "fed3cb023625fe1588aa36ff285e2c5ed65974bea3db438951307a3090e10256"
       },
       "source_path": "background/replacements/monster-rpg2/landing.flac",
-      "transformation_notes": "Nooskewl CC0 lossless travel replacement selected for the legacy trail key; behavioral and loop review required.; license review SHA-256: dc05d52918995644800953b6bd456d20b9e4d3dd112da8fae04e9c4575c402f2"
+      "transformation_notes": "Nooskewl CC0 lossless travel replacement selected for the legacy trail key; behavioral and loop review required. Replaces background/the_trail_2.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 2c153f17fe72703dbc7c39a5227f632c9354b5c69a3b67c61502ac93ac337112).; license review SHA-256: dc05d52918995644800953b6bd456d20b9e4d3dd112da8fae04e9c4575c402f2"
     },
     {
       "encode": {
@@ -5813,7 +5813,7 @@
         "sha256": "7eeb77b963cfd3d03ca8e54f1f4eb4f7c374d221b179ba32cb63e45f645d97a7"
       },
       "source_path": "background/replacements/monster-rpg2/map.flac",
-      "transformation_notes": "Nooskewl CC0 lossless exploration replacement selected for the legacy Erana key; behavioral and loop review required.; license review SHA-256: 58566a1cbc177c5f99ef385d60398bff712f9cdeec7262e3b2ca2ed04af7c153"
+      "transformation_notes": "Nooskewl CC0 lossless exploration replacement selected for the legacy Erana key; behavioral and loop review required. Replaces background/eranasp.mod at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 04351f60469d941a664a727d112d9e0393e767c2105905e15c113fb9f2c942f0).; license review SHA-256: 58566a1cbc177c5f99ef385d60398bff712f9cdeec7262e3b2ca2ed04af7c153"
     },
     {
       "encode": {
@@ -5875,7 +5875,7 @@
         "sha256": "5977e5bc44fdbf3a1a51cfe3e117b90e9df2c593da398a1facf0497c3e9c1b1d"
       },
       "source_path": "background/replacements/monster-rpg2/monastery.flac",
-      "transformation_notes": "Nooskewl CC0 lossless interior replacement selected for the legacy cave key; behavioral and loop review required.; license review SHA-256: 4e21b7e7258765e2b5d7e28d83be096353bdcb54f7ec2de517e872adb0165cb7"
+      "transformation_notes": "Nooskewl CC0 lossless interior replacement selected for the legacy cave key; behavioral and loop review required. Replaces background/cave2.ogg at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 d3884b9f43b3eee290a678ead69496da3f02b9aced8ad4caf91ac36e8b294faf).; license review SHA-256: 4e21b7e7258765e2b5d7e28d83be096353bdcb54f7ec2de517e872adb0165cb7"
     },
     {
       "encode": {
@@ -5937,7 +5937,7 @@
         "sha256": "46fe3297536cd8ff184fb20b28efeb2342752922239e418454dfc96586dda518"
       },
       "source_path": "background/replacements/monster-rpg2/moon.flac",
-      "transformation_notes": "Nooskewl CC0 lossless extended-atmosphere replacement selected for the legacy Infanita key; behavioral and loop review required.; license review SHA-256: c9a6ed419e3ab30070f85cea08e77229fafa587ddeb58ee938d19dc28239aad5"
+      "transformation_notes": "Nooskewl CC0 lossless extended-atmosphere replacement selected for the legacy Infanita key; behavioral and loop review required. Replaces background/infanita.mod at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 0eabaa89c222a0f26920f5f1ee6bb284deb6ec4444d0fedb8e9d794c7f4a8016).; license review SHA-256: c9a6ed419e3ab30070f85cea08e77229fafa587ddeb58ee938d19dc28239aad5"
     },
     {
       "encode": {
@@ -5999,7 +5999,7 @@
         "sha256": "f58612c846b5ea313ba3460b827fa617c80ef762f0b740bc145b05098a0b30d3"
       },
       "source_path": "background/replacements/monster-rpg2/moon2.flac",
-      "transformation_notes": "Nooskewl CC0 lossless replacement selected for the legacy ambient-light key; behavioral and loop review required.; license review SHA-256: 4f8336c2cbf6e7b844e6e002961095d196700ed831e19d06a209a3caf90a18d5"
+      "transformation_notes": "Nooskewl CC0 lossless replacement selected for the legacy ambient-light key; behavioral and loop review required. Replaces background/amblight.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 294383e3ce555549851ca12b3f5d9e86835d4a549ad51eb8a664cc8ee124ef99).; license review SHA-256: 4f8336c2cbf6e7b844e6e002961095d196700ed831e19d06a209a3caf90a18d5"
     },
     {
       "encode": {
@@ -6061,7 +6061,7 @@
         "sha256": "1d43592ec06beaac7684c5df2374ba0f77caeb462d8c7048a654b87ac1947302"
       },
       "source_path": "background/replacements/monster-rpg2/mountains.flac",
-      "transformation_notes": "Nooskewl CC0 lossless mountain replacement selected for the legacy ice-frontier key; behavioral and loop review required.; license review SHA-256: 5d7666e79a57245d51656601c5c7fcaabb3eebbc484de6d46803ee0bb79b501a"
+      "transformation_notes": "Nooskewl CC0 lossless mountain replacement selected for the legacy ice-frontier key; behavioral and loop review required. Replaces background/ice_frontier.s3m at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 c6c484c0f36f3ff967a9ebbe345092d2fe7cd8c4b82ae1abce32c912b7ba55fc).; license review SHA-256: 5d7666e79a57245d51656601c5c7fcaabb3eebbc484de6d46803ee0bb79b501a"
     },
     {
       "encode": {
@@ -6123,7 +6123,7 @@
         "sha256": "9a7c1d7105e59a100e6eb2e550b8689f7f79036e004be499fb6cf138bbdd5ac1"
       },
       "source_path": "background/replacements/monster-rpg2/seaside_repaired.flac",
-      "transformation_notes": "Nooskewl CC0 lossless waterside replacement selected for the legacy waterfall key; behavioral and loop review required.; license review SHA-256: 12616fc1cfe71e66aae696478c9c9ff31de99a9e02dd4a5780481e898f1eae1d"
+      "transformation_notes": "Nooskewl CC0 lossless waterside replacement selected for the legacy waterfall key; behavioral and loop review required. Replaces background/rend.s3m at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 8ed26cc474e6ba30ad2774fa19eb4828e7f3aa190eac2385ea0ff740602c38e9).; license review SHA-256: 12616fc1cfe71e66aae696478c9c9ff31de99a9e02dd4a5780481e898f1eae1d"
     },
     {
       "encode": {
@@ -6185,7 +6185,7 @@
         "sha256": "81ab389bc38bf63517e43f8589c70333aafbfc4aac4a196f1e22cccba48e5897"
       },
       "source_path": "background/replacements/monster-rpg2/shmup2.flac",
-      "transformation_notes": "Nooskewl CC0 lossless action replacement selected for the legacy RPG-battle key; behavioral and loop review required.; license review SHA-256: b65a9d106fe9fc74950e8e9d8270dabcd84c61d7523b6129280967f6f2fcc261"
+      "transformation_notes": "Nooskewl CC0 lossless action replacement selected for the legacy RPG-battle key; behavioral and loop review required. Replaces background/rpg_battle.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 05c5db1daf8e4e3367358856afb2076ab74ce098d7e251fc9c4dbdd7144561b9).; license review SHA-256: b65a9d106fe9fc74950e8e9d8270dabcd84c61d7523b6129280967f6f2fcc261"
     },
     {
       "encode": {
@@ -6247,7 +6247,7 @@
         "sha256": "20a0e095048197f6c53d98ef7492665bbb63db4d32b30e85541017870957a37f"
       },
       "source_path": "background/replacements/monster-rpg2/title.flac",
-      "transformation_notes": "Nooskewl CC0 lossless theme replacement selected for the legacy Enfero key; behavioral and loop review required.; license review SHA-256: 8f510cf2d1f1905c3f9cd454ce85b3998532ee8a7413fbb86cd8eda810a2fc04"
+      "transformation_notes": "Nooskewl CC0 lossless theme replacement selected for the legacy Enfero key; behavioral and loop review required. Replaces background/enfero.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 ee6d228cf70a47d5c6665e72ebb69baa0902a33c7b29e02f0bd45043a87bfff5).; license review SHA-256: 8f510cf2d1f1905c3f9cd454ce85b3998532ee8a7413fbb86cd8eda810a2fc04"
     },
     {
       "encode": {
@@ -6309,7 +6309,7 @@
         "sha256": "8b16c278cd5678687a7cd3b93dd8178782266abfa51b3fb0a08621ba8441f7e8"
       },
       "source_path": "background/replacements/monster-rpg2/tivoli.flac",
-      "transformation_notes": "Nooskewl CC0 lossless settlement replacement selected for the legacy town key; behavioral and loop review required.; license review SHA-256: 9621f11351a02387aec105168d930780b8275a129ffd0af9766f5707ea1f99a9"
+      "transformation_notes": "Nooskewl CC0 lossless settlement replacement selected for the legacy town key; behavioral and loop review required. Replaces background/town.mod at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 4484aff95c4b7158e7bdcdc75e4e1d66fad5b0b0c71e11f8e23da2571233e060).; license review SHA-256: 9621f11351a02387aec105168d930780b8275a129ffd0af9766f5707ea1f99a9"
     },
     {
       "encode": {
@@ -6371,7 +6371,7 @@
         "sha256": "dc61b0f8644df0f8dee680ba474b93d6ed270755c973a61f3bb22ecb4dc8f5c0"
       },
       "source_path": "background/replacements/monster-rpg2/tutorial.flac",
-      "transformation_notes": "Nooskewl CC0 lossless gentle replacement selected for the legacy insper key; behavioral and loop review required.; license review SHA-256: 337288222ca1ec2e05310826b092b0ff2a8799c860d5d47c69366120275078f2"
+      "transformation_notes": "Nooskewl CC0 lossless gentle replacement selected for the legacy insper key; behavioral and loop review required. Replaces background/insper.mid at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 65aec6f7f05615422bd7da2301b07a6bc688c1fb219b43b7571b4b68d37cf7ea).; license review SHA-256: 337288222ca1ec2e05310826b092b0ff2a8799c860d5d47c69366120275078f2"
     },
     {
       "encode": {
@@ -6433,7 +6433,7 @@
         "sha256": "38c1b04c07d289b7918d7a6deadba980bb49c23c28ee2b7c105741aaf4e9aa13"
       },
       "source_path": "background/replacements/monster-rpg2/underground.flac",
-      "transformation_notes": "Nooskewl CC0 lossless underground replacement selected for the legacy dragon-cave key; behavioral and loop review required.; license review SHA-256: f1d83b73983c5997aabd8b204c531b3b875004a553a887523053c9b43738e718"
+      "transformation_notes": "Nooskewl CC0 lossless underground replacement selected for the legacy dragon-cave key; behavioral and loop review required. Replaces background/cave.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 1ca0ee5aab58c7fd953da850c2ff99cdc1bd919e2a547337a2c331f4e59cc22e).; license review SHA-256: f1d83b73983c5997aabd8b204c531b3b875004a553a887523053c9b43738e718"
     },
     {
       "encode": {
@@ -6495,7 +6495,7 @@
         "sha256": "84f3a290b43b8bdcb115fb4a5f966a6031fe94b80b40dff941f88dec5cc09072"
       },
       "source_path": "background/replacements/monster-rpg2/underwater.flac",
-      "transformation_notes": "Nooskewl CC0 lossless underwater replacement selected for the legacy waterworld key; behavioral and loop review required.; license review SHA-256: 322d2dc04b3c8d7927a164500a540f0e6a231ed59702bbe51a8b5e470cdea7ed"
+      "transformation_notes": "Nooskewl CC0 lossless underwater replacement selected for the legacy waterworld key; behavioral and loop review required. Replaces background/waterworld.xm at acb29ba84c0d85d124c7b245c594c0fac1298c0c (SHA-256 b178e4346c0044d0695a71256cdedc917f04f21f7277a7a57d503e5497f5193d).; license review SHA-256: 322d2dc04b3c8d7927a164500a540f0e6a231ed59702bbe51a8b5e470cdea7ed"
     },
     {
       "encode": {
