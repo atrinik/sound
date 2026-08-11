@@ -490,7 +490,10 @@ def ensure_clean_release_input() -> None:
 
 def exact_git_environment() -> dict[str, str]:
     """Return an environment that resolves the repository's real object graph."""
-    environment = dict(os.environ)
+    environment = {
+        key: value for key, value in os.environ.items()
+        if not key.startswith("GIT_")
+    }
     environment["GIT_NO_REPLACE_OBJECTS"] = "1"
     return environment
 

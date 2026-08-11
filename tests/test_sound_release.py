@@ -1478,6 +1478,33 @@ class PlaytestTreeTests(unittest.TestCase):
             with mock.patch.object(sound_release, "ROOT", root):
                 self.assertEqual((second, second_tree), sound_release.clean_source_coordinates())
 
+                with tempfile.TemporaryDirectory(prefix="test-playtest-false-git-") as false_temporary:
+                    false_root = Path(false_temporary)
+                    false_tracked = false_root / "tracked"
+                    subprocess.run(["git", "init", "-q", str(false_root)], check=True)
+                    false_tracked.write_text("fabricated\n", encoding="utf-8")
+                    subprocess.run(
+                        ["git", "-C", str(false_root), "add", "tracked"], check=True,
+                    )
+                    false_commit = [
+                        "git", "-C", str(false_root), "-c", "user.name=Test",
+                        "-c", "user.email=test@example.invalid", "commit", "-qm",
+                    ]
+                    subprocess.run([*false_commit, "fabricated"], check=True)
+                    overrides = {
+                        "GIT_DIR": str(false_root / ".git"),
+                        "GIT_WORK_TREE": str(false_root),
+                        "GIT_INDEX_FILE": str(false_root / ".git" / "index"),
+                        "GIT_CONFIG_COUNT": "1",
+                        "GIT_CONFIG_KEY_0": "core.worktree",
+                        "GIT_CONFIG_VALUE_0": str(false_root),
+                    }
+                    with mock.patch.dict(os.environ, overrides):
+                        self.assertEqual(
+                            (second, second_tree),
+                            sound_release.clean_source_coordinates(),
+                        )
+
                 git_directory = subprocess.run(
                     ["git", "-C", str(root), "rev-parse", "--git-dir"],
                     check=True, capture_output=True, text=True,
