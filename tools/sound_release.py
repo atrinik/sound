@@ -2228,16 +2228,6 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                 descriptors[relative] = (descriptor, metadata, sha256(destination))
             yield snapshot
             try:
-                current_root = os.stat(root, follow_symlinks=False)
-            except OSError as exc:
-                raise ReleaseError("playtest tree root changed during verification") from exc
-            if (
-                not stat.S_ISDIR(current_root.st_mode)
-                or (current_root.st_dev, current_root.st_ino)
-                != (original_root.st_dev, original_root.st_ino)
-            ):
-                raise ReleaseError("playtest tree root changed during verification")
-            try:
                 current_files = _playtest_files(root)
             except OSError as exc:
                 raise ReleaseError("playtest tree changed during verification") from exc
@@ -2258,6 +2248,16 @@ def stable_playtest_snapshot(root: Path) -> Iterator[Path]:
                     retained_sha256 = hashlib.file_digest(retained_file, "sha256").hexdigest()
                 if retained_sha256 != expected_sha256:
                     raise ReleaseError(f"playtest tree changed during verification: {relative}")
+            try:
+                current_root = os.stat(root, follow_symlinks=False)
+            except OSError as exc:
+                raise ReleaseError("playtest tree root changed during verification") from exc
+            if (
+                not stat.S_ISDIR(current_root.st_mode)
+                or (current_root.st_dev, current_root.st_ino)
+                != (original_root.st_dev, original_root.st_ino)
+            ):
+                raise ReleaseError("playtest tree root changed during verification")
     finally:
         for descriptor, _metadata, _digest in descriptors.values():
             os.close(descriptor)

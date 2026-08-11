@@ -1432,6 +1432,31 @@ class PlaytestTreeTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "root changed"):
                 context.__exit__(None, None, None)
 
+    def test_verification_snapshot_rechecks_root_after_final_enumeration(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-playtest-final-root-swap-") as temporary:
+            parent = Path(temporary)
+            root = parent / "tree"
+            moved = parent / "verified-tree"
+            root.mkdir()
+            (root / "payload").write_bytes(b"verified")
+            original_files = sound_release._playtest_files
+            calls = 0
+
+            def enumerate_and_swap(candidate: Path) -> set[str]:
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    root.rename(moved)
+                    root.mkdir()
+                    (root / "payload").write_bytes(b"replacement")
+                return original_files(candidate)
+
+            with mock.patch.object(sound_release, "_playtest_files", side_effect=enumerate_and_swap):
+                context = sound_release.stable_playtest_snapshot(root)
+                context.__enter__()
+                with self.assertRaisesRegex(sound_release.ReleaseError, "root changed"):
+                    context.__exit__(None, None, None)
+
     def test_directory_install_is_atomic_and_never_replaces(self) -> None:
         with tempfile.TemporaryDirectory(prefix="test-playtest-install-") as temporary:
             parent = Path(temporary)
