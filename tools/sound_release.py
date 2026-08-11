@@ -1520,7 +1520,8 @@ def checked_toolchain(
         # Dockerfile contract. Reconstruct their canonical source manifest with
         # the version-1 tool shape, without applying today's stronger image pins.
         return value
-    dockerfile = (ROOT / "tools" / "audio" / "Dockerfile").read_text(encoding="utf-8")
+    dockerfile_name = "playtest.Dockerfile" if playtest else "Dockerfile"
+    dockerfile = (ROOT / "tools" / "audio" / dockerfile_name).read_text(encoding="utf-8")
     docker_pinned_tools = {"ffmpeg", "openmpt123", "opusenc"}
     if playtest:
         docker_pinned_tools.add("wildmidi")

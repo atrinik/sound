@@ -675,6 +675,7 @@ class SourceManifestTests(unittest.TestCase):
             "schemas/audio-toolchain-v1.schema.json",
             "schemas/runtime-manifest-v1.schema.json",
             "schemas/source-assets-v1.schema.json",
+            "tools/audio/Dockerfile",
         ):
             released = subprocess.run(
                 ["git", "-C", str(ROOT), "show", f"acb29ba:{relative}"],

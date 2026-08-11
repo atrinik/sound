@@ -323,5 +323,7 @@ The tree must never be archived, uploaded, cached, released, packaged, installed
 or embedded in an image. Its blocker report preserves every unresolved release
 finding, and its marker is intentionally incompatible with the released-runtime
 manifest schema. The runtime manifest, toolchain, renderer recipes, schemas, and
-publisher remain byte-for-byte unchanged from the release baseline. Local
+`tools/audio/Dockerfile` publisher environment remain byte-for-byte unchanged
+from the release baseline; `tools/audio/playtest.Dockerfile` owns the local
+WildMIDI environment. Local
 playback provides no license, provenance, or critical-listening evidence.

@@ -74,3 +74,6 @@ manifest declare `playtest_only: true` and `publishable: false`; it is not an
 archive, release input, cache, package, container layer, or provenance or
 listening approval. An existing verified tree is reused, while an invalid,
 stale, dirty, or concurrently changing input fails without replacing it.
+
+`tools/audio/playtest.Dockerfile` builds the required local environment without
+changing the released-runtime `tools/audio/Dockerfile` contract.

@@ -5,3 +5,4 @@ tools/*
 tools/audio/*
 !tools/audio/sdl3-mixer-runtime-probe.c
 !tools/audio/wildmidi-render.c
+!tools/audio/playtest.Dockerfile

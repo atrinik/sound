@@ -32,7 +32,7 @@ jobs:
       - name: Build pinned audio toolchain
         run: >-
           docker build --platform linux/amd64
-          --file tools/audio/Dockerfile --tag atrinik-sound-audio .
+          --file tools/audio/playtest.Dockerfile --tag atrinik-sound-audio .
 
       - name: Validate package publisher
         env:
