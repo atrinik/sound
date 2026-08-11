@@ -639,6 +639,11 @@ def exact_git_environment() -> dict[str, str]:
         if not key.startswith("GIT_")
     }
     environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    environment["GIT_CONFIG_COUNT"] = "2"
+    environment["GIT_CONFIG_KEY_0"] = "core.fsmonitor"
+    environment["GIT_CONFIG_VALUE_0"] = "false"
+    environment["GIT_CONFIG_KEY_1"] = "core.untrackedCache"
+    environment["GIT_CONFIG_VALUE_1"] = "false"
     return environment
 
 

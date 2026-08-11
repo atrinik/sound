@@ -1692,6 +1692,29 @@ class PlaytestTreeTests(unittest.TestCase):
                             check=True,
                         )
 
+                fsmonitor = root / ".git" / "malicious-fsmonitor"
+                fsmonitor_marker = root / ".git" / "fsmonitor-executed"
+                fsmonitor.write_text(
+                    "#!/bin/sh\nprintf touched > "
+                    f"'{fsmonitor_marker}'\nprintf '\\0'\n",
+                    encoding="utf-8",
+                )
+                fsmonitor.chmod(0o755)
+                subprocess.run(
+                    ["git", "-C", str(root), "config", "core.fsmonitor", str(fsmonitor)],
+                    check=True,
+                )
+                try:
+                    self.assertEqual(
+                        (second, second_tree), sound_release.clean_source_coordinates()
+                    )
+                    self.assertFalse(fsmonitor_marker.exists())
+                finally:
+                    subprocess.run(
+                        ["git", "-C", str(root), "config", "--unset", "core.fsmonitor"],
+                        check=True,
+                    )
+
                 git_directory = subprocess.run(
                     ["git", "-C", str(root), "rev-parse", "--git-dir"],
                     check=True, capture_output=True, text=True,
