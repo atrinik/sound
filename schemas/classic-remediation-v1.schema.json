@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atrinik.org/schemas/sound/classic-remediation-v1.schema.json",
+  "title": "Atrinik Classic runtime modernization remediation report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schema_version", "classification", "release_boundary", "source_commit", "source_tree", "source_manifest_sha256", "source_count", "count", "category_counts", "findings"],
+  "properties": {
+    "$schema": {"const": "schemas/classic-remediation-v1.schema.json"},
+    "schema_version": {"const": 1},
+    "classification": {"const": "nonblocking-modernization"},
+    "release_boundary": {"type": "string", "minLength": 1},
+    "source_commit": {"$ref": "#/$defs/gitObject"},
+    "source_tree": {"$ref": "#/$defs/gitObject"},
+    "source_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "source_count": {"type": "integer", "minimum": 1},
+    "count": {"type": "integer", "minimum": 0},
+    "category_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "findings": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gitObject": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+  }
+}

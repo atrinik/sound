@@ -36,15 +36,15 @@ fi
 tools/package-release.sh "${tag}" "${output_directory}"
 python3 tools/sound_release.py validate
 export ATRINIK_RELEASE_INPUT_ATTESTED=1
+export SOURCE_DATE_EPOCH
+SOURCE_DATE_EPOCH=$(git show -s --format=%ct "${tag}^{commit}")
+absolute_output=$(realpath "${output_directory}")
 
 blockers_file="${output_directory}/atrinik-sound-runtime-$1-BLOCKED.json"
 python3 tools/sound_release.py blockers >"${blockers_file}"
 blocker_count=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["count"])' "${blockers_file}")
 if [[ ${blocker_count} -eq 0 ]]; then
   rm "${blockers_file}"
-  export SOURCE_DATE_EPOCH
-  SOURCE_DATE_EPOCH=$(git show -s --format=%ct "${tag}^{commit}")
-  absolute_output=$(realpath "${output_directory}")
   docker build --platform linux/amd64 \
     --file tools/audio/Dockerfile --tag atrinik-sound-audio .
   docker run --rm --platform linux/amd64 \
@@ -77,5 +77,53 @@ if [[ ${blocker_count} -eq 0 ]]; then
 else
   echo "runtime archive blocked by ${blocker_count} recorded release findings" >&2
 fi
+
+docker build --platform linux/amd64 \
+  --file tools/audio/classic-runtime.Dockerfile \
+  --tag atrinik-sound-classic-audio .
+classic_comparison_directory=$(mktemp -d)
+cleanup_comparison_directories() {
+  if [[ -n ${comparison_directory:-} ]]; then
+    rm -rf -- "${comparison_directory}"
+  fi
+  rm -rf -- "${classic_comparison_directory}"
+}
+trap cleanup_comparison_directories EXIT
+run_classic_runtime_build() {
+  local target=$1
+  docker run --rm --platform linux/amd64 \
+    --network none \
+    --user "$(id -u):$(id -g)" \
+    --volume "$PWD:/workspaces/sound:ro" \
+    --volume "${target}:/output" \
+    --env SOURCE_DATE_EPOCH \
+    --env ATRINIK_SOURCE_COMMIT="${source_commit}" \
+    --env ATRINIK_SOURCE_TREE="${source_tree}" \
+    --env ATRINIK_RELEASE_INPUT_ATTESTED \
+    atrinik-sound-classic-audio \
+    python3 tools/sound_release.py build-classic-runtime "${tag}" /output
+}
+run_classic_runtime_build "${absolute_output}"
+run_classic_runtime_build "${classic_comparison_directory}"
+classic_archive="atrinik-sound-classic-runtime-$1.tar.gz"
+classic_remediation="atrinik-sound-classic-runtime-$1-REMEDIATION.json"
+cmp \
+  "${absolute_output}/${classic_archive}" \
+  "${classic_comparison_directory}/${classic_archive}"
+cmp \
+  "${absolute_output}/${classic_remediation}" \
+  "${classic_comparison_directory}/${classic_remediation}"
+docker run --rm --platform linux/amd64 \
+  --network none \
+  --user "$(id -u):$(id -g)" \
+  --volume "$PWD:/workspaces/sound:ro" \
+  --volume "${absolute_output}:/output:ro" \
+  --env SOURCE_DATE_EPOCH \
+  --env ATRINIK_SOURCE_COMMIT="${source_commit}" \
+  --env ATRINIK_SOURCE_TREE="${source_tree}" \
+  --env ATRINIK_RELEASE_INPUT_ATTESTED \
+  atrinik-sound-classic-audio \
+  python3 tools/sound_release.py verify-classic-runtime \
+    "${tag}" "/output/${classic_archive}"
 
 python3 tools/sound_release.py checksums "${output_directory}"

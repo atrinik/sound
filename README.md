@@ -26,14 +26,31 @@ path. For example, `background/fireside.mid` maps to
 `audio/background/fireside.mid.opus`; consumers resolve the mapping instead of
 renaming authored content.
 
-When every source has exact conversion and redistribution permission and every
-second-generation conversion has source-hash-bound quality approval, the same
-release also publishes `atrinik-sound-runtime-VERSION.tar.gz`. The runtime
-archive contains only generated `.opus` audio, its complete measured manifest,
-the applicable notices, and the pinned transformation contract. A release with
-any unresolved finding publishes an explicit
-`atrinik-sound-runtime-VERSION-BLOCKED.json` report and no partial runtime
-archive.
+Every release also publishes
+`atrinik-sound-classic-runtime-VERSION.tar.gz`, the compatibility product used
+to restore the maintained Classic client. Beneath one archive prefix it exposes
+all 339 unchanged legacy logical paths: 189 current Vorbis payloads copied
+byte-for-byte and 150 deterministic Opus renderings of the 122 MIDI and 28 FLAC
+sources. SDL3_mixer identifies those payloads by content when a legacy filename
+extension names the authored format. The archive carries a publishable
+manifest, its schema and pinned toolchain, internal checksums, notices,
+attribution, license texts, and the complete modernization inventory. The same
+inventory is a release-level
+`atrinik-sound-classic-runtime-VERSION-REMEDIATION.json` asset.
+
+The restoration decision permits republication of Atrinik's already-published
+corpus; it does not clear, erase, or hide the 248 license/provenance and 217
+formal quality-review findings. Those 465 findings remain modernization work.
+Missing or colliding paths, changed inputs, unsafe files, hash or toolchain
+drift, nondeterministic conversion, or decoder failure still blocks the Classic
+runtime completely.
+
+The separately normalized `atrinik-sound-runtime-VERSION.tar.gz` remains gated
+until every source has exact conversion and redistribution permission and every
+second-generation conversion has source-hash-bound quality approval. Until
+then, releases continue to publish its explicit
+`atrinik-sound-runtime-VERSION-BLOCKED.json` report and no partial normalized
+runtime.
 
 Approvals are immutable-input contracts: license reviews bind source, notice,
 and SPDX hashes, while required quality reviews additionally bind the exact

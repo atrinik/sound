@@ -46,6 +46,8 @@ jobs:
           test -s build/release/atrinik-sound-0.0.0.tar.gz
           test -s build/release/atrinik-sound-runtime-0.0.0-BLOCKED.json
           test ! -e build/release/atrinik-sound-runtime-0.0.0.tar.gz
+          test -s build/release/atrinik-sound-classic-runtime-0.0.0.tar.gz
+          test -s build/release/atrinik-sound-classic-runtime-0.0.0-REMEDIATION.json
           (cd build/release && sha256sum --check SHA256SUMS)
 
   runtime-fixtures:

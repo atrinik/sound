@@ -13,12 +13,17 @@
   Consumers must use immutable checksum-pinned releases, not Git submodules.
 - Keep mixed-format files as canonical authored sources. Runtime Opus is
   generated only under `build/`; never commit it or replace sources in place.
+- Keep the publishable Classic restoration runtime separate from both the
+  normalized all-Opus runtime and the local-only playtest tree. It preserves
+  existing Vorbis bytes, converts only MIDI/FLAC sources, and carries the full
+  nonblocking modernization inventory without claiming new clearance.
 - Keep the local Classic compatibility tree under ignored `build/` state,
   explicitly playtest-only and nonpublishable. Preserve legacy logical paths,
   record the actual payload codec, and require clean exact-source and pinned
   toolchain verification without weakening released-runtime blockers.
 - Keep `manifests/source-assets.json`, `manifests/audio-toolchain.json`, the
-  separate nonpublishing `manifests/playtest-audio-toolchain.json`, the
+  separate publishable `manifests/classic-audio-toolchain.json` and
+  nonpublishing `manifests/playtest-audio-toolchain.json`, the
   license and Vorbis quality-review ledgers, pinned tracker-duration ledger,
   versioned schemas, fixture plan,
   runtime builder, release workflow,
