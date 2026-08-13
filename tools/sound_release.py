@@ -2502,6 +2502,33 @@ def blocker_report(manifest: dict[str, object], blockers: list[dict[str, object]
     }
 
 
+def classic_release_notes(blockers: list[dict[str, object]]) -> str:
+    counts: dict[str, int] = {}
+    for finding in blockers:
+        category = str(finding.get("category", "unknown"))
+        counts[category] = counts.get(category, 0) + 1
+    if not blockers:
+        status = "No Classic restoration modernization findings remain."
+    else:
+        labels = {
+            "license/provenance": "license/provenance",
+            "quality-review": "formal quality-review",
+        }
+        details = " and ".join(
+            f"**{count} {labels.get(category, category)}**"
+            for category, count in sorted(counts.items())
+        )
+        status = (
+            "The Classic restoration runtime republishes Atrinik's existing corpus; "
+            f"it does not newly clear {details} findings (**{len(blockers)} total**)."
+        )
+    return (
+        "### Classic restoration modernization status\n\n"
+        f"{status} Track the separate modernization work in "
+        "[atrinik/sound#31](https://github.com/atrinik/sound/issues/31).\n"
+    )
+
+
 def legacy_path_assets(
     source_manifest: dict[str, object], toolchain: dict[str, object],
 ) -> list[dict[str, object]]:
@@ -3335,7 +3362,11 @@ def _copy_classic_runtime_contracts(root: Path, toolchain: dict[str, object]) ->
             raise ReleaseError("Classic runtime toolchain license contract is invalid")
         relative = str(contract.get("archive_path", ""))
         source = Path(str(contract.get("installed_path", "")))
-        if not relative.startswith("licenses/") or PurePosixPath(relative).is_absolute():
+        pure = PurePosixPath(relative)
+        if (
+            not relative.startswith("licenses/") or pure.is_absolute()
+            or ".." in pure.parts or pure.as_posix() != relative
+        ):
             raise ReleaseError("Classic runtime toolchain license archive path is unsafe")
         destination = root / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -3595,6 +3626,8 @@ def build_classic_runtime(tag: str, output_directory: Path) -> tuple[Path, Path]
 
 
 def verify_classic_runtime_archive(archive: Path, tag: str) -> dict[str, object]:
+    if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
+        raise ReleaseError(f"invalid release tag: {tag}")
     if not archive.is_file() or archive.is_symlink():
         raise ReleaseError(f"Classic runtime archive is missing or unsafe: {archive}")
     version = tag[1:]
@@ -4262,6 +4295,12 @@ def command_blockers(_arguments: argparse.Namespace) -> None:
     print(canonical_json(blocker_report(manifest, blockers)).decode("utf-8"), end="")
 
 
+def command_classic_release_notes(_arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    blockers = validate_manifest(manifest, verify_tracked=True)
+    print(classic_release_notes(blockers), end="")
+
+
 def command_build(arguments: argparse.Namespace) -> None:
     output = build_runtime(arguments.tag, Path(arguments.output_directory), fixtures=arguments.fixtures)
     print(output)
@@ -4326,6 +4365,11 @@ def parser() -> argparse.ArgumentParser:
     quality_outputs.set_defaults(function=command_validate_quality_outputs)
     blockers = commands.add_parser("blockers", help="print fail-closed runtime findings as JSON")
     blockers.set_defaults(function=command_blockers)
+    release_notes = commands.add_parser(
+        "classic-release-notes",
+        help="print the Classic restoration modernization release-note fragment",
+    )
+    release_notes.set_defaults(function=command_classic_release_notes)
     build = commands.add_parser("build-runtime", help="build the full or fixture Opus archive")
     build.add_argument("tag")
     build.add_argument("output_directory")

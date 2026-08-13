@@ -1088,6 +1088,20 @@ class SourceManifestTests(unittest.TestCase):
             report["category_counts"],
         )
         self.assertEqual(blockers, report["findings"])
+        notes = sound_release.classic_release_notes(blockers)
+        self.assertIn("**248 license/provenance**", notes)
+        self.assertIn("**217 formal quality-review**", notes)
+        self.assertIn("**465 total**", notes)
+        self.assertIn("https://github.com/atrinik/sound/issues/31", notes)
+        release_config = json.loads((ROOT / ".releaserc.json").read_text(encoding="utf-8"))
+        exec_config = next(
+            config for plugin, config in release_config["plugins"]
+            if plugin == "@semantic-release/exec"
+        )
+        self.assertEqual(
+            "python3 tools/sound_release.py classic-release-notes",
+            exec_config["generateNotesCmd"],
+        )
 
     def test_vorbis_midi_and_flac_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
@@ -2334,6 +2348,13 @@ class ClassicRuntimeArchiveTests(unittest.TestCase):
                 root, archive, "atrinik-sound-classic-runtime-1.2.3", 1700000000,
             )
             self.assertEqual(339, self.verify_archive(archive)["logical_path_count"])
+
+    def test_archive_verifier_rejects_an_unsafe_release_tag(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            archive = Path(temporary) / "runtime.tar.gz"
+            archive.write_bytes(b"not reached")
+            with self.assertRaisesRegex(sound_release.ReleaseError, "invalid release tag"):
+                sound_release.verify_classic_runtime_archive(archive, "v../../escape")
 
     def test_archive_verifier_rejects_traversal_and_oversized_members(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

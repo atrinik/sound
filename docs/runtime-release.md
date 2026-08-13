@@ -312,8 +312,9 @@ archive report and is included in the release-level `SHA256SUMS`. Consumers pin
 the tag, commit, asset URL, archive SHA-256, manifest and schema hashes,
 toolchain hash, source tree, counts, and logical-tree digest. The release notes
 must state the 248 license/provenance and 217 formal quality-review findings and
-link the modernization initiative rather than presenting the corpus as newly
-cleared.
+link `atrinik/sound#31`, the separate modernization initiative, rather than
+presenting the corpus as newly cleared. Semantic-release generates that status
+directly from the validated blocker inventory on every release.
 
 ## Runtime archive layout and consumption
 
