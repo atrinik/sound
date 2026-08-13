@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
   issues: read
@@ -117,13 +121,36 @@ jobs:
           | docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
 
       - name: Build pinned audio toolchain
-        run: >-
-          docker build --platform linux/amd64
-          --file tools/audio/playtest.Dockerfile --tag atrinik-sound-audio .
+        run: |
+          job_started=$(date +%s)
+          started=$SECONDS
+          report_failure_timing() {
+            printf 'playtest phase timing: toolchain=%ss (failed)\n' \
+              "$((SECONDS - started))"
+            printf 'playtest phase timing: total=%ss (failed)\n' \
+              "$(( $(date +%s) - job_started ))"
+          }
+          trap report_failure_timing EXIT
+          docker build --platform linux/amd64 \
+            --file tools/audio/playtest.Dockerfile --tag atrinik-sound-audio .
+          trap - EXIT
+          printf 'playtest phase timing: toolchain=%ss\n' "$((SECONDS - started))"
+          printf 'PLAYTEST_JOB_STARTED=%s\n' "$job_started" >> "$GITHUB_ENV"
 
       - name: Build and verify the complete tree twice
         run: |
+          phase=setup
+          started=$SECONDS
+          report_failure_timing() {
+            printf 'playtest phase timing: %s=%ss (failed)\n' \
+              "$phase" "$((SECONDS - started))"
+            printf 'playtest phase timing: total=%ss (failed)\n' \
+              "$(( $(date +%s) - PLAYTEST_JOB_STARTED ))"
+          }
+          trap report_failure_timing EXIT
           for output in playtest-a playtest-b; do
+            phase=$output
+            started=$SECONDS
             docker run --rm --platform linux/amd64 \
               --network none \
               --user "$(id -u):$(id -g)" \
@@ -131,15 +158,23 @@ jobs:
               --workdir /workspaces/sound \
               atrinik-sound-audio \
               python3 tools/sound_release.py build-playtest-tree "build/${output}"
+            printf 'playtest phase timing: %s=%ss\n' \
+              "$output" "$((SECONDS - started))"
           done
-          cmp build/playtest-a/playtest-manifest.json build/playtest-b/playtest-manifest.json
+          phase=paired-verification
+          started=$SECONDS
           docker run --rm --platform linux/amd64 \
             --network none \
             --user "$(id -u):$(id -g)" \
             --volume "$PWD:/workspaces/sound" \
             --workdir /workspaces/sound \
             atrinik-sound-audio \
-            python3 tools/sound_release.py verify-playtest-tree build/playtest-a
+            python3 tools/sound_release.py verify-paired-playtest-trees \
+              build/playtest-a build/playtest-b
+          printf 'playtest phase timing: paired-verification=%ss\n' \
+            "$((SECONDS - started))"
+          phase=assertions
+          started=$SECONDS
           python3 - <<'PY'
           import hashlib
           import json
@@ -159,3 +194,7 @@ jobs:
           assert assets["background/intro.ogg"]["mapping"] == "copy"
           assert digest(intro) == digest(source)
           PY
+          printf 'playtest phase timing: assertions=%ss\n' "$((SECONDS - started))"
+          trap - EXIT
+          printf 'playtest phase timing: total=%ss\n' \
+            "$(( $(date +%s) - PLAYTEST_JOB_STARTED ))"
