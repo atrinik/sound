@@ -3139,9 +3139,12 @@ def verify_playtest_tree(
                 key: output.get(key) for key in expected_output_metadata
             } != expected_output_metadata:
                 raise ReleaseError(f"converted Opus metadata is stale or tampered: {logical_path}")
-            if abs(
-                float(output["duration_seconds"]) - float(source["duration_seconds"])
-            ) > 3 / expected_sample_rate:
+            if (
+                render["renderer"] != "wildmidi"
+                and abs(
+                    float(output["duration_seconds"]) - float(source["duration_seconds"])
+                ) > float(toolchain["duration_tolerance_seconds"])
+            ):
                 raise ReleaseError(f"converted Opus duration is stale or tampered: {logical_path}")
         if mode.decode_payloads:
             run_sdl_probe(

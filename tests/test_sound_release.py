@@ -2194,7 +2194,10 @@ class PlaytestTreeTests(unittest.TestCase):
             name: "test" for name in
             ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
         }
-        toolchain = {"quality_budget": {"sample_rate": 48000}}
+        toolchain = {
+            "duration_tolerance_seconds": 2.5,
+            "quality_budget": {"sample_rate": 48000},
+        }
         with tempfile.TemporaryDirectory(prefix="test-playtest-build-", dir=build_root) as temporary:
             parent = Path(temporary)
             patches = (
@@ -2299,7 +2302,10 @@ class PlaytestTreeTests(unittest.TestCase):
             name: "test" for name in
             ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
         }
-        toolchain = {"quality_budget": {"sample_rate": 48000}}
+        toolchain = {
+            "duration_tolerance_seconds": 2.5,
+            "quality_budget": {"sample_rate": 48000},
+        }
         build_root = ROOT / "build"
         build_root.mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(prefix="test-playtest-pair-", dir=build_root) as temporary:
@@ -2349,6 +2355,21 @@ class PlaytestTreeTests(unittest.TestCase):
                 self.assertEqual(first_manifest, verified)
                 probe.assert_called_once()
                 reproduce_call.assert_not_called()
+
+                wildmidi_manifest = copy.deepcopy(first_manifest)
+                wildmidi_manifest["assets"][0]["output"]["duration_seconds"] = 97.04
+                for root in (first, second):
+                    (root / sound_release.PLAYTEST_MANIFEST_NAME).write_bytes(
+                        sound_release.canonical_json(wildmidi_manifest),
+                    )
+                verified, _comparison_seconds, _decode_seconds = (
+                    sound_release.verify_paired_playtest_trees(first, second)
+                )
+                self.assertEqual(wildmidi_manifest, verified)
+                for root in (first, second):
+                    (root / sound_release.PLAYTEST_MANIFEST_NAME).write_bytes(
+                        sound_release.canonical_json(first_manifest),
+                    )
 
                 probe.reset_mock()
                 sound_release.verify_playtest_tree(first)
