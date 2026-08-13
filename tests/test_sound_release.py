@@ -1137,6 +1137,8 @@ class SourceManifestTests(unittest.TestCase):
             "../schemas/classic-audio-toolchain-v1.schema.json",
             classic_toolchain["$schema"],
         )
+        with self.assertRaisesRegex(sound_release.ReleaseError, "historical toolchains"):
+            sound_release.checked_toolchain(allow_historical=True, classic=True)
         probe = toolchain["tools"]["sdl3_mixer_probe"]
         self.assertEqual(
             sound_release.sha256(ROOT / probe["source_path"]),

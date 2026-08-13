@@ -1597,6 +1597,8 @@ def checked_toolchain(
     if playtest and classic:
         raise ReleaseError("toolchain cannot be both playtest-only and publishable Classic")
     legacy_paths = playtest or classic
+    if allow_historical and legacy_paths:
+        raise ReleaseError("historical toolchains are not valid for legacy-path products")
     schema_name = (
         "playtest-audio-toolchain-v1.schema.json" if playtest else
         "classic-audio-toolchain-v1.schema.json" if classic else
@@ -1725,7 +1727,7 @@ def checked_toolchain(
         seed_source = ROOT / str(deterministic_seed["source_path"])
         if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
             raise ReleaseError("TiMidity deterministic seed source does not match its pinned SHA-256")
-    if allow_historical and not playtest:
+    if allow_historical:
         # Historical review trees were already validated by their own pinned
         # Dockerfile contract. Reconstruct their canonical source manifest with
         # the version-1 tool shape, without applying today's stronger image pins.
