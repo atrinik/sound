@@ -37,6 +37,7 @@ GIT_REPOSITORY = ROOT
 SOURCE_MANIFEST = ROOT / "manifests" / "source-assets.json"
 TOOLCHAIN = ROOT / "manifests" / "audio-toolchain.json"
 PLAYTEST_TOOLCHAIN = ROOT / "manifests" / "playtest-audio-toolchain.json"
+CLASSIC_TOOLCHAIN = ROOT / "manifests" / "classic-audio-toolchain.json"
 FIXTURE_PLAN = ROOT / "manifests" / "fixture-plan.json"
 QUALITY_REVIEWS = ROOT / "manifests" / "vorbis-quality-reviews.json"
 LICENSE_REVIEWS = ROOT / "manifests" / "license-reviews.json"
@@ -54,6 +55,13 @@ PLAYTEST_MARKER = {
     "publishable": False,
     "schema_version": 1,
 }
+CLASSIC_RUNTIME_MANIFEST_NAME = "classic-runtime-manifest.json"
+CLASSIC_RUNTIME_REMEDIATION_NAME = "classic-runtime-remediation.json"
+CLASSIC_RUNTIME_SCHEMA_NAME = "classic-runtime-manifest-v1.schema.json"
+CLASSIC_REMEDIATION_SCHEMA_NAME = "classic-remediation-v1.schema.json"
+CLASSIC_RUNTIME_MAX_FILES = 512
+CLASSIC_RUNTIME_MAX_FILE_BYTES = 64 * 1024 * 1024
+CLASSIC_RUNTIME_MAX_TOTAL_BYTES = 512 * 1024 * 1024
 AUDIO_SUFFIXES = {".flac", ".mid", ".mod", ".s3m", ".xm", ".ogg"}
 TRACKER_SUFFIXES = {".mod", ".s3m", ".xm"}
 FIXTURE_PATHS = (
@@ -776,9 +784,9 @@ def clean_source_coordinates() -> tuple[str, str]:
     except SourceIntegrityError:
         raise
     except ReleaseError as exc:
-        raise ReleaseError("playtest-tree generation requires Git metadata") from exc
+        raise ReleaseError("sound generation requires Git metadata") from exc
     if status_before or status_after:
-        raise ReleaseError("playtest-tree source worktree is not clean")
+        raise ReleaseError("sound source worktree is not clean")
     if commit != final_commit:
         raise ReleaseError("playtest-tree source HEAD changed while reading its coordinates")
     if not re.fullmatch(r"[0-9a-f]{40}", commit) or not re.fullmatch(r"[0-9a-f]{40}", tree):
@@ -1584,12 +1592,19 @@ def checked_manifest() -> dict[str, object]:
 
 def checked_toolchain(
     *, allow_historical: bool = False, playtest: bool = False,
+    classic: bool = False,
 ) -> dict[str, object]:
+    if playtest and classic:
+        raise ReleaseError("toolchain cannot be both playtest-only and publishable Classic")
+    legacy_paths = playtest or classic
+    if allow_historical and legacy_paths:
+        raise ReleaseError("historical toolchains are not valid for legacy-path products")
     schema_name = (
-        "playtest-audio-toolchain-v1.schema.json"
-        if playtest else "audio-toolchain-v1.schema.json"
+        "playtest-audio-toolchain-v1.schema.json" if playtest else
+        "classic-audio-toolchain-v1.schema.json" if classic else
+        "audio-toolchain-v1.schema.json"
     )
-    toolchain_path = PLAYTEST_TOOLCHAIN if playtest else TOOLCHAIN
+    toolchain_path = PLAYTEST_TOOLCHAIN if playtest else CLASSIC_TOOLCHAIN if classic else TOOLCHAIN
     toolchain_schema = checked_schema(schema_name)
     value = read_json(toolchain_path)
     if not isinstance(value, dict) or set(value) != {"$schema", "schema_version", "apt_snapshot", "build_image", "duration_tolerance_seconds", "quality_budget", "instrument_bank", "license_texts", "runtime_libraries", "tools"} or value.get("$schema") != f"../schemas/{schema_name}" or value.get("schema_version") != 1:
@@ -1623,7 +1638,7 @@ def checked_toolchain(
     tools = value.get("tools")
     runtime_tools = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
     playtest_tools = {"ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
-    current_tools = playtest_tools if playtest else runtime_tools
+    current_tools = playtest_tools if legacy_paths else runtime_tools
     historical_tools = {"ffmpeg", "timidity", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe"}
     allowed_tools = {frozenset(current_tools)}
     if allow_historical:
@@ -1700,7 +1715,7 @@ def checked_toolchain(
                 or not re.fullmatch(r"[0-9a-f]{64}", str(probe_installed_sha256 or ""))
             )
         )
-        or (playtest and probe_installed is None)
+        or (legacy_paths and probe_installed is None)
     ):
         raise ReleaseError("SDL3_mixer probe must pin its source and installed binary")
     probe_path = ROOT / probe_source
@@ -1712,15 +1727,18 @@ def checked_toolchain(
         seed_source = ROOT / str(deterministic_seed["source_path"])
         if not seed_source.is_file() or sha256(seed_source) != deterministic_seed["source_sha256"]:
             raise ReleaseError("TiMidity deterministic seed source does not match its pinned SHA-256")
-    if allow_historical and not playtest:
+    if allow_historical:
         # Historical review trees were already validated by their own pinned
         # Dockerfile contract. Reconstruct their canonical source manifest with
         # the version-1 tool shape, without applying today's stronger image pins.
         return value
-    dockerfile_name = "playtest.Dockerfile" if playtest else "Dockerfile"
+    dockerfile_name = (
+        "playtest.Dockerfile" if playtest else
+        "classic-runtime.Dockerfile" if classic else "Dockerfile"
+    )
     dockerfile = (ROOT / "tools" / "audio" / dockerfile_name).read_text(encoding="utf-8")
     docker_pinned_tools = {"ffmpeg", "openmpt123", "opusenc"}
-    if playtest:
+    if legacy_paths:
         docker_pinned_tools.add("wildmidi")
     required_literals = [
         str(build_image["image"]),
@@ -1746,6 +1764,21 @@ def checked_toolchain(
 
 def checked_playtest_toolchain() -> dict[str, object]:
     return checked_toolchain(playtest=True)
+
+
+def checked_classic_toolchain() -> dict[str, object]:
+    classic = checked_toolchain(classic=True)
+    playtest = checked_toolchain(playtest=True)
+    normalized_classic = {**classic, "$schema": playtest["$schema"]}
+    if canonical_json(normalized_classic) != canonical_json(playtest):
+        raise ReleaseError("Classic and playtest legacy-path recipes have drifted")
+    if (
+        ROOT / "tools" / "audio" / "classic-runtime.Dockerfile"
+    ).read_bytes() != (
+        ROOT / "tools" / "audio" / "playtest.Dockerfile"
+    ).read_bytes():
+        raise ReleaseError("Classic and playtest legacy-path build images have drifted")
+    return classic
 
 
 def checked_fixture_plan(manifest: dict[str, object]) -> dict[str, object]:
@@ -1863,6 +1896,59 @@ def validate_playtest_manifest(manifest: dict[str, object]) -> None:
     converted = sum(asset.get("mapping") == "render-opus" for asset in assets if isinstance(asset, dict))
     if manifest.get("copied_vorbis_count") != copied or manifest.get("converted_opus_count") != converted:
         raise ReleaseError("playtest codec counts do not match its assets")
+
+
+def validate_classic_runtime_manifest(manifest: dict[str, object]) -> None:
+    schema = checked_schema(CLASSIC_RUNTIME_SCHEMA_NAME)
+    required = {
+        "$schema", "schema_version", "publishable", "playtest_only",
+        "release_tag", "source_commit", "source_tree",
+        "source_manifest_sha256", "toolchain_sha256", "tool_versions",
+        "schema_sha256", "remediation_report_sha256",
+        "remediation_finding_count", "logical_path_count",
+        "copied_vorbis_count", "converted_opus_count",
+        "output_tree_sha256", "assets",
+    }
+    if (
+        set(manifest) != required
+        or manifest.get("$schema") != f"schemas/{CLASSIC_RUNTIME_SCHEMA_NAME}"
+        or manifest.get("schema_version") != 1
+        or manifest.get("publishable") is not True
+        or manifest.get("playtest_only") is not False
+    ):
+        raise ReleaseError("Classic runtime manifest does not satisfy the version 1 schema")
+    validate_schema_instance(manifest, schema)
+    assets = manifest.get("assets")
+    if not isinstance(assets, list) or not assets:
+        raise ReleaseError("Classic runtime manifest must contain assets")
+    logical_paths: set[str] = set()
+    for asset in assets:
+        if not isinstance(asset, dict):
+            raise ReleaseError("Classic runtime manifest asset must be an object")
+        logical_path = asset.get("logical_path")
+        if not isinstance(logical_path, str) or logical_path in logical_paths:
+            raise ReleaseError("Classic runtime logical paths must be unique")
+        logical_paths.add(logical_path)
+        source = asset.get("source")
+        output = asset.get("output")
+        mapping = asset.get("mapping")
+        if not isinstance(source, dict) or not isinstance(output, dict):
+            raise ReleaseError(f"Classic runtime asset metadata is incomplete: {logical_path}")
+        expected = (
+            ("copy", "vorbis", "vorbis")
+            if source.get("codec") == "vorbis"
+            else ("render-opus", source.get("codec"), "opus")
+        )
+        if (mapping, source.get("codec"), output.get("codec")) != expected:
+            raise ReleaseError(f"Classic runtime asset has an invalid codec mapping: {logical_path}")
+        if mapping == "copy" and source.get("sha256") != output.get("sha256"):
+            raise ReleaseError(f"copied Classic Vorbis hash differs from its source: {logical_path}")
+    copied = sum(asset.get("mapping") == "copy" for asset in assets if isinstance(asset, dict))
+    converted = sum(asset.get("mapping") == "render-opus" for asset in assets if isinstance(asset, dict))
+    if manifest.get("logical_path_count") != len(assets):
+        raise ReleaseError("Classic runtime logical-path count does not match its assets")
+    if manifest.get("copied_vorbis_count") != copied or manifest.get("converted_opus_count") != converted:
+        raise ReleaseError("Classic runtime codec counts do not match its assets")
 
 
 def run(
@@ -2418,10 +2504,37 @@ def blocker_report(manifest: dict[str, object], blockers: list[dict[str, object]
     }
 
 
-def playtest_assets(
+def classic_release_notes(blockers: list[dict[str, object]]) -> str:
+    counts: dict[str, int] = {}
+    for finding in blockers:
+        category = str(finding.get("category", "unknown"))
+        counts[category] = counts.get(category, 0) + 1
+    if not blockers:
+        status = "No Classic restoration modernization findings remain."
+    else:
+        labels = {
+            "license/provenance": "license/provenance",
+            "quality-review": "formal quality-review",
+        }
+        details = " and ".join(
+            f"**{count} {labels.get(category, category)}**"
+            for category, count in sorted(counts.items())
+        )
+        status = (
+            "The Classic restoration runtime republishes Atrinik's existing corpus; "
+            f"it does not newly clear {details} findings (**{len(blockers)} total**)."
+        )
+    return (
+        "### Classic restoration modernization status\n\n"
+        f"{status} Track the separate modernization work in "
+        "[atrinik/sound#31](https://github.com/atrinik/sound/issues/31).\n"
+    )
+
+
+def legacy_path_assets(
     source_manifest: dict[str, object], toolchain: dict[str, object],
 ) -> list[dict[str, object]]:
-    """Overlay the playtest-only MIDI recipe without changing runtime inputs."""
+    """Overlay the deterministic legacy-path MIDI recipe without changing sources."""
     source_assets = source_manifest.get("assets")
     if not isinstance(source_assets, list):
         raise ReleaseError("source manifest assets must be an array")
@@ -2444,6 +2557,13 @@ def playtest_assets(
             ],
         }
     return assets
+
+
+def playtest_assets(
+    source_manifest: dict[str, object], toolchain: dict[str, object],
+) -> list[dict[str, object]]:
+    """Return assets for the explicitly nonpublishing local playtest tree."""
+    return legacy_path_assets(source_manifest, toolchain)
 
 
 def playtest_output_record(
@@ -2473,7 +2593,7 @@ def playtest_output_record(
     }
 
 
-def convert_playtest_asset(
+def convert_legacy_asset(
     asset: dict[str, object],
     output_root: Path,
     toolchain: dict[str, object],
@@ -2489,7 +2609,7 @@ def convert_playtest_asset(
         snapshot.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(ROOT / source_path, snapshot)
         if sha256(snapshot) != expected_hash:
-            raise ReleaseError(f"playtest source changed while snapshotting: {source_path}")
+            raise ReleaseError(f"legacy-path source changed while snapshotting: {source_path}")
         converted = convert_asset(
             asset,
             output_root,
@@ -2497,8 +2617,17 @@ def convert_playtest_asset(
             source_root=snapshot_root,
         )
         if sha256(snapshot) != expected_hash:
-            raise ReleaseError(f"playtest source snapshot changed during conversion: {source_path}")
+            raise ReleaseError(f"legacy-path source snapshot changed during conversion: {source_path}")
     return converted
+
+
+def convert_playtest_asset(
+    asset: dict[str, object],
+    output_root: Path,
+    toolchain: dict[str, object],
+) -> dict[str, object]:
+    """Convert one asset for the explicitly nonpublishing local playtest tree."""
+    return convert_legacy_asset(asset, output_root, toolchain)
 
 
 @contextlib.contextmanager
@@ -2963,7 +3092,7 @@ def verify_playtest_tree(
                 raise ReleaseError(f"copied Vorbis metadata is stale or tampered: {logical_path}")
         elif reproduce_conversions:
             with tempfile.TemporaryDirectory(prefix="atrinik-sound-playtest-verify-") as temporary:
-                reproduced = convert_playtest_asset(source_asset, Path(temporary), toolchain)
+                reproduced = convert_legacy_asset(source_asset, Path(temporary), toolchain)
                 generated = Path(temporary) / str(source_asset["generated_path"])
                 reproduced_output = reproduced["output"]
                 assert isinstance(reproduced_output, dict)
@@ -3146,6 +3275,418 @@ def build_playtest_tree(output_directory: Path) -> Path:
     with anchored_playtest_output(output_directory, create_parents=True) as (anchored, lexical):
         _build_playtest_tree_anchored(anchored)
         return lexical
+
+
+def classic_runtime_remediation_report(
+    source_manifest: dict[str, object], blockers: list[dict[str, object]],
+    source_commit: str, source_tree: str,
+) -> dict[str, object]:
+    categories = sorted({str(finding.get("category")) for finding in blockers})
+    report = {
+        "$schema": f"schemas/{CLASSIC_REMEDIATION_SCHEMA_NAME}",
+        "schema_version": 1,
+        "classification": "nonblocking-modernization",
+        "release_boundary": (
+            "These findings remain required modernization work, but do not block "
+            "republication of Atrinik's existing Classic sound corpus."
+        ),
+        "source_commit": source_commit,
+        "source_tree": source_tree,
+        "source_manifest_sha256": sha256(SOURCE_MANIFEST),
+        "source_count": source_manifest["audio_source_count"],
+        "count": len(blockers),
+        "category_counts": {
+            category: sum(str(finding.get("category")) == category for finding in blockers)
+            for category in categories
+        },
+        "findings": blockers,
+    }
+    validate_classic_remediation_report(report)
+    return report
+
+
+def validate_classic_remediation_report(report: dict[str, object]) -> None:
+    validate_schema_instance(
+        report, checked_schema(CLASSIC_REMEDIATION_SCHEMA_NAME),
+    )
+    findings = report.get("findings")
+    counts = report.get("category_counts")
+    if not isinstance(findings, list) or not isinstance(counts, dict):
+        raise ReleaseError("Classic remediation report is incomplete")
+    actual: dict[str, int] = {}
+    for finding in findings:
+        if not isinstance(finding, dict) or not isinstance(finding.get("category"), str):
+            raise ReleaseError("Classic remediation finding is incomplete")
+        category = str(finding["category"])
+        actual[category] = actual.get(category, 0) + 1
+    if report.get("count") != len(findings) or counts != actual:
+        raise ReleaseError("Classic remediation finding counts do not match")
+
+
+def _classic_runtime_static_sources() -> tuple[str, ...]:
+    return (
+        "README.md",
+        "background/LICENSE",
+        "background/README.md",
+        "effects/LICENSE",
+        "effects/README.md",
+        "manifests/license-reviews.json",
+        "manifests/classic-audio-toolchain.json",
+        "manifests/source-assets.json",
+        "manifests/source-replacements.json",
+        "manifests/vorbis-quality-reviews.json",
+        "schemas/classic-audio-toolchain-v1.schema.json",
+        "schemas/classic-remediation-v1.schema.json",
+        "schemas/license-reviews-v2.schema.json",
+        "schemas/source-assets-v1.schema.json",
+        "schemas/source-replacements-v1.schema.json",
+        "schemas/vorbis-quality-reviews-v2.schema.json",
+    )
+
+
+def _copy_classic_runtime_contracts(root: Path, toolchain: dict[str, object]) -> set[str]:
+    copied: set[str] = set()
+    for relative in _classic_runtime_static_sources():
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / relative, destination)
+        copied.add(relative)
+    schema_relative = f"schemas/{CLASSIC_RUNTIME_SCHEMA_NAME}"
+    schema_destination = root / schema_relative
+    schema_destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(SCHEMA_ROOT / CLASSIC_RUNTIME_SCHEMA_NAME, schema_destination)
+    copied.add(schema_relative)
+    license_texts = toolchain.get("license_texts")
+    if not isinstance(license_texts, dict):
+        raise ReleaseError("Classic runtime toolchain license texts must be an object")
+    for contract in license_texts.values():
+        if not isinstance(contract, dict):
+            raise ReleaseError("Classic runtime toolchain license contract is invalid")
+        relative = str(contract.get("archive_path", ""))
+        source = Path(str(contract.get("installed_path", "")))
+        pure = PurePosixPath(relative)
+        if (
+            not relative.startswith("licenses/") or pure.is_absolute()
+            or ".." in pure.parts or pure.as_posix() != relative
+        ):
+            raise ReleaseError("Classic runtime toolchain license archive path is unsafe")
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+        copied.add(relative)
+    return copied
+
+
+def _require_classic_payload_codec(path: Path, codec: object, logical_path: str) -> None:
+    with path.open("rb") as stream:
+        header = stream.read(65536)
+    expected = b"\x01vorbis" if codec == "vorbis" else b"OpusHead" if codec == "opus" else None
+    if not header.startswith(b"OggS") or expected is None or expected not in header:
+        raise ReleaseError(f"Classic runtime payload codec mismatch: {logical_path}")
+    forbidden = (b"MThd", b"fLaC", b"Extended Module: ", b"SCRM")
+    if any(header.startswith(signature) for signature in forbidden):
+        raise ReleaseError(f"Classic runtime contains a raw authored codec: {logical_path}")
+
+
+def verify_classic_runtime_root(
+    root: Path, *, release_tag: str, source_commit: str, source_tree: str,
+) -> dict[str, object]:
+    source_manifest = checked_manifest()
+    blockers = validate_manifest(source_manifest, verify_tracked=True)
+    toolchain = checked_classic_toolchain()
+    versions = verify_toolchain(toolchain, strict_playtest=True)
+    expected_assets = legacy_path_assets(source_manifest, toolchain)
+    expected_by_path = {str(asset["logical_path"]): asset for asset in expected_assets}
+
+    manifest_path = root / CLASSIC_RUNTIME_MANIFEST_NAME
+    manifest_payload = manifest_path.read_bytes() if manifest_path.is_file() else b""
+    manifest = read_json(manifest_path)
+    if not isinstance(manifest, dict) or manifest_payload != canonical_json(manifest):
+        raise ReleaseError("Classic runtime manifest is missing or not canonical JSON")
+    validate_classic_runtime_manifest(manifest)
+    expected_coordinates = {
+        "release_tag": release_tag,
+        "source_commit": source_commit,
+        "source_tree": source_tree,
+        "source_manifest_sha256": sha256(SOURCE_MANIFEST),
+        "toolchain_sha256": sha256(CLASSIC_TOOLCHAIN),
+        "tool_versions": versions,
+        "schema_sha256": sha256(SCHEMA_ROOT / CLASSIC_RUNTIME_SCHEMA_NAME),
+    }
+    for key, expected in expected_coordinates.items():
+        if manifest.get(key) != expected:
+            raise ReleaseError(f"Classic runtime manifest has stale or tampered {key}")
+
+    remediation = classic_runtime_remediation_report(
+        source_manifest, blockers, source_commit, source_tree,
+    )
+    remediation_payload = canonical_json(remediation)
+    remediation_path = root / CLASSIC_RUNTIME_REMEDIATION_NAME
+    if not remediation_path.is_file() or remediation_path.read_bytes() != remediation_payload:
+        raise ReleaseError("Classic runtime remediation report is missing, stale, or tampered")
+    if manifest.get("remediation_report_sha256") != hashlib.sha256(remediation_payload).hexdigest():
+        raise ReleaseError("Classic runtime remediation report hash mismatch")
+    if manifest.get("remediation_finding_count") != len(blockers):
+        raise ReleaseError("Classic runtime remediation count mismatch")
+
+    packaged_schema = root / "schemas" / CLASSIC_RUNTIME_SCHEMA_NAME
+    if not packaged_schema.is_file() or sha256(packaged_schema) != manifest["schema_sha256"]:
+        raise ReleaseError("Classic runtime schema is missing or tampered")
+    for relative in _classic_runtime_static_sources():
+        packaged = root / relative
+        if not packaged.is_file() or sha256(packaged) != sha256(ROOT / relative):
+            raise ReleaseError(f"Classic runtime contract is missing or tampered: {relative}")
+    license_texts = toolchain.get("license_texts")
+    assert isinstance(license_texts, dict)
+    for contract in license_texts.values():
+        assert isinstance(contract, dict)
+        packaged = root / str(contract["archive_path"])
+        if not packaged.is_file() or sha256(packaged) != contract["sha256"]:
+            raise ReleaseError(f"Classic runtime toolchain license is missing or tampered: {packaged}")
+
+    manifest_assets = manifest.get("assets")
+    assert isinstance(manifest_assets, list)
+    actual_by_path = {
+        str(asset["logical_path"]): asset for asset in manifest_assets if isinstance(asset, dict)
+    }
+    if set(actual_by_path) != set(expected_by_path):
+        raise ReleaseError("Classic runtime does not have exact logical-path closure")
+    for logical_path, source_asset in expected_by_path.items():
+        actual = actual_by_path[logical_path]
+        source = source_asset["source"]
+        output = actual.get("output")
+        assert isinstance(source, dict)
+        if not isinstance(output, dict):
+            raise ReleaseError(f"Classic runtime output metadata is missing: {logical_path}")
+        expected_static = {
+            "logical_path": logical_path,
+            "source_path": source_asset["source_path"],
+            "mapping": "copy" if source["codec"] == "vorbis" else "render-opus",
+            "source": {
+                "sha256": source["sha256"],
+                "codec": source["codec"],
+                "container": source["container"],
+            },
+        }
+        if {key: actual.get(key) for key in expected_static} != expected_static:
+            raise ReleaseError(f"Classic runtime mapping is stale or tampered: {logical_path}")
+        payload = root / logical_path
+        if not payload.is_file() or payload.is_symlink():
+            raise ReleaseError(f"Classic runtime payload is missing or unsafe: {logical_path}")
+        if sha256(payload) != output.get("sha256") or payload.stat().st_size != output.get("size_bytes"):
+            raise ReleaseError(f"Classic runtime payload hash or size mismatch: {logical_path}")
+        _require_classic_payload_codec(payload, output.get("codec"), logical_path)
+        if source["codec"] == "vorbis":
+            expected_output = playtest_output_record(
+                source_asset, ROOT / str(source_asset["source_path"]),
+                codec="vorbis", container="ogg",
+                sample_rate=int(source["sample_rate"]),
+                channels=int(source["channels"]),
+                duration_seconds=float(source["duration_seconds"]),
+            )["output"]
+            if output != expected_output:
+                raise ReleaseError(f"Classic runtime Vorbis copy is not byte-identical: {logical_path}")
+        run_sdl_probe(
+            payload,
+            expected_frames=round(
+                float(output["duration_seconds"])
+                * int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
+            ),
+            behaviors=(), expected_channels=int(output["channels"]),
+            toolchain=toolchain, strict_playtest=True,
+        )
+    logical_paths = sorted(expected_by_path)
+    if logical_tree_sha256(root, logical_paths) != manifest.get("output_tree_sha256"):
+        raise ReleaseError("Classic runtime logical-tree digest mismatch")
+    for representative in (
+        "background/intro.ogg", "background/fireside.mid",
+        "background/tutorialisland.mid", "effects/campfire.ogg",
+    ):
+        if representative not in actual_by_path:
+            raise ReleaseError(f"Classic runtime representative path is missing: {representative}")
+    expected_files = set(logical_paths) | set(_classic_runtime_static_sources()) | {
+        CLASSIC_RUNTIME_MANIFEST_NAME,
+        CLASSIC_RUNTIME_REMEDIATION_NAME,
+        f"schemas/{CLASSIC_RUNTIME_SCHEMA_NAME}",
+        "SHA256SUMS",
+    }
+    expected_files.update(
+        str(contract["archive_path"])
+        for contract in license_texts.values()
+        if isinstance(contract, dict)
+    )
+    actual_files: set[str] = set()
+    for path in root.rglob("*"):
+        if path.is_symlink():
+            raise ReleaseError(f"Classic runtime contains a symlink: {path.relative_to(root)}")
+        if path.is_file():
+            actual_files.add(path.relative_to(root).as_posix())
+    if actual_files != expected_files:
+        raise ReleaseError("Classic runtime contains missing or unexpected files")
+    verify_tree_checksums(root)
+    if clean_source_coordinates() != (source_commit, source_tree):
+        raise ReleaseError("sound checkout changed while verifying the Classic runtime")
+    return manifest
+
+
+def build_classic_runtime(tag: str, output_directory: Path) -> tuple[Path, Path]:
+    if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
+        raise ReleaseError(f"invalid release tag: {tag}")
+    clean_commit, clean_tree = clean_source_coordinates()
+    source_commit = source_revision("ATRINIK_SOURCE_COMMIT", "HEAD")
+    source_tree = source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}")
+    if (source_commit, source_tree) != (clean_commit, clean_tree):
+        raise ReleaseError("Classic runtime source coordinates do not match the clean checkout")
+    verify_release_tag(tag, source_commit, source_tree)
+    epoch_text = os.environ.get("SOURCE_DATE_EPOCH")
+    if epoch_text is None or not epoch_text.isdigit():
+        raise ReleaseError("SOURCE_DATE_EPOCH must be a non-negative integer")
+    epoch = int(epoch_text)
+    source_manifest = checked_manifest()
+    blockers = validate_manifest(source_manifest, verify_tracked=True)
+    toolchain = checked_classic_toolchain()
+    versions = verify_toolchain(toolchain, strict_playtest=True)
+    assets = legacy_path_assets(source_manifest, toolchain)
+    version = tag[1:]
+    package = f"atrinik-sound-classic-runtime-{version}"
+    output_directory.mkdir(parents=True, exist_ok=True)
+    if output_directory.is_symlink() or not output_directory.is_dir():
+        raise ReleaseError(f"Classic runtime output is not a regular directory: {output_directory}")
+    archive = output_directory / f"{package}.tar.gz"
+    remediation_asset = output_directory / f"{package}-REMEDIATION.json"
+    if archive.exists() or remediation_asset.exists():
+        raise ReleaseError("Classic runtime output already exists")
+    with tempfile.TemporaryDirectory(prefix="atrinik-sound-classic-runtime-") as temporary:
+        staging = Path(temporary) / package
+        staging.mkdir(parents=True)
+        generated_assets: list[dict[str, object]] = []
+        for asset in assets:
+            logical_path = str(asset["logical_path"])
+            source = asset["source"]
+            assert isinstance(source, dict)
+            destination = staging / logical_path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if source["codec"] == "vorbis":
+                shutil.copyfile(ROOT / str(asset["source_path"]), destination)
+                generated_assets.append(playtest_output_record(
+                    asset, destination, codec="vorbis", container="ogg",
+                    sample_rate=int(source["sample_rate"]), channels=int(source["channels"]),
+                    duration_seconds=float(source["duration_seconds"]),
+                ))
+            else:
+                with tempfile.TemporaryDirectory(prefix="atrinik-sound-classic-convert-") as conversion:
+                    converted = convert_legacy_asset(asset, Path(conversion), toolchain)
+                    converted_output = converted["output"]
+                    assert isinstance(converted_output, dict)
+                    shutil.move(Path(conversion) / str(asset["generated_path"]), destination)
+                    generated_assets.append(playtest_output_record(
+                        asset, destination, codec="opus", container="ogg",
+                        sample_rate=int(converted_output["sample_rate"]),
+                        channels=int(converted_output["channels"]),
+                        duration_seconds=float(converted_output["duration_seconds"]),
+                    ))
+        remediation = classic_runtime_remediation_report(
+            source_manifest, blockers, source_commit, source_tree,
+        )
+        remediation_payload = canonical_json(remediation)
+        (staging / CLASSIC_RUNTIME_REMEDIATION_NAME).write_bytes(remediation_payload)
+        _copy_classic_runtime_contracts(staging, toolchain)
+        classic_manifest = {
+            "$schema": f"schemas/{CLASSIC_RUNTIME_SCHEMA_NAME}",
+            "schema_version": 1,
+            "publishable": True,
+            "playtest_only": False,
+            "release_tag": tag,
+            "source_commit": source_commit,
+            "source_tree": source_tree,
+            "source_manifest_sha256": sha256(SOURCE_MANIFEST),
+            "toolchain_sha256": sha256(CLASSIC_TOOLCHAIN),
+            "tool_versions": versions,
+            "schema_sha256": sha256(SCHEMA_ROOT / CLASSIC_RUNTIME_SCHEMA_NAME),
+            "remediation_report_sha256": hashlib.sha256(remediation_payload).hexdigest(),
+            "remediation_finding_count": len(blockers),
+            "logical_path_count": len(generated_assets),
+            "copied_vorbis_count": sum(asset["mapping"] == "copy" for asset in generated_assets),
+            "converted_opus_count": sum(asset["mapping"] == "render-opus" for asset in generated_assets),
+            "output_tree_sha256": logical_tree_sha256(
+                staging, [str(asset["logical_path"]) for asset in generated_assets],
+            ),
+            "assets": generated_assets,
+        }
+        validate_classic_runtime_manifest(classic_manifest)
+        (staging / CLASSIC_RUNTIME_MANIFEST_NAME).write_bytes(canonical_json(classic_manifest))
+        write_tree_checksums(staging)
+        verify_classic_runtime_root(
+            staging, release_tag=tag, source_commit=source_commit,
+            source_tree=source_tree,
+        )
+        if clean_source_coordinates() != (source_commit, source_tree):
+            raise ReleaseError("sound checkout changed while building the Classic runtime")
+        deterministic_archive(staging, archive, package, epoch)
+        atomic_write(remediation_asset, remediation_payload)
+    return archive, remediation_asset
+
+
+def verify_classic_runtime_archive(archive: Path, tag: str) -> dict[str, object]:
+    if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", tag):
+        raise ReleaseError(f"invalid release tag: {tag}")
+    if not archive.is_file() or archive.is_symlink():
+        raise ReleaseError(f"Classic runtime archive is missing or unsafe: {archive}")
+    version = tag[1:]
+    prefix = f"atrinik-sound-classic-runtime-{version}"
+    epoch_text = os.environ.get("SOURCE_DATE_EPOCH")
+    if epoch_text is None or not epoch_text.isdigit():
+        raise ReleaseError("SOURCE_DATE_EPOCH must be a non-negative integer")
+    epoch = int(epoch_text)
+    source_commit = source_revision("ATRINIK_SOURCE_COMMIT", "HEAD")
+    source_tree = source_revision("ATRINIK_SOURCE_TREE", "HEAD^{tree}")
+    if clean_source_coordinates() != (source_commit, source_tree):
+        raise ReleaseError("Classic runtime verification source is not the exact clean checkout")
+    verify_release_tag(tag, source_commit, source_tree)
+    with tempfile.TemporaryDirectory(prefix="atrinik-sound-classic-verify-") as temporary:
+        extracted = Path(temporary) / prefix
+        extracted.mkdir()
+        seen: set[str] = set()
+        with tarfile.open(archive, "r:gz") as bundle:
+            members = bundle.getmembers()
+            names = [member.name for member in members]
+            if names != sorted(names) or not members or len(members) > CLASSIC_RUNTIME_MAX_FILES:
+                raise ReleaseError("Classic runtime archive order is not canonical")
+            total_size = 0
+            for member in members:
+                expected_prefix = f"{prefix}/"
+                if not member.isfile() or not member.name.startswith(expected_prefix):
+                    raise ReleaseError(f"Classic runtime archive member is unsafe: {member.name}")
+                relative = PurePosixPath(member.name[len(expected_prefix):])
+                if (
+                    not relative.parts or relative.is_absolute() or ".." in relative.parts
+                    or relative.as_posix() in seen or len(member.name.encode("utf-8")) > 255
+                ):
+                    raise ReleaseError(f"Classic runtime archive path is unsafe: {member.name}")
+                total_size += member.size
+                if (
+                    member.size <= 0 or member.size > CLASSIC_RUNTIME_MAX_FILE_BYTES
+                    or total_size > CLASSIC_RUNTIME_MAX_TOTAL_BYTES
+                ):
+                    raise ReleaseError(f"Classic runtime archive member is oversized: {member.name}")
+                if (
+                    member.mtime != epoch or member.mode != 0o644
+                    or member.uid != 0 or member.gid != 0
+                    or member.uname != "root" or member.gname != "root"
+                ):
+                    raise ReleaseError(f"Classic runtime archive metadata is not deterministic: {member.name}")
+                seen.add(relative.as_posix())
+                source = bundle.extractfile(member)
+                if source is None:
+                    raise ReleaseError(f"Classic runtime archive member cannot be read: {member.name}")
+                destination = extracted.joinpath(*relative.parts)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with source, destination.open("xb") as output:
+                    shutil.copyfileobj(source, output)
+        return verify_classic_runtime_root(
+            extracted, release_tag=tag,
+            source_commit=source_commit, source_tree=source_tree,
+        )
 
 
 def write_checksums(output_directory: Path) -> None:
@@ -3756,6 +4297,12 @@ def command_blockers(_arguments: argparse.Namespace) -> None:
     print(canonical_json(blocker_report(manifest, blockers)).decode("utf-8"), end="")
 
 
+def command_classic_release_notes(_arguments: argparse.Namespace) -> None:
+    manifest = checked_manifest()
+    blockers = validate_manifest(manifest, verify_tracked=True)
+    print(classic_release_notes(blockers), end="")
+
+
 def command_build(arguments: argparse.Namespace) -> None:
     output = build_runtime(arguments.tag, Path(arguments.output_directory), fixtures=arguments.fixtures)
     print(output)
@@ -3767,6 +4314,24 @@ def command_build_playtest_tree(arguments: argparse.Namespace) -> None:
     assert isinstance(manifest, dict)
     print(
         f"built {manifest['logical_path_count']} playtest paths; "
+        f"tree SHA-256: {manifest['output_tree_sha256']}"
+    )
+
+
+def command_build_classic_runtime(arguments: argparse.Namespace) -> None:
+    archive, remediation = build_classic_runtime(
+        arguments.tag, Path(arguments.output_directory),
+    )
+    print(archive)
+    print(remediation)
+
+
+def command_verify_classic_runtime(arguments: argparse.Namespace) -> None:
+    manifest = verify_classic_runtime_archive(
+        Path(arguments.archive), arguments.tag,
+    )
+    print(
+        f"verified {manifest['logical_path_count']} Classic runtime paths; "
         f"tree SHA-256: {manifest['output_tree_sha256']}"
     )
 
@@ -3802,11 +4367,30 @@ def parser() -> argparse.ArgumentParser:
     quality_outputs.set_defaults(function=command_validate_quality_outputs)
     blockers = commands.add_parser("blockers", help="print fail-closed runtime findings as JSON")
     blockers.set_defaults(function=command_blockers)
+    release_notes = commands.add_parser(
+        "classic-release-notes",
+        help="print the Classic restoration modernization release-note fragment",
+    )
+    release_notes.set_defaults(function=command_classic_release_notes)
     build = commands.add_parser("build-runtime", help="build the full or fixture Opus archive")
     build.add_argument("tag")
     build.add_argument("output_directory")
     build.add_argument("--fixtures", action="store_true", help="build the six-asset CI fixture archive")
     build.set_defaults(function=command_build)
+    classic_runtime = commands.add_parser(
+        "build-classic-runtime",
+        help="build the publishable Classic restoration runtime archive",
+    )
+    classic_runtime.add_argument("tag")
+    classic_runtime.add_argument("output_directory")
+    classic_runtime.set_defaults(function=command_build_classic_runtime)
+    verify_classic_runtime = commands.add_parser(
+        "verify-classic-runtime",
+        help="independently verify and fully decode a Classic restoration runtime archive",
+    )
+    verify_classic_runtime.add_argument("tag")
+    verify_classic_runtime.add_argument("archive")
+    verify_classic_runtime.set_defaults(function=command_verify_classic_runtime)
     playtest = commands.add_parser(
         "build-playtest-tree",
         help="build the complete local-only Classic compatibility tree",

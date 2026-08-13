@@ -10,7 +10,13 @@
       }
     ],
     ["@semantic-release/release-notes-generator", {"preset": "conventionalcommits"}],
-    ["@semantic-release/exec", {"publishCmd": "tools/build-release-assets.sh ${nextRelease.version}"}],
+    [
+      "@semantic-release/exec",
+      {
+        "generateNotesCmd": "python3 tools/sound_release.py classic-release-notes",
+        "publishCmd": "tools/build-release-assets.sh ${nextRelease.version}"
+      }
+    ],
     ["@semantic-release/github", {"assets": [{"path": "build/release/*"}]}]
   ]
 }

@@ -550,6 +550,9 @@ class SourceManifestTests(unittest.TestCase):
         self.assertIn("--file tools/audio/Dockerfile", asset_job)
         self.assertIn("--file tools/audio/Dockerfile", runtime_job)
         self.assertIn("--file tools/audio/playtest.Dockerfile", playtest_job)
+        self.assertIn("build-classic-runtime", publisher)
+        self.assertIn("verify-classic-runtime", publisher)
+        self.assertIn("--network none", publisher)
         self.assertIn("--env GH_TOKEN", publisher)
         reviews = {"background/example.ogg": {"evidence": {
             "artifact_locator": "evidence/review.json",
@@ -1015,6 +1018,91 @@ class SourceManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(sound_release.ReleaseError, "codec mapping"):
             sound_release.validate_playtest_manifest(tampered)
 
+    def test_classic_runtime_manifest_maps_publishable_legacy_tree(self) -> None:
+        assets = []
+        for source_asset in self.manifest["assets"]:
+            source = source_asset["source"]
+            copied = source["codec"] == "vorbis"
+            assets.append({
+                "logical_path": source_asset["logical_path"],
+                "source_path": source_asset["source_path"],
+                "mapping": "copy" if copied else "render-opus",
+                "source": {
+                    "sha256": source["sha256"],
+                    "codec": source["codec"],
+                    "container": source["container"],
+                },
+                "output": {
+                    "sha256": source["sha256"] if copied else "a" * 64,
+                    "size_bytes": 1,
+                    "codec": "vorbis" if copied else "opus",
+                    "container": "ogg",
+                    "sample_rate": source["sample_rate"] or 48000,
+                    "channels": source["channels"] or source_asset["render"]["channels"],
+                    "duration_seconds": source["duration_seconds"],
+                },
+            })
+        manifest = {
+            "$schema": "schemas/classic-runtime-manifest-v1.schema.json",
+            "schema_version": 1,
+            "publishable": True,
+            "playtest_only": False,
+            "release_tag": "v1.2.3",
+            "source_commit": "b" * 40,
+            "source_tree": "c" * 40,
+            "source_manifest_sha256": "d" * 64,
+            "toolchain_sha256": "e" * 64,
+            "tool_versions": {
+                name: "test" for name in
+                ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+            },
+            "schema_sha256": "3" * 64,
+            "remediation_report_sha256": "4" * 64,
+            "remediation_finding_count": 465,
+            "logical_path_count": len(assets),
+            "copied_vorbis_count": sum(asset["mapping"] == "copy" for asset in assets),
+            "converted_opus_count": sum(asset["mapping"] == "render-opus" for asset in assets),
+            "output_tree_sha256": "2" * 64,
+            "assets": assets,
+        }
+        sound_release.validate_classic_runtime_manifest(manifest)
+        self.assertEqual((339, 189, 150), (
+            manifest["logical_path_count"], manifest["copied_vorbis_count"],
+            manifest["converted_opus_count"],
+        ))
+        self.assertNotIn("playtest-manifest.json", sound_release._classic_runtime_static_sources())
+        tampered = copy.deepcopy(manifest)
+        tampered["playtest_only"] = True
+        with self.assertRaisesRegex(sound_release.ReleaseError, "Classic runtime manifest"):
+            sound_release.validate_classic_runtime_manifest(tampered)
+
+    def test_classic_remediation_report_preserves_all_findings(self) -> None:
+        blockers = sound_release.validate_manifest(self.manifest)
+        report = sound_release.classic_runtime_remediation_report(
+            self.manifest, blockers, "b" * 40, "c" * 40,
+        )
+        self.assertEqual("nonblocking-modernization", report["classification"])
+        self.assertEqual(465, report["count"])
+        self.assertEqual(
+            {"license/provenance": 248, "quality-review": 217},
+            report["category_counts"],
+        )
+        self.assertEqual(blockers, report["findings"])
+        notes = sound_release.classic_release_notes(blockers)
+        self.assertIn("**248 license/provenance**", notes)
+        self.assertIn("**217 formal quality-review**", notes)
+        self.assertIn("**465 total**", notes)
+        self.assertIn("https://github.com/atrinik/sound/issues/31", notes)
+        release_config = json.loads((ROOT / ".releaserc.json").read_text(encoding="utf-8"))
+        exec_config = next(
+            config for plugin, config in release_config["plugins"]
+            if plugin == "@semantic-release/exec"
+        )
+        self.assertEqual(
+            "python3 tools/sound_release.py classic-release-notes",
+            exec_config["generateNotesCmd"],
+        )
+
     def test_vorbis_midi_and_flac_metadata_are_parsed_without_legacy_sidecars(self) -> None:
         vorbis = sound_release.ogg_vorbis_metadata(ROOT / "effects" / "campfire.ogg")
         midi = sound_release.midi_metadata(ROOT / "background" / "fireside.mid")
@@ -1038,6 +1126,19 @@ class SourceManifestTests(unittest.TestCase):
         self.assertRegex(toolchain["apt_snapshot"], r"snapshot\.ubuntu\.com/ubuntu/[0-9]{8}T[0-9]{6}Z$")
         self.assertRegex(toolchain["build_image"]["image"], r"@sha256:[0-9a-f]{64}$")
         self.assertTrue(toolchain["instrument_bank"]["recording_distribution_permission"])
+
+        classic_toolchain = sound_release.checked_classic_toolchain()
+        self.assertEqual(toolchain["tools"], classic_toolchain["tools"])
+        self.assertNotEqual(
+            sound_release.sha256(sound_release.PLAYTEST_TOOLCHAIN),
+            sound_release.sha256(sound_release.CLASSIC_TOOLCHAIN),
+        )
+        self.assertEqual(
+            "../schemas/classic-audio-toolchain-v1.schema.json",
+            classic_toolchain["$schema"],
+        )
+        with self.assertRaisesRegex(sound_release.ReleaseError, "historical toolchains"):
+            sound_release.checked_toolchain(allow_historical=True, classic=True)
         probe = toolchain["tools"]["sdl3_mixer_probe"]
         self.assertEqual(
             sound_release.sha256(ROOT / probe["source_path"]),
@@ -1561,7 +1662,7 @@ class PlaytestTreeTests(unittest.TestCase):
             if asset["logical_path"] == "effects/campfire.ogg"
         )
 
-    def test_dirty_playtest_source_is_rejected(self) -> None:
+    def test_dirty_shared_sound_source_is_rejected(self) -> None:
         completed = lambda output: type("Completed", (), {"stdout": output})()
         responses = [
             completed(f"{ROOT}\n"),
@@ -1574,7 +1675,7 @@ class PlaytestTreeTests(unittest.TestCase):
         ]
         with mock.patch.object(sound_release, "run", side_effect=responses), \
                 mock.patch.object(sound_release, "ensure_exact_tracked_tree"):
-            with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "sound source worktree is not clean"):
                 sound_release.clean_source_coordinates()
 
     def test_hidden_tracked_modifications_are_rejected(self) -> None:
@@ -2225,6 +2326,115 @@ class PlaytestTreeTests(unittest.TestCase):
                 extra.write_bytes(b"extra")
                 with self.assertRaisesRegex(sound_release.ReleaseError, "unexpected files"):
                     sound_release.verify_playtest_tree(root)
+
+
+class ClassicRuntimeArchiveTests(unittest.TestCase):
+    def verify_archive(self, archive: Path) -> dict[str, object]:
+        expected = {"logical_path_count": 339}
+        with mock.patch.dict(os.environ, {"SOURCE_DATE_EPOCH": "1700000000"}), \
+                mock.patch.object(sound_release, "source_revision", side_effect=("b" * 40, "c" * 40)), \
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)), \
+                mock.patch.object(sound_release, "verify_release_tag"), \
+                mock.patch.object(sound_release, "verify_classic_runtime_root", return_value=expected) as verify:
+            result = sound_release.verify_classic_runtime_archive(archive, "v1.2.3")
+        verify.assert_called_once()
+        return result
+
+    def test_archive_verifier_extracts_only_one_canonical_prefix(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "root"
+            root.mkdir()
+            (root / "manifest.json").write_text("{}\n", encoding="utf-8")
+            archive = Path(temporary) / "runtime.tar.gz"
+            sound_release.deterministic_archive(
+                root, archive, "atrinik-sound-classic-runtime-1.2.3", 1700000000,
+            )
+            self.assertEqual(339, self.verify_archive(archive)["logical_path_count"])
+
+    def test_archive_verifier_rejects_an_unsafe_release_tag(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            archive = Path(temporary) / "runtime.tar.gz"
+            archive.write_bytes(b"not reached")
+            with self.assertRaisesRegex(sound_release.ReleaseError, "invalid release tag"):
+                sound_release.verify_classic_runtime_archive(archive, "v../../escape")
+
+    def test_archive_verifier_rejects_traversal_and_oversized_members(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            for name, size, error in (
+                ("atrinik-sound-classic-runtime-1.2.3/../escape", 1, "unsafe"),
+                ("atrinik-sound-classic-runtime-1.2.3/large", 2, "oversized"),
+            ):
+                archive = Path(temporary) / f"{error}.tar.gz"
+                with tarfile.open(archive, "w:gz") as bundle:
+                    member = tarfile.TarInfo(name)
+                    member.size = size
+                    member.mtime = 1700000000
+                    member.mode = 0o644
+                    member.uid = member.gid = 0
+                    member.uname = member.gname = "root"
+                    bundle.addfile(member, io.BytesIO(b"x" * size))
+                limit = 1 if error == "oversized" else sound_release.CLASSIC_RUNTIME_MAX_FILE_BYTES
+                with mock.patch.object(sound_release, "CLASSIC_RUNTIME_MAX_FILE_BYTES", limit), \
+                        self.assertRaisesRegex(sound_release.ReleaseError, error):
+                    self.verify_archive(archive)
+
+    def test_payload_signature_rejects_raw_authored_codecs(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "payload.mid"
+            path.write_bytes(b"MThd" + b"\0" * 32)
+            with self.assertRaisesRegex(sound_release.ReleaseError, "codec mismatch|raw authored"):
+                sound_release._require_classic_payload_codec(path, "opus", "background/example.mid")
+            path.write_bytes(b"OggS" + b"\0" * 24 + b"OpusHead")
+            sound_release._require_classic_payload_codec(path, "opus", "background/example.mid")
+
+    def test_builder_publishes_remediation_without_weakening_codec_mapping(self) -> None:
+        source_manifest = sound_release.checked_manifest()
+        by_path = {asset["logical_path"]: asset for asset in source_manifest["assets"]}
+        assets = [copy.deepcopy(by_path["effects/campfire.ogg"]), copy.deepcopy(by_path["background/fireside.mid"])]
+        blockers = [{"category": "license/provenance", "logical_path": "background/fireside.mid"}]
+        toolchain = {
+            "quality_budget": {"sample_rate": 48000},
+            "license_texts": {},
+        }
+
+        def convert(asset: dict[str, object], output: Path, _toolchain: dict[str, object]) -> dict[str, object]:
+            generated = output / str(asset["generated_path"])
+            generated.parent.mkdir(parents=True, exist_ok=True)
+            generated.write_bytes(b"OggS" + b"\0" * 24 + b"OpusHead")
+            return {**asset, "output": {
+                "sample_rate": 48000, "channels": 2, "duration_seconds": 1.0,
+            }}
+
+        with tempfile.TemporaryDirectory() as temporary, \
+                mock.patch.dict(os.environ, {"SOURCE_DATE_EPOCH": "1700000000"}), \
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)), \
+                mock.patch.object(sound_release, "source_revision", side_effect=("b" * 40, "c" * 40)), \
+                mock.patch.object(sound_release, "verify_release_tag"), \
+                mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest), \
+                mock.patch.object(sound_release, "validate_manifest", return_value=blockers), \
+                mock.patch.object(sound_release, "checked_classic_toolchain", return_value=toolchain), \
+                mock.patch.object(sound_release, "verify_toolchain", return_value={
+                    name: "test" for name in
+                    ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+                }), \
+                mock.patch.object(sound_release, "legacy_path_assets", return_value=assets), \
+                mock.patch.object(sound_release, "convert_legacy_asset", side_effect=convert), \
+                mock.patch.object(sound_release, "_copy_classic_runtime_contracts"), \
+                mock.patch.object(sound_release, "verify_classic_runtime_root"):
+            archive, remediation = sound_release.build_classic_runtime(
+                "v1.2.3", Path(temporary),
+            )
+            report = json.loads(remediation.read_text(encoding="utf-8"))
+            self.assertEqual((1, blockers), (report["count"], report["findings"]))
+            with tarfile.open(archive, "r:gz") as bundle:
+                manifest_member = bundle.extractfile(
+                    "atrinik-sound-classic-runtime-1.2.3/classic-runtime-manifest.json",
+                )
+                assert manifest_member is not None
+                manifest = json.load(manifest_member)
+            mapped = {asset["logical_path"]: asset for asset in manifest["assets"]}
+            self.assertEqual("copy", mapped["effects/campfire.ogg"]["mapping"])
+            self.assertEqual("render-opus", mapped["background/fireside.mid"]["mapping"])
 
 
 class DeterministicArchiveTests(unittest.TestCase):
