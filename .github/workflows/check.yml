@@ -8,6 +8,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
   issues: read
@@ -117,13 +121,16 @@ jobs:
           | docker login ghcr.io --username "${GITHUB_ACTOR}" --password-stdin
 
       - name: Build pinned audio toolchain
-        run: >-
-          docker build --platform linux/amd64
-          --file tools/audio/playtest.Dockerfile --tag atrinik-sound-audio .
+        run: |
+          started=$SECONDS
+          docker build --platform linux/amd64 \
+            --file tools/audio/playtest.Dockerfile --tag atrinik-sound-audio .
+          printf 'playtest phase timing: toolchain=%ss\n' "$((SECONDS - started))"
 
       - name: Build and verify the complete tree twice
         run: |
           for output in playtest-a playtest-b; do
+            started=$SECONDS
             docker run --rm --platform linux/amd64 \
               --network none \
               --user "$(id -u):$(id -g)" \
@@ -131,8 +138,13 @@ jobs:
               --workdir /workspaces/sound \
               atrinik-sound-audio \
               python3 tools/sound_release.py build-playtest-tree "build/${output}"
+            printf 'playtest phase timing: %s=%ss\n' \
+              "$output" "$((SECONDS - started))"
           done
+          started=$SECONDS
           cmp build/playtest-a/playtest-manifest.json build/playtest-b/playtest-manifest.json
+          printf 'playtest phase timing: compare=%ss\n' "$((SECONDS - started))"
+          started=$SECONDS
           docker run --rm --platform linux/amd64 \
             --network none \
             --user "$(id -u):$(id -g)" \
@@ -140,6 +152,8 @@ jobs:
             --workdir /workspaces/sound \
             atrinik-sound-audio \
             python3 tools/sound_release.py verify-playtest-tree build/playtest-a
+          printf 'playtest phase timing: independent-decode=%ss\n' \
+            "$((SECONDS - started))"
           python3 - <<'PY'
           import hashlib
           import json

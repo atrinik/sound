@@ -8,6 +8,7 @@ import copy
 import contextlib
 import ctypes
 import dataclasses
+import enum
 import errno
 import fcntl
 import filecmp
@@ -106,6 +107,22 @@ class ReleaseError(RuntimeError):
 
 class SourceIntegrityError(ReleaseError):
     """A tracked checkout differs from its claimed immutable Git tree."""
+
+
+class PlaytestVerificationMode(enum.Enum):
+    """Fixed verification work budgets for the playtest-tree trust stages."""
+
+    BUILT_TREE = (False, False, True)
+    INDEPENDENT = (False, True, False)
+    EXISTING_TREE = (True, True, False)
+
+    def __init__(
+        self, reproduce_conversions: bool, decode_payloads: bool,
+        trusted_snapshot_only: bool,
+    ) -> None:
+        self.reproduce_conversions = reproduce_conversions
+        self.decode_payloads = decode_payloads
+        self.trusted_snapshot_only = trusted_snapshot_only
 
 
 @dataclasses.dataclass(frozen=True)
@@ -2974,9 +2991,11 @@ def verify_playtest_tree(
     root: Path,
     *,
     require_build_path: bool = True,
-    reproduce_conversions: bool = True,
+    mode: PlaytestVerificationMode = PlaytestVerificationMode.INDEPENDENT,
     _trusted_snapshot: bool = False,
 ) -> dict[str, object]:
+    if mode.trusted_snapshot_only and not _trusted_snapshot:
+        raise ReleaseError("built-tree verification requires the retained trusted snapshot")
     if not _trusted_snapshot:
         if require_build_path:
             with anchored_playtest_output(root, create_parents=False) as (anchored, _lexical):
@@ -2984,14 +3003,14 @@ def verify_playtest_tree(
                     return verify_playtest_tree(
                         snapshot.path,
                         require_build_path=False,
-                        reproduce_conversions=reproduce_conversions,
+                        mode=mode,
                         _trusted_snapshot=True,
                     )
         with stable_playtest_snapshot(root) as snapshot:
             return verify_playtest_tree(
                 snapshot.path,
                 require_build_path=False,
-                reproduce_conversions=reproduce_conversions,
+                mode=mode,
                 _trusted_snapshot=True,
             )
     root = root.resolve()
@@ -3090,7 +3109,7 @@ def verify_playtest_tree(
             )["output"]
             if output != expected_output:
                 raise ReleaseError(f"copied Vorbis metadata is stale or tampered: {logical_path}")
-        elif reproduce_conversions:
+        elif mode.reproduce_conversions:
             with tempfile.TemporaryDirectory(prefix="atrinik-sound-playtest-verify-") as temporary:
                 reproduced = convert_legacy_asset(source_asset, Path(temporary), toolchain)
                 generated = Path(temporary) / str(source_asset["generated_path"])
@@ -3107,17 +3126,18 @@ def verify_playtest_tree(
                 )["output"]
                 if output != expected_output:
                     raise ReleaseError(f"converted Opus output is not deterministic: {logical_path}")
-        run_sdl_probe(
-            payload,
-            expected_frames=round(
-                float(output["duration_seconds"])
-                * int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
-            ),
-            behaviors=(),
-            expected_channels=int(output["channels"]),
-            toolchain=toolchain,
-            strict_playtest=True,
-        )
+        if mode.decode_payloads:
+            run_sdl_probe(
+                payload,
+                expected_frames=round(
+                    float(output["duration_seconds"])
+                    * int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
+                ),
+                behaviors=(),
+                expected_channels=int(output["channels"]),
+                toolchain=toolchain,
+                strict_playtest=True,
+            )
 
     logical_paths = sorted(expected_by_path)
     if logical_tree_sha256(root, logical_paths) != manifest_value.get("output_tree_sha256"):
@@ -3172,7 +3192,11 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
         toolchain_sha256 = sha256(PLAYTEST_TOOLCHAIN)
         schema_sha256 = sha256(SCHEMA_ROOT / "playtest-manifest-v1.schema.json")
         if output_directory.exists():
-            verify_playtest_tree(output_directory, require_build_path=False)
+            verify_playtest_tree(
+                output_directory,
+                require_build_path=False,
+                mode=PlaytestVerificationMode.EXISTING_TREE,
+            )
             return
         assets = playtest_assets(source_manifest, toolchain)
         with tempfile.TemporaryDirectory(prefix=f".{output_directory.name}.staging-", dir=output_directory.parent) as temporary:
@@ -3251,7 +3275,7 @@ def _build_playtest_tree_anchored(output_directory: Path) -> None:
                 verify_playtest_tree(
                     verified.path,
                     require_build_path=False,
-                    reproduce_conversions=True,
+                    mode=PlaytestVerificationMode.BUILT_TREE,
                     _trusted_snapshot=True,
                 )
                 if clean_source_coordinates() != (source_commit, source_tree):

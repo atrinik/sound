@@ -2145,7 +2145,8 @@ class PlaytestTreeTests(unittest.TestCase):
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
             )
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            with patches[0], patches[1], patches[2], patches[3], patches[4], \
+                    patches[5] as probe:
                 first = sound_release.build_playtest_tree(parent / "first")
                 second = sound_release.build_playtest_tree(parent / "second")
             first_manifest = (first / sound_release.PLAYTEST_MANIFEST_NAME).read_bytes()
@@ -2155,6 +2156,7 @@ class PlaytestTreeTests(unittest.TestCase):
                 json.loads(first_manifest)["output_tree_sha256"],
                 json.loads(second_manifest)["output_tree_sha256"],
             )
+            probe.assert_not_called()
 
             raced = parent / "raced"
             coordinates = mock.patch.object(
@@ -2200,6 +2202,28 @@ class PlaytestTreeTests(unittest.TestCase):
                 with self.assertRaisesRegex(sound_release.ReleaseError, "changed during verification"):
                     sound_release.build_playtest_tree(mutated)
             self.assertFalse(mutated.exists())
+
+    def test_playtest_verification_modes_fix_expensive_work_to_trust_stage(self) -> None:
+        self.assertEqual(
+            {
+                sound_release.PlaytestVerificationMode.BUILT_TREE: (False, False, True),
+                sound_release.PlaytestVerificationMode.INDEPENDENT: (False, True, False),
+                sound_release.PlaytestVerificationMode.EXISTING_TREE: (True, True, False),
+            },
+            {
+                mode: (
+                    mode.reproduce_conversions,
+                    mode.decode_payloads,
+                    mode.trusted_snapshot_only,
+                )
+                for mode in sound_release.PlaytestVerificationMode
+            },
+        )
+        with self.assertRaisesRegex(sound_release.ReleaseError, "trusted snapshot"):
+            sound_release.verify_playtest_tree(
+                ROOT / "build" / "untrusted",
+                mode=sound_release.PlaytestVerificationMode.BUILT_TREE,
+            )
 
     def test_verifier_rejects_control_payload_and_closure_tampering(self) -> None:
         build_root = ROOT / "build"
@@ -2274,10 +2298,13 @@ class PlaytestTreeTests(unittest.TestCase):
                 mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain),
                 mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
                 mock.patch.object(sound_release, "run_sdl_probe"),
+                mock.patch.object(sound_release, "convert_legacy_asset"),
             )
-            with patches[0] as coordinates, patches[1], patches[2], patches[3], patches[4], patches[5] as probe:
+            with patches[0] as coordinates, patches[1], patches[2], patches[3], patches[4], \
+                    patches[5] as probe, patches[6] as reproduce:
                 sound_release.verify_playtest_tree(root)
                 probe.assert_called_once()
+                reproduce.assert_not_called()
                 self.assertEqual(
                     round(source["duration_seconds"] * 48000),
                     probe.call_args.kwargs["expected_frames"],

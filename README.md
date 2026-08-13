@@ -91,6 +91,12 @@ manifest declare `playtest_only: true` and `publishable: false`; it is not an
 archive, release input, cache, package, container layer, or provenance or
 listening approval. An existing verified tree is reused, while an invalid,
 stale, dirty, or concurrently changing input fails without replacing it.
+Fresh builds validate exact closure, hashes, metadata, control files, source
+stability, and mutation safety without repeating conversion or whole-tree
+decode work. CI compares the complete canonical manifests from two such builds,
+then the independent verifier fully decodes all 339 byte-identical payloads
+exactly once. Reusing a pre-existing local tree retains the stronger conversion
+reproduction and full-decode check because it has no paired-build evidence.
 
 `tools/audio/playtest.Dockerfile` builds the required local environment without
 changing the released-runtime `tools/audio/Dockerfile` contract.
