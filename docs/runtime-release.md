@@ -379,15 +379,16 @@ regular-file and hash integrity, canonical control files, deterministic codec
 mappings, source stability, mutation monitoring, and atomic no-replace
 installation. Each conversion already performs its FFmpeg full decode,
 clipping/duration validation, and SDL3_mixer probe. CI independently builds two
-complete trees, compares their canonical manifests containing every per-path
-hash and output metadata field, and then runs one standalone full SDL3_mixer
-decode across all 339 payloads in one byte-identical result. Internal fresh-build
-verification therefore neither rerenders conversions nor repeats whole-tree
-decode work. A pre-existing exact tree is verified and reused only after the
-stronger conversion-reproduction and full-decode mode succeeds because it has
-no paired-build evidence. No failed or concurrent build replaces it. Both
-public commands hold a shared
-`atrinik-playtest-builds.lock` lease in this exact worktree's Git admin
+complete trees, then passes both to `verify-paired-playtest-trees`. That command
+holds mutation-safe snapshots of both trees while it validates and compares
+their canonical manifests containing every per-path hash and output metadata
+field, then runs one full SDL3_mixer decode across all 339 payloads in one
+byte-identical result. Internal fresh-build verification therefore neither
+rerenders conversions nor repeats whole-tree decode work. The public one-tree
+verifier and reuse of a pre-existing exact tree retain the stronger
+conversion-reproduction and full-decode mode because they have no paired-build
+evidence. No failed or concurrent build replaces it. All public commands hold a
+shared `atrinik-playtest-builds.lock` lease in this exact worktree's Git admin
 directory. Its `atrinik-sound-playtest-builds-v1` marker proves participation;
 workspace cleanup must hold the exclusive side while removing the
 worktree, closing the producer-start race without serializing independent

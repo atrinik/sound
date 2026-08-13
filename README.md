@@ -93,10 +93,12 @@ listening approval. An existing verified tree is reused, while an invalid,
 stale, dirty, or concurrently changing input fails without replacing it.
 Fresh builds validate exact closure, hashes, metadata, control files, source
 stability, and mutation safety without repeating conversion or whole-tree
-decode work. CI compares the complete canonical manifests from two such builds,
-then the independent verifier fully decodes all 339 byte-identical payloads
-exactly once. Reusing a pre-existing local tree retains the stronger conversion
-reproduction and full-decode check because it has no paired-build evidence.
+decode work. CI passes two such builds to `verify-paired-playtest-trees`, which
+holds both mutation-safe snapshots, validates and compares their complete
+canonical manifests, then fully decodes all 339 byte-identical payloads exactly
+once without rerendering. The one-tree `verify-playtest-tree` command and reuse
+of a pre-existing local tree retain conversion reproduction and full decode
+because they have no paired-build evidence.
 
 `tools/audio/playtest.Dockerfile` builds the required local environment without
 changing the released-runtime `tools/audio/Dockerfile` contract.

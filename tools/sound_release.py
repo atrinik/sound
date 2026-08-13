@@ -28,6 +28,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import wave
 from datetime import UTC, datetime
 from typing import Iterator
@@ -113,7 +114,7 @@ class PlaytestVerificationMode(enum.Enum):
     """Fixed verification work budgets for the playtest-tree trust stages."""
 
     BUILT_TREE = (False, False, True)
-    INDEPENDENT = (False, True, False)
+    PAIRED_TREE = (False, True, True)
     EXISTING_TREE = (True, True, False)
 
     def __init__(
@@ -2991,7 +2992,7 @@ def verify_playtest_tree(
     root: Path,
     *,
     require_build_path: bool = True,
-    mode: PlaytestVerificationMode = PlaytestVerificationMode.INDEPENDENT,
+    mode: PlaytestVerificationMode = PlaytestVerificationMode.EXISTING_TREE,
     _trusted_snapshot: bool = False,
 ) -> dict[str, object]:
     if mode.trusted_snapshot_only and not _trusted_snapshot:
@@ -3126,6 +3127,22 @@ def verify_playtest_tree(
                 )["output"]
                 if output != expected_output:
                     raise ReleaseError(f"converted Opus output is not deterministic: {logical_path}")
+        else:
+            expected_sample_rate = int(toolchain["quality_budget"]["sample_rate"])  # type: ignore[index]
+            expected_output_metadata = {
+                "codec": "opus",
+                "container": "ogg",
+                "sample_rate": expected_sample_rate,
+                "channels": int(render["channels"]),
+            }
+            if {
+                key: output.get(key) for key in expected_output_metadata
+            } != expected_output_metadata:
+                raise ReleaseError(f"converted Opus metadata is stale or tampered: {logical_path}")
+            if abs(
+                float(output["duration_seconds"]) - float(source["duration_seconds"])
+            ) > 3 / expected_sample_rate:
+                raise ReleaseError(f"converted Opus duration is stale or tampered: {logical_path}")
         if mode.decode_payloads:
             run_sdl_probe(
                 payload,
@@ -3154,6 +3171,48 @@ def verify_playtest_tree(
     ):
         raise ReleaseError("playtest verification inputs changed during verification")
     return manifest_value
+
+
+def verify_paired_playtest_trees(
+    first: Path, second: Path,
+) -> tuple[dict[str, object], float, float]:
+    """Compare two retained trees before one no-rerender independent decode."""
+    with anchored_playtest_output(first, create_parents=False) as (first_root, _first_lexical), \
+            anchored_playtest_output(second, create_parents=False) as (second_root, _second_lexical):
+        first_identity = first_root.stat(follow_symlinks=False)
+        second_identity = second_root.stat(follow_symlinks=False)
+        if (first_identity.st_dev, first_identity.st_ino) == (
+            second_identity.st_dev, second_identity.st_ino,
+        ):
+            raise ReleaseError("paired playtest verification requires two distinct trees")
+        with playtest_verification_lock(first_root), playtest_verification_lock(second_root), \
+                stable_playtest_snapshot(first_root) as first_snapshot, \
+                stable_playtest_snapshot(second_root) as second_snapshot:
+            comparison_started = time.monotonic()
+            first_manifest = verify_playtest_tree(
+                first_snapshot.path,
+                require_build_path=False,
+                mode=PlaytestVerificationMode.BUILT_TREE,
+                _trusted_snapshot=True,
+            )
+            second_manifest = verify_playtest_tree(
+                second_snapshot.path,
+                require_build_path=False,
+                mode=PlaytestVerificationMode.BUILT_TREE,
+                _trusted_snapshot=True,
+            )
+            if canonical_json(first_manifest) != canonical_json(second_manifest):
+                raise ReleaseError("independent playtest-tree manifests differ")
+            comparison_seconds = time.monotonic() - comparison_started
+            decode_started = time.monotonic()
+            verified_manifest = verify_playtest_tree(
+                first_snapshot.path,
+                require_build_path=False,
+                mode=PlaytestVerificationMode.PAIRED_TREE,
+                _trusted_snapshot=True,
+            )
+            decode_seconds = time.monotonic() - decode_started
+    return verified_manifest, comparison_seconds, decode_seconds
 
 
 def install_directory_noreplace(staging: Path, destination: Path) -> None:
@@ -4371,6 +4430,19 @@ def command_verify_playtest_tree(arguments: argparse.Namespace) -> None:
     )
 
 
+def command_verify_paired_playtest_trees(arguments: argparse.Namespace) -> None:
+    manifest, comparison_seconds, decode_seconds = verify_paired_playtest_trees(
+        Path(arguments.first_output_directory),
+        Path(arguments.second_output_directory),
+    )
+    print(f"playtest phase timing: compare={comparison_seconds:.3f}s")
+    print(f"playtest phase timing: independent-decode={decode_seconds:.3f}s")
+    print(
+        f"verified paired {manifest['logical_path_count']} playtest paths; "
+        f"tree SHA-256: {manifest['output_tree_sha256']}"
+    )
+
+
 def command_checksums(arguments: argparse.Namespace) -> None:
     write_checksums(Path(arguments.output_directory))
 
@@ -4427,6 +4499,13 @@ def parser() -> argparse.ArgumentParser:
     )
     verify_playtest.add_argument("output_directory")
     verify_playtest.set_defaults(function=command_verify_playtest_tree)
+    verify_playtest_pair = commands.add_parser(
+        "verify-paired-playtest-trees",
+        help="compare two complete trees and independently decode one byte-identical result",
+    )
+    verify_playtest_pair.add_argument("first_output_directory")
+    verify_playtest_pair.add_argument("second_output_directory")
+    verify_playtest_pair.set_defaults(function=command_verify_paired_playtest_trees)
     candidate = commands.add_parser("build-review-candidate", help="build one license-approved non-publishing quality-review candidate")
     candidate.add_argument("logical_path")
     candidate.add_argument("output_directory")

@@ -1662,6 +1662,66 @@ class PlaytestTreeTests(unittest.TestCase):
             if asset["logical_path"] == "effects/campfire.ogg"
         )
 
+    def write_converted_playtest_tree(
+        self, root: Path, asset: dict[str, object], versions: dict[str, str],
+        toolchain: dict[str, object], payload_bytes: bytes,
+    ) -> tuple[dict[str, object], dict[str, object]]:
+        logical_path = str(asset["logical_path"])
+        payload = root / logical_path
+        payload.parent.mkdir(parents=True)
+        payload.write_bytes(payload_bytes)
+        source = asset["source"]
+        render = asset["render"]
+        assert isinstance(source, dict) and isinstance(render, dict)
+        output_asset = sound_release.playtest_output_record(
+            asset,
+            payload,
+            codec="opus",
+            container="ogg",
+            sample_rate=int(render["sample_rate"]),
+            channels=int(render["channels"]),
+            duration_seconds=float(source["duration_seconds"]),
+        )
+        source_manifest = {"audio_source_count": 1, "assets": [asset]}
+        marker = sound_release.canonical_json(sound_release.PLAYTEST_MARKER)
+        blockers = sound_release.canonical_json(
+            sound_release.blocker_report(source_manifest, []),
+        )
+        manifest = {
+            "$schema": "schemas/playtest-manifest-v1.schema.json",
+            "schema_version": 1,
+            "playtest_only": True,
+            "publishable": False,
+            "source_commit": "b" * 40,
+            "source_tree": "c" * 40,
+            "source_manifest_sha256": sound_release.sha256(sound_release.SOURCE_MANIFEST),
+            "toolchain_sha256": sound_release.sha256(sound_release.PLAYTEST_TOOLCHAIN),
+            "schema_sha256": sound_release.sha256(
+                sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
+            ),
+            "tool_versions": versions,
+            "marker_sha256": hashlib.sha256(marker).hexdigest(),
+            "blocker_report_sha256": hashlib.sha256(blockers).hexdigest(),
+            "blocker_count": 0,
+            "logical_path_count": 1,
+            "copied_vorbis_count": 0,
+            "converted_opus_count": 1,
+            "output_tree_sha256": sound_release.logical_tree_sha256(root, [logical_path]),
+            "assets": [output_asset],
+        }
+        (root / sound_release.PLAYTEST_MARKER_NAME).write_bytes(marker)
+        (root / sound_release.PLAYTEST_BLOCKERS_NAME).write_bytes(blockers)
+        schema_path = root / "schemas" / "playtest-manifest-v1.schema.json"
+        schema_path.parent.mkdir()
+        shutil.copyfile(
+            sound_release.SCHEMA_ROOT / "playtest-manifest-v1.schema.json",
+            schema_path,
+        )
+        (root / sound_release.PLAYTEST_MANIFEST_NAME).write_bytes(
+            sound_release.canonical_json(manifest),
+        )
+        return manifest, source_manifest
+
     def test_dirty_shared_sound_source_is_rejected(self) -> None:
         completed = lambda output: type("Completed", (), {"stdout": output})()
         responses = [
@@ -2207,7 +2267,7 @@ class PlaytestTreeTests(unittest.TestCase):
         self.assertEqual(
             {
                 sound_release.PlaytestVerificationMode.BUILT_TREE: (False, False, True),
-                sound_release.PlaytestVerificationMode.INDEPENDENT: (False, True, False),
+                sound_release.PlaytestVerificationMode.PAIRED_TREE: (False, True, True),
                 sound_release.PlaytestVerificationMode.EXISTING_TREE: (True, True, False),
             },
             {
@@ -2224,6 +2284,107 @@ class PlaytestTreeTests(unittest.TestCase):
                 ROOT / "build" / "untrusted",
                 mode=sound_release.PlaytestVerificationMode.BUILT_TREE,
             )
+        with self.assertRaisesRegex(sound_release.ReleaseError, "trusted snapshot"):
+            sound_release.verify_playtest_tree(
+                ROOT / "build" / "untrusted",
+                mode=sound_release.PlaytestVerificationMode.PAIRED_TREE,
+            )
+
+    def test_paired_verification_binds_fast_mode_to_two_converted_trees(self) -> None:
+        asset = next(
+            item for item in self.source_manifest["assets"]
+            if item["source"]["codec"] != "vorbis"
+        )
+        versions = {
+            name: "test" for name in
+            ("ffmpeg", "wildmidi", "openmpt123", "opusenc", "opusinfo", "sdl3_mixer_probe")
+        }
+        toolchain = {"quality_budget": {"sample_rate": 48000}}
+        build_root = ROOT / "build"
+        build_root.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix="test-playtest-pair-", dir=build_root) as temporary:
+            parent = Path(temporary)
+            first = parent / "first"
+            second = parent / "second"
+            first.mkdir()
+            second.mkdir()
+            first_manifest, source_manifest = self.write_converted_playtest_tree(
+                first, asset, versions, toolchain, b"deterministic Opus payload",
+            )
+            self.write_converted_playtest_tree(
+                second, asset, versions, toolchain, b"deterministic Opus payload",
+            )
+
+            def reproduce(
+                current: dict[str, object], output: Path, _toolchain: dict[str, object],
+            ) -> dict[str, object]:
+                generated = output / str(current["generated_path"])
+                generated.parent.mkdir(parents=True)
+                generated.write_bytes(b"deterministic Opus payload")
+                source = current["source"]
+                render = current["render"]
+                assert isinstance(source, dict) and isinstance(render, dict)
+                return {"output": {
+                    "sample_rate": render["sample_rate"],
+                    "channels": render["channels"],
+                    "duration_seconds": source["duration_seconds"],
+                }}
+
+            patches = (
+                mock.patch.object(sound_release, "clean_source_coordinates", return_value=("b" * 40, "c" * 40)),
+                mock.patch.object(sound_release, "checked_manifest", return_value=source_manifest),
+                mock.patch.object(sound_release, "validate_manifest", return_value=[]),
+                mock.patch.object(sound_release, "checked_playtest_toolchain", return_value=toolchain),
+                mock.patch.object(sound_release, "verify_toolchain", return_value=versions),
+                mock.patch.object(sound_release, "run_sdl_probe"),
+                mock.patch.object(sound_release, "convert_legacy_asset", side_effect=reproduce),
+            )
+            with patches[0], patches[1], patches[2], patches[3], patches[4], \
+                    patches[5] as probe, patches[6] as reproduce_call:
+                with self.assertRaisesRegex(sound_release.ReleaseError, "two distinct trees"):
+                    sound_release.verify_paired_playtest_trees(first, first)
+                verified, _comparison_seconds, _decode_seconds = (
+                    sound_release.verify_paired_playtest_trees(first, second)
+                )
+                self.assertEqual(first_manifest, verified)
+                probe.assert_called_once()
+                reproduce_call.assert_not_called()
+
+                probe.reset_mock()
+                sound_release.verify_playtest_tree(first)
+                probe.assert_called_once()
+                reproduce_call.assert_called_once()
+
+                changed = copy.deepcopy(first_manifest)
+                changed["assets"][0]["output"]["sample_rate"] = 44100
+                (first / sound_release.PLAYTEST_MANIFEST_NAME).write_bytes(
+                    sound_release.canonical_json(changed),
+                )
+                with self.assertRaisesRegex(sound_release.ReleaseError, "metadata"):
+                    sound_release.verify_paired_playtest_trees(first, second)
+
+                changed = copy.deepcopy(first_manifest)
+                changed["assets"][0]["output"]["duration_seconds"] += 0.000001
+                (first / sound_release.PLAYTEST_MANIFEST_NAME).write_bytes(
+                    sound_release.canonical_json(changed),
+                )
+                with self.assertRaisesRegex(sound_release.ReleaseError, "manifests differ"):
+                    sound_release.verify_paired_playtest_trees(first, second)
+
+                changed = copy.deepcopy(first_manifest)
+                payload = first / str(asset["logical_path"])
+                payload.write_bytes(b"coherently changed payload")
+                output = changed["assets"][0]["output"]
+                output["sha256"] = sound_release.sha256(payload)
+                output["size_bytes"] = payload.stat().st_size
+                changed["output_tree_sha256"] = sound_release.logical_tree_sha256(
+                    first, [str(asset["logical_path"])],
+                )
+                (first / sound_release.PLAYTEST_MANIFEST_NAME).write_bytes(
+                    sound_release.canonical_json(changed),
+                )
+                with self.assertRaisesRegex(sound_release.ReleaseError, "manifests differ"):
+                    sound_release.verify_paired_playtest_trees(first, second)
 
     def test_verifier_rejects_control_payload_and_closure_tampering(self) -> None:
         build_root = ROOT / "build"
