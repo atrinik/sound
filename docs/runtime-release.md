@@ -1,11 +1,14 @@
-# Deterministic Opus runtime release
+# Deterministic sound runtime releases
 
 ## Contract and current gate
 
 The repository preserves 339 canonical sources (135,695,742 bytes): 122 MIDI,
-189 Ogg Vorbis, and 28 lossless FLAC files. The generated runtime product
-normalizes every deliverable source to Opus in its standard Ogg encapsulation
-without changing any authored file or content-side logical key.
+189 Ogg Vorbis, and 28 lossless FLAC files. It publishes a Classic restoration
+runtime at the unchanged legacy logical paths: the 189 Vorbis payloads are
+copied byte-for-byte and only the 150 MIDI/FLAC inputs are rendered to Opus.
+The separately normalized runtime converts every source to Opus at generated
+paths and remains subject to its stricter modernization gate. Neither product
+changes an authored file or content-side logical key.
 
 `manifests/source-assets.json` is the source-of-truth inventory. Each entry has
 a stable ID, legacy logical key, authored source path, collision-free generated path, source
@@ -23,10 +26,14 @@ Git-tracked, non-symlink, content-hash-verified evidence document under
 no candidate interpretation. Approval is never a default-allow keyword filter.
 All 189 preserved Vorbis inputs and the 28 lossless replacements have
 source-hash-bound quality reviews pending, producing 465 total gates. They are
-not silently omitted: while any
-finding remains, releases
-publish the complete blocker report and no runtime archive. Source archives
-continue unchanged.
+not silently omitted. The normalized runtime continues to publish the complete
+blocker report and no archive while any remains. For the restoration product,
+the same findings are a deterministic, checksum-covered, nonblocking
+modernization report under the explicit project decision in `atrinik/sound#30`.
+That decision permits republication of the already-published corpus; it does
+not claim a blanket license, erase attribution, approve newly introduced
+audio, or satisfy the separate modernization work. Source archives continue
+unchanged.
 
 `manifests/vorbis-quality-reviews.json` is the independent review ledger. A
 passed entry binds the source, toolchain, reviewed evidence artifact, and exact
@@ -52,13 +59,18 @@ missing and unknown fields; each runtime archive carries its runtime schema.
 
 ## Toolchain and encoding profile
 
-`manifests/audio-toolchain.json` pins the Linux build image by digest and source
+`manifests/audio-toolchain.json` pins the normalized Linux build image by digest and source
 commit, an immutable Ubuntu package snapshot, direct package versions, upstream archive checksums, renderer settings,
 FreePats instrument bank and exception, Opus encoder, independent decoder, key
 runtime-library and executable hashes, exact asset license texts, and the
 repository-owned SDL3_mixer full-decode/playback probe compiled against the
 libraries delivered by `atrinik/devcontainer#21`.
 `tools/audio/Dockerfile` creates the exact runnable environment.
+`manifests/classic-audio-toolchain.json` and
+`tools/audio/classic-runtime.Dockerfile` independently pin the publishable
+legacy-path recipe delivered by the #27 conversion core. The byte-equivalent
+`manifests/playtest-audio-toolchain.json` remains separately named and
+nonpublishing; the release never relabels its marker or local output.
 
 The checked quality budget authoritatively generates and validates the release
 recipe. It renders signed 16-bit PCM at 48 kHz, explicitly disables
@@ -239,20 +251,69 @@ decode, media, and device-free SDL3_mixer control invariants.
 exact generated paths in `manifests/fixture-plan.json` are the boundary between
 the repositories.
 
-After all blockers have documentary remediation, use the guarded publisher for
-a full build. It fails if Git status cannot be obtained, rejects any tracked or
-untracked worktree change, validates tracking and evidence on the host, binds
-the tag/commit/tree, and only then attests those checks to the isolated audio
-container. This wrapper is the supported full-build entry point:
+Use the guarded publisher for a complete release build. It always builds the
+restoration runtime; it additionally builds the normalized runtime after all of
+that product's blockers have documentary remediation. It fails if Git status
+cannot be obtained, rejects any tracked or untracked worktree change, validates
+tracking and evidence on the host, binds the tag/commit/tree, and only then
+attests those checks to isolated audio containers. This wrapper is the
+supported full-build entry point:
 
 ```sh
 tools/build-release-assets.sh X.Y.Z
 (cd build/release && sha256sum --check SHA256SUMS)
 ```
 
-Run it twice from clean checkouts of the same commit and compare the archives,
-runtime manifests, and checksum files byte for byte. GitHub Actions performs
-the equivalent fixture proof on every pull request.
+The wrapper itself performs two independent clean restoration builds and
+compares their complete archive bytes before a separate full verification.
+GitHub Actions executes this release workflow on every pull request.
+
+## Classic restoration archive
+
+`tools/build-release-assets.sh` always builds the restoration product twice in
+the pinned Classic image, compares both archive and remediation-report bytes,
+then independently opens the archive without trusting extraction paths. The
+verifier rejects duplicate, absolute, traversing, oversized, non-regular,
+misordered, or metadata-drifted members; requires exact file and 339-key
+closure; validates both JSON schemas and all source/output hashes; identifies
+every payload codec by signature; and fully decodes every payload through the
+pinned SDL3_mixer probe. The two preceding complete builds establish that all
+150 Opus conversions are byte-reproducible.
+Changed Git input, a different toolchain, a missing notice, checksum drift, or
+any decoder failure aborts publication. The 465 modernization findings are not
+technical exceptions to those checks.
+
+For version `X.Y.Z`, the archive has exactly one
+`atrinik-sound-classic-runtime-X.Y.Z/` prefix. Its payloads live directly at
+`background/` and `effects/` legacy paths. It also contains:
+
+```text
+classic-runtime-manifest.json
+classic-runtime-remediation.json
+manifests/classic-audio-toolchain.json
+manifests/source-assets.json
+manifests/source-replacements.json
+manifests/license-reviews.json
+manifests/vorbis-quality-reviews.json
+schemas/classic-runtime-manifest-v1.schema.json
+schemas/classic-remediation-v1.schema.json
+schemas/classic-audio-toolchain-v1.schema.json
+background/LICENSE
+background/README.md
+effects/LICENSE
+effects/README.md
+licenses/<applicable SPDX license texts>
+SHA256SUMS
+```
+
+The release-level sibling
+`atrinik-sound-classic-runtime-X.Y.Z-REMEDIATION.json` is byte-identical to the
+archive report and is included in the release-level `SHA256SUMS`. Consumers pin
+the tag, commit, asset URL, archive SHA-256, manifest and schema hashes,
+toolchain hash, source tree, counts, and logical-tree digest. The release notes
+must state the 248 license/provenance and 217 formal quality-review findings and
+link the modernization initiative rather than presenting the corpus as newly
+cleared.
 
 ## Runtime archive layout and consumption
 
@@ -333,9 +394,10 @@ python3 tools/sound_release.py verify-playtest-tree build/classic-playtest
 
 The tree must never be archived, uploaded, cached, released, packaged, installed,
 or embedded in an image. Its blocker report preserves every unresolved release
-finding, and its marker is intentionally incompatible with the released-runtime
-manifest schema. The runtime manifest, toolchain, renderer recipes, schemas, and
-`tools/audio/Dockerfile` publisher environment remain byte-for-byte unchanged
-from the release baseline; `tools/audio/playtest.Dockerfile` owns the local
-WildMIDI environment. Local
+finding, and its marker is intentionally incompatible with either publishable
+manifest schema. The normalized runtime manifest, toolchain, renderer recipes,
+schemas, and `tools/audio/Dockerfile` environment remain unchanged;
+`tools/audio/classic-runtime.Dockerfile` and
+`tools/audio/playtest.Dockerfile` own separately named publishable and local
+WildMIDI environments. Local
 playback provides no license, provenance, or critical-listening evidence.

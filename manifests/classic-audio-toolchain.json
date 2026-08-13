@@ -1,0 +1,178 @@
+{
+  "$schema": "../schemas/classic-audio-toolchain-v1.schema.json",
+  "schema_version": 1,
+  "apt_snapshot": "https://snapshot.ubuntu.com/ubuntu/20260810T000000Z",
+  "build_image": {
+    "image": "ghcr.io/atrinik/linux-build@sha256:1231b39d40161c1199fd3e45e99e3d826dde02dade79729c030cc0ce3710898f",
+    "source_repository": "atrinik/devcontainer",
+    "source_commit": "66b8508434044ca50822558172c5cef47a888762",
+    "release": "1.2.0",
+    "platform": "linux/amd64"
+  },
+  "duration_tolerance_seconds": 2.5,
+  "quality_budget": {
+    "sample_rate": 48000,
+    "sample_format": "signed 16-bit PCM intermediate",
+    "stereo_music_bitrate_kbps": 160,
+    "mono_bitrate_kbps": 80,
+    "rate_control": "VBR",
+    "encoder_complexity": 10,
+    "clipping_allowed": false,
+    "clipped_render_peak_target_dbfs": -2.0,
+    "clipped_render_policy": "deterministically attenuate rendered PCM above the peak target before encoding",
+    "nonzero_pcm_required": true,
+    "vorbis_generation": "second lossy generation; each output requires quality review"
+  },
+  "instrument_bank": {
+    "name": "FreePats General MIDI",
+    "version": "20060219",
+    "installed_config": "/opt/atrinik-freepats.cfg",
+    "installed_config_sha256": "8fbde1125e0fcfdccd2c96bf6dcbfbfac5eafdf05a87761cfcd4c2af1e4494f6",
+    "installed_tree": "/opt/freepats",
+    "installed_tree_sha256": "5a2ed662fda238427a2c1368575e762ef9fa5579904ec0d674aa7849db5a38c2",
+    "debian_source": {
+      "url": "https://deb.debian.org/debian/pool/main/f/freepats/freepats_20060219.orig.tar.gz",
+      "sha256": "70bf8ca084df3903d6c9de43fe20539fc0a553d95cfba4d525da3fe66fda5f10"
+    },
+    "upstream_archive_sha256": "0261ea1057b232183fa472432d5cedb0dca33698a5319328cdf193d4b2193c8a",
+    "license": "GPL-2.0-or-later WITH FreePats-exception",
+    "license_reference": "https://freepats.zenvoid.org/licenses.html",
+    "recording_distribution_permission": "The FreePats exception states that mixed output is not by itself covered by the GPL.",
+    "transformation_note": "The bank is used unmodified as a renderer input and is not included in sound release archives."
+  },
+  "license_texts": {
+    "GPL-2.0-only": {
+      "installed_path": "/usr/share/common-licenses/GPL-2",
+      "archive_path": "licenses/GPL-2.0.txt",
+      "source_url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt",
+      "sha256": "edaef632cbb643e4e7a221717a6c441a4c1a7c918e6e4d56debc3d8739b233f6"
+    },
+    "GPL-3.0-or-later": {
+      "installed_path": "/usr/share/common-licenses/GPL-3",
+      "archive_path": "licenses/GPL-3.0.txt",
+      "source_url": "https://www.gnu.org/licenses/gpl-3.0.txt",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    "CC-BY-3.0": {
+      "installed_path": "/opt/atrinik-sound-license-texts/CC-BY-3.0.txt",
+      "archive_path": "licenses/CC-BY-3.0.txt",
+      "source_url": "https://creativecommons.org/licenses/by/3.0/legalcode.txt",
+      "sha256": "e6bc9e9c474700b708f568bac9e5a8a9bcb2b1dad53442f5ba449fcb848b8e76"
+    },
+    "CC-BY-SA-3.0": {
+      "installed_path": "/opt/atrinik-sound-license-texts/CC-BY-SA-3.0.txt",
+      "archive_path": "licenses/CC-BY-SA-3.0.txt",
+      "source_url": "https://creativecommons.org/licenses/by-sa/3.0/legalcode.txt",
+      "sha256": "3f941b3b89cf7b8370ceb83cc76d2120d471b58735d8ca60238a751a48d7f72f"
+    },
+    "CC-BY-SA-3.0-DE": {
+      "installed_path": "/opt/atrinik-sound-license-texts/CC-BY-SA-3.0-DE.txt",
+      "archive_path": "licenses/CC-BY-SA-3.0-DE.txt",
+      "source_url": "https://raw.githubusercontent.com/spdx/license-list-data/5bf6d9610255540bfbee6890765a616042bf1e11/text/CC-BY-SA-3.0-DE.txt",
+      "sha256": "dfac6ca9c9b3082919f8e417e522e561e11c8402eab83e1099650b8e4347412d"
+    },
+    "CC0-1.0": {
+      "installed_path": "/opt/atrinik-sound-license-texts/CC0-1.0.txt",
+      "archive_path": "licenses/CC0-1.0.txt",
+      "source_url": "https://creativecommons.org/publicdomain/zero/1.0/legalcode.txt",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+    }
+  },
+  "runtime_libraries": [
+    {"path": "/usr/lib/x86_64-linux-gnu/libavcodec.so.62", "sha256": "f2f7634772627cd3180700f2c7bfb81377d6367042136a576fea9230c45a0beb"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libavformat.so.62", "sha256": "727804ca2781f4d2c7a12ab01b3180b7f071e535718c713241b073e58db96868"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libavutil.so.60", "sha256": "56557dd89c99afd4c7c1f62297fc0f4c19ed97e29bd903937fac480d38fbe3a5"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libswresample.so.6", "sha256": "2d7816cb7ab4785d17bb34a9bdead9e1f0dfe5b8c64f2aa999a395d3e5c60f40"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libopenmpt.so.0", "sha256": "e9f76dbb9c1416d7d87201c45717103d3089fb6426c75157665e41a5a7b42650"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libWildMidi.so.2", "sha256": "0c1d5f942a149b52433e6d3e0bebdb3a4bdb07c2d355df11fc8e795805c24842"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libopus.so.0", "sha256": "5f01eaf11e7326d83f9c341a1d943851a0b00e3444668697dd663c14b138476e"},
+    {"path": "/usr/local/lib/libSDL3_mixer.so.0", "sha256": "5f47e4eef61feab6e14bc501027b2d42de7cda8c91a5b47feec907f0c0557e73"},
+    {"path": "/usr/lib/x86_64-linux-gnu/libSDL3.so.0", "sha256": "6c68aecb2057c78c02cb694edc691a81f92bda2b186e6e8ad156d79638c19048"}
+  ],
+  "tools": {
+    "ffmpeg": {
+      "purpose": "Vorbis decode, 48 kHz resampling, and independent Opus full decode",
+      "package": "ffmpeg=7:8.0.1-3ubuntu2",
+      "installed_path": "/usr/bin/ffmpeg",
+      "installed_sha256": "bdf6aabffdba7411edff8d36c389d695257fcdf823d196020176e117612862f6",
+      "upstream": {
+        "version": "8.0.1",
+        "url": "https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz",
+        "sha256": "05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41"
+      },
+      "version_command": ["ffmpeg", "-version"],
+      "version_pattern": "^ffmpeg version 8\\.0\\.1"
+    },
+    "wildmidi": {
+      "purpose": "MIDI renderer",
+      "package": "wildmidi=0.4.6-1",
+      "installed_path": "/usr/local/bin/atrinik-wildmidi-render",
+      "installed_sha256": "ee829ceed4dfff0c4d9f4b541140d3e77692676f1a9781316b45f84dc0ca6ff3",
+      "source_path": "tools/audio/wildmidi-render.c",
+      "source_sha256": "cfe59c824dfdf7b13d1f730d79e3f01627b4e82246b05433f5d8996a7ef750f4",
+      "upstream": {
+        "version": "0.4.6",
+        "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/wildmidi/0.4.6-1/wildmidi_0.4.6.orig.tar.gz",
+        "sha256": "edad5c2434300aab03dc45a39d3d50947e0a461e2fc1afcb6a6c1d279241ee72"
+      },
+      "ubuntu_patch": {
+        "url": "https://launchpad.net/ubuntu/+archive/primary/+sourcefiles/wildmidi/0.4.6-1/wildmidi_0.4.6-1.debian.tar.xz",
+        "sha256": "d212f8cb0e2a7242ff536aae06eb6e95f7ce2c0ccc2b3e087706dd4e23103fe9"
+      },
+      "version_command": ["atrinik-wildmidi-render", "--version"],
+      "version_pattern": "^atrinik-wildmidi-render 1$"
+    },
+    "openmpt123": {
+      "purpose": "MOD, S3M, and XM renderer",
+      "package": "openmpt123=0.8.4-1",
+      "installed_path": "/usr/bin/openmpt123",
+      "installed_sha256": "1c579afc4aa76fc00822977be91b00bbc7f50c20ec44d4f723bf2dd8892b25b9",
+      "upstream": {
+        "version": "0.8.4",
+        "url": "https://lib.openmpt.org/files/libopenmpt/src/libopenmpt-0.8.4+release.autotools.tar.gz",
+        "sha256": "627f9bf11aacae615a1f2c982c7e88cb21f11b2d6f0267946f7c82c5eae4943b"
+      },
+      "version_command": ["openmpt123", "--version"],
+      "version_pattern": "openmpt123 v0\\.8\\.4"
+    },
+    "opusenc": {
+      "purpose": "Ogg Opus encoder",
+      "package": "opus-tools=0.2-1build5",
+      "installed_path": "/usr/bin/opusenc",
+      "installed_sha256": "630653e25d158db48e939ff1407558235cd41a8197229ed2f0ca3312ebd09a7e",
+      "upstream": {
+        "version": "0.2",
+        "url": "https://archive.mozilla.org/pub/opus/opus-tools-0.2.tar.gz",
+        "sha256": "b4e56cb00d3e509acfba9a9b627ffd8273b876b4e2408642259f6da28fa0ff86"
+      },
+      "version_command": ["opusenc", "--version"],
+      "version_pattern": "opusenc opus-tools 0\\.2"
+    },
+    "opusinfo": {
+      "purpose": "Ogg Opus structure and stream validation",
+      "package": "opus-tools=0.2-1build5",
+      "installed_path": "/usr/bin/opusinfo",
+      "installed_sha256": "843caab1fee29dcd691fbd4ffe429ecfbeccf3cb8bd466de036d0508edd7b875",
+      "upstream": {
+        "version": "0.2",
+        "url": "https://archive.mozilla.org/pub/opus/opus-tools-0.2.tar.gz",
+        "sha256": "b4e56cb00d3e509acfba9a9b627ffd8273b876b4e2408642259f6da28fa0ff86"
+      },
+      "version_command": ["/bin/sh", "-c", "test -x /usr/bin/opusinfo && /usr/bin/dpkg-query -W -f='opusinfo opus-tools ${Version}\\n' opus-tools"],
+      "version_pattern": "^opusinfo opus-tools 0\\.2-1build5$"
+    },
+    "sdl3_mixer_probe": {
+      "purpose": "device-free SDL3_mixer Opus backend full decode",
+      "source_path": "tools/audio/sdl3-mixer-runtime-probe.c",
+      "source_sha256": "6a68c6535e9865e4198501348689b89cd63f7c36f29ee70182f3bcc65eea9dba",
+      "installed_path": "/usr/local/bin/atrinik-sound-sdl3-mixer-probe",
+      "installed_sha256": "cfbad665c7f7a22e5055e3ae4a81d44d1704c11e5e6514551f121f8b20c06dc9",
+      "decoder_library_source_repository": "atrinik/devcontainer",
+      "decoder_library_source_commit": "66b8508434044ca50822558172c5cef47a888762",
+      "decoded_pcm_safety_bound_bytes": 268435456,
+      "version_command": ["atrinik-sound-sdl3-mixer-probe", "--version"],
+      "version_pattern": "^atrinik-sound-sdl3-mixer-probe 2$",
+      "decode_command": ["atrinik-sound-sdl3-mixer-probe", "{input}", "{expected_frames}", "{behaviors}", "{expected_channels}"]
+    }
+  }
+}
