@@ -784,9 +784,9 @@ def clean_source_coordinates() -> tuple[str, str]:
     except SourceIntegrityError:
         raise
     except ReleaseError as exc:
-        raise ReleaseError("playtest-tree generation requires Git metadata") from exc
+        raise ReleaseError("sound generation requires Git metadata") from exc
     if status_before or status_after:
-        raise ReleaseError("playtest-tree source worktree is not clean")
+        raise ReleaseError("sound source worktree is not clean")
     if commit != final_commit:
         raise ReleaseError("playtest-tree source HEAD changed while reading its coordinates")
     if not re.fullmatch(r"[0-9a-f]{40}", commit) or not re.fullmatch(r"[0-9a-f]{40}", tree):

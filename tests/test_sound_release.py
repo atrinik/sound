@@ -1660,7 +1660,7 @@ class PlaytestTreeTests(unittest.TestCase):
             if asset["logical_path"] == "effects/campfire.ogg"
         )
 
-    def test_dirty_playtest_source_is_rejected(self) -> None:
+    def test_dirty_shared_sound_source_is_rejected(self) -> None:
         completed = lambda output: type("Completed", (), {"stdout": output})()
         responses = [
             completed(f"{ROOT}\n"),
@@ -1673,7 +1673,7 @@ class PlaytestTreeTests(unittest.TestCase):
         ]
         with mock.patch.object(sound_release, "run", side_effect=responses), \
                 mock.patch.object(sound_release, "ensure_exact_tracked_tree"):
-            with self.assertRaisesRegex(sound_release.ReleaseError, "not clean"):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "sound source worktree is not clean"):
                 sound_release.clean_source_coordinates()
 
     def test_hidden_tracked_modifications_are_rejected(self) -> None:
