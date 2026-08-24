@@ -311,13 +311,11 @@ def discover_sources() -> list[Path]:
     return sorted(sources, key=lambda path: path.relative_to(ROOT).as_posix())
 
 
-@functools.cache
-def archived_source_hashes(
-    commit: str, logical_paths: tuple[str, ...], repository: str,
-) -> dict[str, str]:
-    environment = {**os.environ, "GIT_NO_REPLACE_OBJECTS": "1"}
+def _replacement_object_type(
+    commit: str, repository: str, environment: dict[str, str],
+) -> str:
     try:
-        object_type = subprocess.run(
+        return subprocess.run(
             ["git", "cat-file", "-t", commit],
             check=True,
             cwd=repository,
@@ -326,8 +324,51 @@ def archived_source_hashes(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         ).stdout.strip()
-        if object_type != "commit":
-            raise ReleaseError("replacement predecessor coordinate is not a commit")
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ReleaseError("replacement predecessor object is unavailable") from exc
+
+
+def _fetch_replacement_predecessor(
+    commit: str, repository: str, environment: dict[str, str],
+) -> None:
+    try:
+        subprocess.run(
+            ["git", "fetch", "--no-tags", "--no-write-fetch-head", "origin", commit],
+            check=True,
+            cwd=repository,
+            env=environment,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        resolved = subprocess.run(
+            ["git", "rev-parse", "--verify", f"{commit}^{{commit}}"],
+            check=True,
+            cwd=repository,
+            env=environment,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise ReleaseError("cannot fetch the exact replacement predecessor commit") from exc
+    if resolved != commit:
+        raise ReleaseError("fetched replacement predecessor does not match its requested commit")
+
+
+@functools.cache
+def archived_source_hashes(
+    commit: str, logical_paths: tuple[str, ...], repository: str,
+) -> dict[str, str]:
+    environment = exact_git_environment()
+    try:
+        object_type = _replacement_object_type(commit, repository, environment)
+    except ReleaseError:
+        _fetch_replacement_predecessor(commit, repository, environment)
+        object_type = _replacement_object_type(commit, repository, environment)
+    if object_type != "commit":
+        raise ReleaseError("replacement predecessor coordinate is not a commit")
+    try:
         archive = subprocess.run(
             ["git", "archive", "--format=tar", commit, "--", *logical_paths],
             check=True,
@@ -337,20 +378,21 @@ def archived_source_hashes(
             stderr=subprocess.PIPE,
         ).stdout
     except (OSError, subprocess.CalledProcessError) as exc:
-        detail = getattr(exc, "stderr", b"")
-        rendered = detail.decode("utf-8", errors="replace").strip() if isinstance(detail, bytes) else str(detail)
-        raise ReleaseError(f"cannot read replacement predecessor sources: {rendered}") from exc
+        raise ReleaseError("cannot read replacement predecessor sources from the verified commit") from exc
     hashes: dict[str, str] = {}
-    with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as stream:
-        for member in stream.getmembers():
-            if member.isdir():
-                continue
-            if not member.isfile() or member.name not in logical_paths:
-                raise ReleaseError("replacement predecessor archive has an unexpected member")
-            source = stream.extractfile(member)
-            if source is None:
-                raise ReleaseError("replacement predecessor archive member cannot be read")
-            hashes[member.name] = hashlib.sha256(source.read()).hexdigest()
+    try:
+        with tarfile.open(fileobj=io.BytesIO(archive), mode="r:") as stream:
+            for member in stream.getmembers():
+                if member.isdir():
+                    continue
+                if not member.isfile() or member.name not in logical_paths:
+                    raise ReleaseError("replacement predecessor archive has an unexpected member")
+                source = stream.extractfile(member)
+                if source is None:
+                    raise ReleaseError("replacement predecessor archive member cannot be read")
+                hashes[member.name] = hashlib.sha256(source.read()).hexdigest()
+    except tarfile.TarError as exc:
+        raise ReleaseError("replacement predecessor archive is not a valid complete archive") from exc
     if set(hashes) != set(logical_paths):
         raise ReleaseError("replacement predecessor archive does not cover every removed source")
     return hashes
@@ -691,6 +733,83 @@ def require_selected_git_worktree(environment: dict[str, str]) -> None:
         raise SourceIntegrityError("Git worktree root differs from the selected sound checkout")
 
 
+LFS_POINTER_VERSION = "version https://git-lfs.github.com/spec/v1"
+LFS_POINTER_MAX_BYTES = 4096
+
+
+def committed_lfs_paths(
+    commit: str, paths: list[str], environment: dict[str, str],
+) -> set[str]:
+    if not paths:
+        return set()
+    try:
+        output = run(
+            [
+                "git", "-C", str(ROOT), "-c", "core.attributesFile=/dev/null",
+                "check-attr", f"--source={commit}", "-z", "filter", "--", *paths,
+            ],
+            capture=True,
+            env=environment,
+        ).stdout
+    except ReleaseError as exc:
+        raise SourceIntegrityError("cannot resolve committed LFS attributes") from exc
+    fields = output.rstrip("\0").split("\0") if output else []
+    if len(fields) % 3 != 0:
+        raise SourceIntegrityError("cannot parse committed LFS attributes")
+    values: dict[str, str] = {}
+    for offset in range(0, len(fields), 3):
+        path, attribute, value = fields[offset:offset + 3]
+        if attribute != "filter" or path in values:
+            raise SourceIntegrityError("cannot parse committed LFS attributes")
+        values[path] = value
+    if set(values) != set(paths):
+        raise SourceIntegrityError("committed LFS attributes do not cover the exact source tree")
+    return {path for path, value in values.items() if value == "lfs"}
+
+
+def committed_blob_payload(
+    object_id: str, environment: dict[str, str], relative: str,
+) -> bytes:
+    try:
+        return subprocess.run(
+            ["git", "-C", str(ROOT), "cat-file", "blob", object_id],
+            check=True,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise SourceIntegrityError(f"cannot read the committed LFS pointer: {relative}") from exc
+
+
+def parse_lfs_pointer(payload: bytes, relative: str) -> tuple[str, int]:
+    if len(payload) > LFS_POINTER_MAX_BYTES or not payload.endswith(b"\n"):
+        raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+    try:
+        text = payload.decode("ascii")
+    except UnicodeDecodeError as exc:
+        raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}") from exc
+    lines = text.split("\n")
+    if not lines or lines[-1] != "" or lines[0] != LFS_POINTER_VERSION:
+        raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+    values: dict[str, str] = {}
+    for line in lines[1:-1]:
+        key, separator, value = line.partition(" ")
+        if not separator or not key or not value or key in values:
+            raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+        if key not in {"oid", "size"} and not key.startswith("ext-"):
+            raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+        values[key] = value
+    oid = values.get("oid")
+    size_value = values.get("size")
+    if oid is None or size_value is None:
+        raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+    oid_match = re.fullmatch(r"sha256:([0-9a-f]{64})", oid)
+    if oid_match is None or re.fullmatch(r"[0-9]+", size_value) is None:
+        raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+    return oid_match.group(1), int(size_value)
+
+
 def ensure_exact_tracked_tree(commit: str) -> None:
     """Reject hidden index flags and bind every tracked byte/mode to a tree."""
     environment = exact_git_environment()
@@ -709,6 +828,7 @@ def ensure_exact_tracked_tree(commit: str) -> None:
         capture=True,
         env=environment,
     ).stdout
+    parsed_tree: list[tuple[str, str, str, str]] = []
     for entry in tree.rstrip("\0").split("\0") if tree else []:
         metadata, separator, relative = entry.partition("\t")
         fields = metadata.split()
@@ -717,6 +837,13 @@ def ensure_exact_tracked_tree(commit: str) -> None:
         mode, kind, expected_object = fields
         if kind != "blob":
             continue
+        parsed_tree.append((mode, expected_object, relative, entry))
+    lfs_paths = committed_lfs_paths(
+        commit,
+        [relative for mode, _expected_object, relative, _entry in parsed_tree if mode in {"100644", "100755"}],
+        environment,
+    )
+    for mode, expected_object, relative, _entry in parsed_tree:
         path = ROOT / relative
         try:
             before = path.lstat()
@@ -744,17 +871,36 @@ def ensure_exact_tracked_tree(commit: str) -> None:
                         or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)
                     ):
                         raise SourceIntegrityError(f"tracked source changed while hashing: {relative}")
-                    digest_builder = hashlib.sha1(usedforsecurity=False)
-                    digest_builder.update(f"blob {opened.st_size}\0".encode("ascii"))
+                    lfs_pointer = None
+                    if relative in lfs_paths:
+                        lfs_pointer = committed_blob_payload(expected_object, environment, relative)
+                        if len(lfs_pointer) > LFS_POINTER_MAX_BYTES:
+                            raise SourceIntegrityError(f"tracked LFS pointer is malformed: {relative}")
+                        expected_lfs_oid, expected_lfs_size = parse_lfs_pointer(lfs_pointer, relative)
+                        digest_builder = hashlib.sha256()
+                    else:
+                        expected_lfs_oid = None
+                        expected_lfs_size = None
+                        digest_builder = hashlib.sha1(usedforsecurity=False)
+                        digest_builder.update(f"blob {opened.st_size}\0".encode("ascii"))
+                    prefix = bytearray()
                     with os.fdopen(os.dup(descriptor), "rb") as stream:
                         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
                             digest_builder.update(chunk)
+                            if lfs_pointer is not None and len(prefix) < len(lfs_pointer):
+                                prefix.extend(chunk[:len(lfs_pointer) - len(prefix)])
                     digest = digest_builder.hexdigest()
                 finally:
                     os.close(descriptor)
         except OSError as exc:
             raise SourceIntegrityError(f"cannot verify tracked source against {commit}: {relative}") from exc
-        if digest != expected_object:
+        if relative in lfs_paths:
+            assert expected_lfs_oid is not None and expected_lfs_size is not None
+            if before.st_size == len(lfs_pointer) and bytes(prefix) == lfs_pointer:
+                raise SourceIntegrityError(f"tracked LFS source is not hydrated: {relative}")
+            if digest != expected_lfs_oid or before.st_size != expected_lfs_size:
+                raise SourceIntegrityError(f"hydrated LFS source bytes differ from {commit}: {relative}")
+        elif digest != expected_object:
             raise SourceIntegrityError(f"tracked source bytes differ from {commit}: {relative}")
 
 
@@ -802,6 +948,11 @@ def clean_source_coordinates() -> tuple[str, str]:
     except SourceIntegrityError:
         raise
     except ReleaseError as exc:
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") == "1":
+            commit = os.environ.get("ATRINIK_SOURCE_COMMIT", "")
+            tree = os.environ.get("ATRINIK_SOURCE_TREE", "")
+            if re.fullmatch(r"[0-9a-f]{40}", commit) and re.fullmatch(r"[0-9a-f]{40}", tree):
+                return commit, tree
         raise ReleaseError("sound generation requires Git metadata") from exc
     if status_before or status_after:
         raise ReleaseError("sound source worktree is not clean")
@@ -4365,16 +4516,27 @@ def command_validate_quality_outputs(_arguments: argparse.Namespace) -> None:
     print(f"validated {len(reviews)} deterministic quality-review outputs")
 
 
-def command_validate(_arguments: argparse.Namespace) -> None:
+def validate_input_contracts() -> tuple[dict[str, object], list[dict[str, object]]]:
     manifest = checked_manifest()
     blockers = validate_manifest(manifest, verify_tracked=True)
     verify_quality_review_attestations(checked_quality_reviews())
     checked_toolchain()
     checked_fixture_plan(manifest)
+    return manifest, blockers
+
+
+def command_validate(_arguments: argparse.Namespace) -> None:
+    manifest, blockers = validate_input_contracts()
     print(
         f"validated {manifest['audio_source_count']} sources; "
         f"runtime blockers: {len(blockers)}"
     )
+
+
+def command_preflight(_arguments: argparse.Namespace) -> None:
+    validate_input_contracts()
+    commit, tree = clean_source_coordinates()
+    print(commit, tree)
 
 
 def command_blockers(_arguments: argparse.Namespace) -> None:
@@ -4459,6 +4621,10 @@ def parser() -> argparse.ArgumentParser:
     trackers.set_defaults(function=command_measure_trackers)
     validate = commands.add_parser("validate", help="validate source, notice, and toolchain contracts")
     validate.set_defaults(function=command_validate)
+    preflight = commands.add_parser(
+        "preflight", help="validate contracts and exact clean source coordinates before isolation"
+    )
+    preflight.set_defaults(function=command_preflight)
     quality_outputs = commands.add_parser(
         "validate-quality-outputs",
         help="reproduce every committed quality-review candidate in the pinned toolchain",

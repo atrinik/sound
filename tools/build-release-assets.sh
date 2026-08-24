@@ -34,7 +34,7 @@ if (( ${#existing_outputs[@]} != 0 )); then
 fi
 
 tools/package-release.sh "${tag}" "${output_directory}"
-python3 tools/sound_release.py validate
+python3 tools/sound_release.py preflight >/dev/null
 export ATRINIK_RELEASE_INPUT_ATTESTED=1
 export SOURCE_DATE_EPOCH
 SOURCE_DATE_EPOCH=$(git show -s --format=%ct "${tag}^{commit}")
