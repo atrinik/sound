@@ -49,6 +49,15 @@ path, removed source hash and immutable predecessor commit, stable logical key,
 and transformation note. A
 replacement cannot coexist with the removed legacy file, silently change a
 lookup key, or bypass the independent behavioral and critical-listening gate.
+When a predecessor commit is not in a clean checkout's object graph, validation
+fetches that full commit by its recorded SHA from `origin`, verifies the
+resolved commit identity, and hashes a commit-bound archive of every removed
+logical path. Exact-tree validation reads LFS attributes from the claimed Git
+tree, treats its Git blob as the canonical pointer, and compares hydrated
+payload SHA-256 and size to that pointer while retaining ordinary Git blob,
+mode, index, and clean-worktree checks. The host validation runs before the
+network-isolated playtest and Classic builders, so those builders consume the
+same verified object graph without network access.
 These manifests and the
 stable sound IDs are shared groundwork for `atrinik/sound#13`, not a parallel
 Classic-only contract.
@@ -115,8 +124,10 @@ python3 tools/sound_release.py blockers
 For a nonempty quality ledger, build `atrinik-sound-audio` first.
 `tools/validate.sh` performs metadata, Git, and live GitHub checks on the host,
 then automatically runs deterministic output verification inside that pinned
-image. A missing image/tool fails closed instead of trusting self-asserted
-output evidence.
+image. It also materializes any missing immutable source predecessor and
+verifies hydrated LFS payloads before the network-isolated playtest and Classic
+stages begin. A missing image/tool or unavailable predecessor fails closed
+instead of trusting self-asserted output evidence.
 
 Tracker duration refresh is performed inside the pinned image, never copied
 from the source manifest:

@@ -206,6 +206,45 @@ class SourceManifestTests(unittest.TestCase):
                 hashes["background/legacy.mid"],
             )
 
+    def test_predecessor_hashes_fetch_a_disconnected_commit_by_exact_sha(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            remote = root / "remote.git"
+            seed = root / "seed"
+            repository = root / "checkout"
+            subprocess.run(["git", "init", "--bare", "--quiet", str(remote)], check=True)
+            subprocess.run(["git", "init", "--quiet", str(seed)], check=True)
+            subprocess.run(["git", "-C", str(seed), "config", "user.name", "Sound Test"], check=True)
+            subprocess.run(["git", "-C", str(seed), "config", "user.email", "sound-test@example.invalid"], check=True)
+            predecessor = seed / "background" / "legacy.mid"
+            predecessor.parent.mkdir()
+            predecessor.write_bytes(b"fetched predecessor bytes")
+            subprocess.run(["git", "-C", str(seed), "add", "background/legacy.mid"], check=True)
+            subprocess.run(["git", "-C", str(seed), "commit", "--quiet", "-m", "old"], check=True)
+            old_commit = subprocess.run(
+                ["git", "-C", str(seed), "rev-parse", "HEAD"],
+                check=True, text=True, capture_output=True,
+            ).stdout.strip()
+            subprocess.run(["git", "-C", str(seed), "remote", "add", "origin", str(remote)], check=True)
+            subprocess.run(["git", "-C", str(seed), "push", "--quiet", "origin", "HEAD"], check=True)
+
+            subprocess.run(["git", "init", "--quiet", str(repository)], check=True)
+            subprocess.run(["git", "-C", str(repository), "config", "user.name", "Sound Test"], check=True)
+            subprocess.run(["git", "-C", str(repository), "config", "user.email", "sound-test@example.invalid"], check=True)
+            current = repository / "current.txt"
+            current.write_bytes(b"current checkout")
+            subprocess.run(["git", "-C", str(repository), "add", "current.txt"], check=True)
+            subprocess.run(["git", "-C", str(repository), "commit", "--quiet", "-m", "current"], check=True)
+            subprocess.run(["git", "-C", str(repository), "remote", "add", "origin", str(remote)], check=True)
+
+            hashes = sound_release.archived_source_hashes(
+                old_commit, ("background/legacy.mid",), str(repository),
+            )
+            self.assertEqual(
+                hashlib.sha256(b"fetched predecessor bytes").hexdigest(),
+                hashes["background/legacy.mid"],
+            )
+
     def test_duration_drift_is_reconciled(self) -> None:
         restful = self.assets["background/restful_town.mid"]["source"]
         self.assertGreater(restful["duration_seconds"], 0)
@@ -781,6 +820,15 @@ class SourceManifestTests(unittest.TestCase):
             sound_release.validate_manifest(drifted, compare_generated=False)
 
     def test_runtime_and_playtest_toolchain_schemas_are_isolated(self) -> None:
+        released_commit = "50ec0c0134313d9128951ea845c6038951c1c62e"
+        subprocess.run(
+            ["git", "fetch", "--no-tags", "--no-write-fetch-head", "origin", released_commit],
+            cwd=ROOT,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
         for relative in (
             "manifests/audio-toolchain.json",
             "manifests/license-reviews.json",
@@ -796,7 +844,7 @@ class SourceManifestTests(unittest.TestCase):
             "tools/audio/Dockerfile",
         ):
             released = subprocess.run(
-                ["git", "-C", str(ROOT), "show", f"50ec0c0:{relative}"],
+                ["git", "-C", str(ROOT), "show", f"{released_commit}:{relative}"],
                 check=True,
                 capture_output=True,
             ).stdout
@@ -806,7 +854,7 @@ class SourceManifestTests(unittest.TestCase):
             ("source-assets.json", "source-assets-v1.schema.json"),
         ):
             released = json.loads(subprocess.run(
-                ["git", "-C", str(ROOT), "show", f"50ec0c0:manifests/{manifest_name}"],
+                ["git", "-C", str(ROOT), "show", f"{released_commit}:manifests/{manifest_name}"],
                 check=True,
                 capture_output=True,
                 text=True,
@@ -1651,6 +1699,98 @@ if (reviewFieldComplete('artifacts','1234567')) process.exit(5);
                     sound_release.verify_review_bundle_candidates(
                         root, {logical_path: bundled}, {logical_path: {}},
                     )
+
+
+class ExactTrackedTreeTests(unittest.TestCase):
+    def create_repository(
+        self, root: Path, *, path: str, payload: bytes, attributes: str | None = None,
+    ) -> tuple[str, Path]:
+        subprocess.run(["git", "init", "--quiet", str(root)], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.name", "Sound Test"], check=True)
+        subprocess.run(["git", "-C", str(root), "config", "user.email", "sound-test@example.invalid"], check=True)
+        if attributes is not None:
+            (root / ".gitattributes").write_text(attributes, encoding="ascii")
+            subprocess.run(["git", "-C", str(root), "add", ".gitattributes"], check=True)
+        tracked = root / path
+        tracked.parent.mkdir(parents=True, exist_ok=True)
+        tracked.write_bytes(payload)
+        subprocess.run(["git", "-C", str(root), "add", path], check=True)
+        subprocess.run(["git", "-C", str(root), "commit", "--quiet", "-m", "fixture"], check=True)
+        commit = subprocess.run(
+            ["git", "-C", str(root), "rev-parse", "HEAD"],
+            check=True, text=True, capture_output=True,
+        ).stdout.strip()
+        return commit, tracked
+
+    def lfs_pointer(self, payload: bytes, *, size: int | None = None) -> bytes:
+        return (
+            b"version https://git-lfs.github.com/spec/v1\n"
+            + f"oid sha256:{hashlib.sha256(payload).hexdigest()}\n".encode("ascii")
+            + f"size {len(payload) if size is None else size}\n".encode("ascii")
+        )
+
+    def test_hydrated_lfs_payload_is_checked_against_committed_pointer(self) -> None:
+        payload = b"hydrated LFS payload"
+        pointer = self.lfs_pointer(payload)
+        with tempfile.TemporaryDirectory(prefix="test-sound-lfs-") as temporary:
+            root = Path(temporary)
+            commit, tracked = self.create_repository(
+                root,
+                path="background/fixture.ogg",
+                payload=pointer,
+                attributes="*.ogg filter=lfs diff=lfs merge=lfs -text\n",
+            )
+            tracked.write_bytes(payload)
+            with mock.patch.object(sound_release, "ROOT", root):
+                sound_release.ensure_exact_tracked_tree(commit)
+
+                tracked.write_bytes(pointer)
+                with self.assertRaisesRegex(sound_release.SourceIntegrityError, "not hydrated"):
+                    sound_release.ensure_exact_tracked_tree(commit)
+
+                tracked.write_bytes(b"wrong hydrated payload")
+                with self.assertRaisesRegex(sound_release.SourceIntegrityError, "hydrated LFS source bytes differ"):
+                    sound_release.ensure_exact_tracked_tree(commit)
+
+    def test_lfs_pointer_size_and_syntax_are_fail_closed(self) -> None:
+        payload = b"payload whose size is pinned"
+        with tempfile.TemporaryDirectory(prefix="test-sound-lfs-contract-") as temporary:
+            root = Path(temporary)
+            commit, tracked = self.create_repository(
+                root,
+                path="fixture.ogg",
+                payload=self.lfs_pointer(payload, size=len(payload) + 1),
+                attributes="*.ogg filter=lfs -text\n",
+            )
+            tracked.write_bytes(payload)
+            with mock.patch.object(sound_release, "ROOT", root):
+                with self.assertRaisesRegex(sound_release.SourceIntegrityError, "hydrated LFS source bytes differ"):
+                    sound_release.ensure_exact_tracked_tree(commit)
+
+            malformed_root = root / "malformed"
+            malformed_pointer = b"version https://git-lfs.github.com/spec/v1\noid sha256:not-a-sha\nsize 4\n"
+            malformed_commit, malformed_tracked = self.create_repository(
+                malformed_root,
+                path="fixture.ogg",
+                payload=malformed_pointer,
+                attributes="*.ogg filter=lfs -text\n",
+            )
+            malformed_tracked.write_bytes(b"data")
+            with mock.patch.object(sound_release, "ROOT", malformed_root):
+                with self.assertRaisesRegex(sound_release.SourceIntegrityError, "pointer is malformed"):
+                    sound_release.ensure_exact_tracked_tree(malformed_commit)
+
+    def test_ordinary_git_blobs_keep_git_object_hash_validation(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="test-sound-git-blob-") as temporary:
+            root = Path(temporary)
+            commit, tracked = self.create_repository(
+                root, path="ordinary.txt", payload=b"ordinary Git blob\n",
+            )
+            with mock.patch.object(sound_release, "ROOT", root):
+                sound_release.ensure_exact_tracked_tree(commit)
+                tracked.write_bytes(b"changed ordinary Git blob\n")
+                with self.assertRaisesRegex(sound_release.SourceIntegrityError, "tracked source bytes differ"):
+                    sound_release.ensure_exact_tracked_tree(commit)
 
 
 class PlaytestTreeTests(unittest.TestCase):
