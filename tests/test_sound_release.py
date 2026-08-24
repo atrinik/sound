@@ -1709,6 +1709,14 @@ class ExactTrackedTreeTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(root), "config", "user.name", "Sound Test"], check=True)
         subprocess.run(["git", "-C", str(root), "config", "user.email", "sound-test@example.invalid"], check=True)
         if attributes is not None:
+            subprocess.run(
+                ["git", "-C", str(root), "config", "--local", "--unset-all", "filter.lfs.process"],
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            subprocess.run(["git", "-C", str(root), "config", "filter.lfs.clean", "cat"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "filter.lfs.smudge", "cat"], check=True)
             (root / ".gitattributes").write_text(attributes, encoding="ascii")
             subprocess.run(["git", "-C", str(root), "add", ".gitattributes"], check=True)
         tracked = root / path
