@@ -119,15 +119,19 @@ effective repository permission; CI grants only `contents: read`,
 ```sh
 tools/validate.sh
 python3 tools/sound_release.py blockers
+python3 tools/sound_release.py preflight
 ```
 
 For a nonempty quality ledger, build `atrinik-sound-audio` first.
 `tools/validate.sh` performs metadata, Git, and live GitHub checks on the host,
 then automatically runs deterministic output verification inside that pinned
-image. It also materializes any missing immutable source predecessor and
-verifies hydrated LFS payloads before the network-isolated playtest and Classic
-stages begin. A missing image/tool or unavailable predecessor fails closed
-instead of trusting self-asserted output evidence.
+image. The release publisher and CI run `preflight` before any network-isolated
+playtest or Classic container: it materializes any missing immutable source
+predecessor, verifies hydrated LFS payloads, and exports the exact source
+coordinates as a host attestation. Isolated containers may use that attestation
+only for unavailable Git metadata; source-byte mismatches still fail closed. A
+missing image/tool or unavailable predecessor therefore fails closed instead of
+trusting self-asserted output evidence.
 
 Tracker duration refresh is performed inside the pinned image, never copied
 from the source manifest:

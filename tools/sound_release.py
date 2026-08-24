@@ -948,6 +948,11 @@ def clean_source_coordinates() -> tuple[str, str]:
     except SourceIntegrityError:
         raise
     except ReleaseError as exc:
+        if os.environ.get("ATRINIK_RELEASE_INPUT_ATTESTED") == "1":
+            commit = os.environ.get("ATRINIK_SOURCE_COMMIT", "")
+            tree = os.environ.get("ATRINIK_SOURCE_TREE", "")
+            if re.fullmatch(r"[0-9a-f]{40}", commit) and re.fullmatch(r"[0-9a-f]{40}", tree):
+                return commit, tree
         raise ReleaseError("sound generation requires Git metadata") from exc
     if status_before or status_after:
         raise ReleaseError("sound source worktree is not clean")
@@ -4511,16 +4516,27 @@ def command_validate_quality_outputs(_arguments: argparse.Namespace) -> None:
     print(f"validated {len(reviews)} deterministic quality-review outputs")
 
 
-def command_validate(_arguments: argparse.Namespace) -> None:
+def validate_input_contracts() -> tuple[dict[str, object], list[dict[str, object]]]:
     manifest = checked_manifest()
     blockers = validate_manifest(manifest, verify_tracked=True)
     verify_quality_review_attestations(checked_quality_reviews())
     checked_toolchain()
     checked_fixture_plan(manifest)
+    return manifest, blockers
+
+
+def command_validate(_arguments: argparse.Namespace) -> None:
+    manifest, blockers = validate_input_contracts()
     print(
         f"validated {manifest['audio_source_count']} sources; "
         f"runtime blockers: {len(blockers)}"
     )
+
+
+def command_preflight(_arguments: argparse.Namespace) -> None:
+    validate_input_contracts()
+    commit, tree = clean_source_coordinates()
+    print(commit, tree)
 
 
 def command_blockers(_arguments: argparse.Namespace) -> None:
@@ -4605,6 +4621,10 @@ def parser() -> argparse.ArgumentParser:
     trackers.set_defaults(function=command_measure_trackers)
     validate = commands.add_parser("validate", help="validate source, notice, and toolchain contracts")
     validate.set_defaults(function=command_validate)
+    preflight = commands.add_parser(
+        "preflight", help="validate contracts and exact clean source coordinates before isolation"
+    )
+    preflight.set_defaults(function=command_preflight)
     quality_outputs = commands.add_parser(
         "validate-quality-outputs",
         help="reproduce every committed quality-review candidate in the pinned toolchain",

@@ -80,7 +80,11 @@ jobs:
       - name: Preflight immutable source predecessors
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/sound_release.py validate
+        run: |
+          read -r source_commit source_tree < <(python3 tools/sound_release.py preflight)
+          printf 'ATRINIK_RELEASE_INPUT_ATTESTED=1\n' >> "$GITHUB_ENV"
+          printf 'ATRINIK_SOURCE_COMMIT=%s\nATRINIK_SOURCE_TREE=%s\n' \
+            "$source_commit" "$source_tree" >> "$GITHUB_ENV"
 
       - name: Build twice and compare
         run: |
@@ -91,8 +95,9 @@ jobs:
               --volume "$PWD:/workspaces/sound:ro" \
               --volume "$PWD/build/${output}:/output" \
               --env SOURCE_DATE_EPOCH=1700000000 \
-              --env ATRINIK_SOURCE_COMMIT="$(git rev-parse HEAD)" \
-              --env ATRINIK_SOURCE_TREE="$(git rev-parse 'HEAD^{tree}')" \
+              --env ATRINIK_RELEASE_INPUT_ATTESTED \
+              --env ATRINIK_SOURCE_COMMIT \
+              --env ATRINIK_SOURCE_TREE \
               atrinik-sound-audio \
               python3 tools/sound_release.py \
                 build-runtime v0.0.0 /output --fixtures
@@ -148,7 +153,11 @@ jobs:
       - name: Preflight immutable source predecessors
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 tools/sound_release.py validate
+        run: |
+          read -r source_commit source_tree < <(python3 tools/sound_release.py preflight)
+          printf 'ATRINIK_RELEASE_INPUT_ATTESTED=1\n' >> "$GITHUB_ENV"
+          printf 'ATRINIK_SOURCE_COMMIT=%s\nATRINIK_SOURCE_TREE=%s\n' \
+            "$source_commit" "$source_tree" >> "$GITHUB_ENV"
 
       - name: Build and verify the complete tree twice
         run: |
@@ -169,6 +178,9 @@ jobs:
               --user "$(id -u):$(id -g)" \
               --volume "$PWD:/workspaces/sound" \
               --workdir /workspaces/sound \
+              --env ATRINIK_RELEASE_INPUT_ATTESTED \
+              --env ATRINIK_SOURCE_COMMIT \
+              --env ATRINIK_SOURCE_TREE \
               atrinik-sound-audio \
               python3 tools/sound_release.py build-playtest-tree "build/${output}"
             printf 'playtest phase timing: %s=%ss\n' \
@@ -181,6 +193,9 @@ jobs:
             --user "$(id -u):$(id -g)" \
             --volume "$PWD:/workspaces/sound" \
             --workdir /workspaces/sound \
+            --env ATRINIK_RELEASE_INPUT_ATTESTED \
+            --env ATRINIK_SOURCE_COMMIT \
+            --env ATRINIK_SOURCE_TREE \
             atrinik-sound-audio \
             python3 tools/sound_release.py verify-paired-playtest-trees \
               build/playtest-a build/playtest-b

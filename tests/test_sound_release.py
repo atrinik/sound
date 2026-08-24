@@ -1310,6 +1310,21 @@ class SourceManifestTests(unittest.TestCase):
             with self.assertRaisesRegex(sound_release.ReleaseError, "hash mismatch"):
                 sound_release.verify_review_evidence(wrong, "schema fixture")
 
+    def test_host_attestation_supplies_coordinates_when_isolated_git_is_unavailable(self) -> None:
+        environment = {
+            "ATRINIK_RELEASE_INPUT_ATTESTED": "1",
+            "ATRINIK_SOURCE_COMMIT": "a" * 40,
+            "ATRINIK_SOURCE_TREE": "b" * 40,
+        }
+        with mock.patch.dict(sound_release.os.environ, environment, clear=True), \
+                mock.patch.object(sound_release, "run", side_effect=sound_release.ReleaseError("Git unavailable")):
+            self.assertEqual(("a" * 40, "b" * 40), sound_release.clean_source_coordinates())
+
+        with mock.patch.dict(sound_release.os.environ, {"ATRINIK_RELEASE_INPUT_ATTESTED": "1"}, clear=True), \
+                mock.patch.object(sound_release, "run", side_effect=sound_release.ReleaseError("Git unavailable")):
+            with self.assertRaisesRegex(sound_release.ReleaseError, "sound generation requires Git metadata"):
+                sound_release.clean_source_coordinates()
+
     def test_review_candidate_is_nonpublishing_and_license_gated(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             arguments = type("Arguments", (), {"logical_path": "background/campfire_tales.mid", "output_directory": temporary})()
@@ -1709,20 +1724,24 @@ class ExactTrackedTreeTests(unittest.TestCase):
         subprocess.run(["git", "-C", str(root), "config", "user.name", "Sound Test"], check=True)
         subprocess.run(["git", "-C", str(root), "config", "user.email", "sound-test@example.invalid"], check=True)
         if attributes is not None:
-            subprocess.run(
-                ["git", "-C", str(root), "config", "--local", "--unset-all", "filter.lfs.process"],
-                check=False,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            subprocess.run(["git", "-C", str(root), "config", "filter.lfs.clean", "cat"], check=True)
-            subprocess.run(["git", "-C", str(root), "config", "filter.lfs.smudge", "cat"], check=True)
             (root / ".gitattributes").write_text(attributes, encoding="ascii")
             subprocess.run(["git", "-C", str(root), "add", ".gitattributes"], check=True)
         tracked = root / path
         tracked.parent.mkdir(parents=True, exist_ok=True)
         tracked.write_bytes(payload)
-        subprocess.run(["git", "-C", str(root), "add", path], check=True)
+        if attributes is None:
+            subprocess.run(["git", "-C", str(root), "add", path], check=True)
+        else:
+            blob = subprocess.run(
+                ["git", "-C", str(root), "hash-object", "-w", "--stdin"],
+                input=payload,
+                check=True,
+                capture_output=True,
+            ).stdout.decode("ascii").strip()
+            subprocess.run(
+                ["git", "-C", str(root), "update-index", "--add", "--cacheinfo", f"100644,{blob},{path}"],
+                check=True,
+            )
         subprocess.run(["git", "-C", str(root), "commit", "--quiet", "-m", "fixture"], check=True)
         commit = subprocess.run(
             ["git", "-C", str(root), "rev-parse", "HEAD"],
