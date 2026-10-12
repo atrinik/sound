@@ -34,6 +34,9 @@
 - Validate that required license files are non-empty, all referenced assets are
   tracked regular files, release packaging is deterministic, and consumer locks
   change coherently when a release is consumed.
+- `Dependency review` is advisory. Before merge, the Codex implementer reads
+  its PR comment or job summary and fixes actionable introduced risk, or records
+  explicit maintainer acceptance of existing risk.
 - Commits and pull-request titles use Conventional Commits. Every squash merge
   is released by semantic-release.
 - Keep generated archives under `build/`, preserve unrelated work, and finish
