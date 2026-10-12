@@ -34,6 +34,11 @@
 - Validate that required license files are non-empty, all referenced assets are
   tracked regular files, release packaging is deterministic, and consumer locks
   change coherently when a release is consumed.
+- Advisory `Dependency review` covers revisions where the workflow exists. Before
+  merge, Codex reads the latest current-HEAD job summary even if a bot comment
+  exists; fix actionable introduced risk or record explicit maintainer-accepted
+  existing risk. License metadata does not certify compatibility; existing
+  repository license policies apply.
 - Commits and pull-request titles use Conventional Commits. Every squash merge
   is released by semantic-release.
 - Keep generated archives under `build/`, preserve unrelated work, and finish
